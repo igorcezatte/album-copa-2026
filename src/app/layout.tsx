@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { NavBar } from '@/components/NavBar'
+import { AuthProvider } from '@/providers/AuthProvider'
 
 export const metadata: Metadata = {
   title: 'Álbum Copa 2026',
@@ -20,10 +21,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className="min-h-screen bg-copa-bg">
-        <div className="max-w-lg mx-auto min-h-screen relative">
-          <main className="pb-20">{children}</main>
-          <NavBar />
-        </div>
+        <AuthProvider>
+          <div className="max-w-lg mx-auto min-h-screen relative">
+            <main className="pb-20">{children}</main>
+            <NavBar />
+          </div>
+        </AuthProvider>
       </body>
     </html>
   )

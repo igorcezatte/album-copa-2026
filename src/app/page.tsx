@@ -6,6 +6,8 @@ import { GROUPS, TOTAL_STICKERS } from '@/data/teams'
 import { GroupCard } from '@/components/GroupCard'
 import { ProgressBar } from '@/components/ProgressBar'
 import { pct } from '@/lib/utils'
+import { AuthButton } from '@/components/AuthButton'
+import { SyncBanner } from '@/components/SyncBanner'
 
 export default function HomePage() {
   const total = useAlbumStore((s) => s.getTotalProgress())
@@ -15,17 +17,20 @@ export default function HomePage() {
     <div className="px-4 pt-6 animate-fade-in">
       {/* Hero header */}
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm"
-            style={{ background: 'linear-gradient(135deg, #f5c42e, #d4a017)' }}
-          >
-            <span className="text-black">26</span>
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm"
+              style={{ background: 'linear-gradient(135deg, #f5c42e, #d4a017)' }}
+            >
+              <span className="text-black">26</span>
+            </div>
+            <div>
+              <h1 className="text-lg font-black text-white leading-none">Álbum Copa 2026</h1>
+              <p className="text-[10px] text-white/40 font-medium">FIFA World Cup</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-black text-white leading-none">Álbum Copa 2026</h1>
-            <p className="text-[10px] text-white/40 font-medium">FIFA World Cup</p>
-          </div>
+          <AuthButton />
         </div>
 
         {/* Total progress */}
@@ -57,6 +62,9 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Sync banner — aparece após 10+ figurinhas, apenas para anônimos */}
+      <SyncBanner />
 
       {/* Groups grid */}
       <div className="mb-4">
