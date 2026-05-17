@@ -290,23 +290,27 @@ async function renderPdfDoc(data: FullPdfData): Promise<import('jspdf').jsPDF> {
 
         // Completo ou números
         if (team.missing.length === 0) {
+          // Bolinha verde + "Completo" logo após o nome (evita char ✓ que corrompe jsPDF)
+          const nameEndX = cx + nameX + doc.getTextWidth(truncName)
+          doc.setFillColor(...green)
+          doc.circle(nameEndX + 2.8, midY + 0.8, 1.4, 'F')
           doc.setTextColor(...green)
           doc.setFontSize(5.5)
           doc.setFont('helvetica', 'bold')
-          doc.text('✓ Completo', cx + colW - 1, midY + 2.2, { align: 'right' })
+          doc.text('Completo', nameEndX + 5.5, midY + 2.2)
         } else {
-          const numStr = team.missing.join(' · ')
+          // Números separados por espaço (seguro em todas as codificações)
+          const numStr = team.missing.join(' ')
           const allLines = doc.splitTextToSize(numStr, numW) as string[]
           const lines = allLines.slice(0, MAX_LINES)
           if (allLines.length > MAX_LINES) {
-            lines[MAX_LINES - 1] = lines[MAX_LINES - 1].replace(/ · [^ ·]*$/, ' · ...')
+            lines[MAX_LINES - 1] = (lines[MAX_LINES - 1] as string).trimEnd() + '...'
           }
 
           doc.setTextColor(...muted)
           doc.setFontSize(5.5)
           doc.setFont('helvetica', 'normal')
 
-          // Centraliza verticalmente o bloco de linhas no row
           const textBlockH = lines.length * LINE_H
           const textStartY = midY - textBlockH / 2 + 2.2
 
@@ -347,12 +351,14 @@ async function renderPdfDoc(data: FullPdfData): Promise<import('jspdf').jsPDF> {
     const contentY = specY + GH + 3
 
     if (section.missing.length === 0) {
+      doc.setFillColor(...green)
+      doc.circle(sx + 6, contentY - 1, 1.6, 'F')
       doc.setTextColor(...green)
       doc.setFontSize(6)
       doc.setFont('helvetica', 'bold')
-      doc.text('✓ Seção completa', sx + 4, contentY)
+      doc.text('Secao completa', sx + 9.5, contentY)
     } else {
-      const numStr = section.missing.join(' · ')
+      const numStr = section.missing.join(' ')
       const lines = doc.splitTextToSize(numStr, specW - 8) as string[]
       doc.setTextColor(...muted)
       doc.setFontSize(5.5)
