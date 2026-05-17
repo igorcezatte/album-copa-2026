@@ -595,11 +595,22 @@ export const CC_SECTION: SpecialSection = {
   code: 'CC',
   name: 'Figurinhas Coca-Cola',
   section: 'cocacola',
-  stickers: Array.from({ length: 14 }, (_, i) => ({
-    number: String(i + 1),
-    label: `Coca-Cola CC${i + 1}`,
-    type: 'special' as const,
-  })),
+  stickers: [
+    { number: '1',  label: 'Lionel Messi',      type: 'special' },
+    { number: '2',  label: 'Kylian Mbappé',     type: 'special' },
+    { number: '3',  label: 'Vinicius Jr.',       type: 'special' },
+    { number: '4',  label: 'Erling Haaland',    type: 'special' },
+    { number: '5',  label: 'Jude Bellingham',   type: 'special' },
+    { number: '6',  label: 'Lamine Yamal',      type: 'special' },
+    { number: '7',  label: 'Pedri',             type: 'special' },
+    { number: '8',  label: 'Harry Kane',        type: 'special' },
+    { number: '9',  label: 'Cristiano Ronaldo', type: 'special' },
+    { number: '10', label: 'Son Heung-min',     type: 'special' },
+    { number: '11', label: 'Mohamed Salah',     type: 'special' },
+    { number: '12', label: 'Kevin De Bruyne',   type: 'special' },
+    { number: '13', label: 'Rodri',             type: 'special' },
+    { number: '14', label: 'Raphinha',          type: 'special' },
+  ],
 }
 
 export function getTeamsByGroup(group: string): Team[] {
