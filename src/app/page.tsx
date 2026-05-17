@@ -39,13 +39,13 @@ export default function HomePage() {
         >
           <div className="flex items-end justify-between mb-2">
             <div>
-              <p className="text-3xl font-black text-white leading-none">
+              <p suppressHydrationWarning className="text-3xl font-black text-white leading-none">
                 {total.collected}
                 <span className="text-white/30 text-lg">/{total.total}</span>
               </p>
               <p className="text-xs text-white/40 mt-0.5">figurinhas coletadas</p>
             </div>
-            <p className="text-4xl font-black text-copa-gold leading-none">{percentage}%</p>
+            <p suppressHydrationWarning className="text-4xl font-black text-copa-gold leading-none">{percentage}%</p>
           </div>
           <ProgressBar
             value={total.collected}
@@ -95,7 +95,7 @@ export default function HomePage() {
 function StatPill({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="flex-1 text-center">
-      <p className="text-sm font-black text-white">{value}</p>
+      <p suppressHydrationWarning className="text-sm font-black text-white">{value}</p>
       <p className="text-[9px] text-white/30 font-medium">{label}</p>
     </div>
   )
@@ -123,10 +123,10 @@ function SpecialCard({ code, label, total }: { code: string; label: string; tota
         <div className="flex items-center gap-2 mb-2">
           <span className="text-base leading-none">{meta.icon}</span>
           <span className="text-xs font-bold text-white/70 flex-1 truncate">{label}</span>
-          <span className="text-xs font-black" style={{ color: meta.color }}>{percentage}%</span>
+          <span suppressHydrationWarning className="text-xs font-black" style={{ color: meta.color }}>{percentage}%</span>
         </div>
         <ProgressBar value={progress.collected} total={progress.total} color={meta.color} height="xs" />
-        <p className="text-right text-[10px] text-white/20 mt-1 font-mono">
+        <p suppressHydrationWarning className="text-right text-[10px] text-white/20 mt-1 font-mono">
           {progress.collected}/{total}
         </p>
       </div>

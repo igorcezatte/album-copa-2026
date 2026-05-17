@@ -38,6 +38,7 @@ export function GroupCard({ group }: GroupCardProps) {
             <span className="text-xs text-white/50 font-medium">Grupo</span>
           </div>
           <span
+            suppressHydrationWarning
             className="text-sm font-black"
             style={{ color: percentage === 100 ? '#22c55e' : color }}
           >
@@ -56,7 +57,7 @@ export function GroupCard({ group }: GroupCardProps) {
         <ProgressBar value={progress.collected} total={progress.total} color={color} height="xs" />
 
         {/* Count */}
-        <p className="text-right text-[10px] text-white/30 mt-1 font-mono">
+        <p suppressHydrationWarning className="text-right text-[10px] text-white/30 mt-1 font-mono">
           {progress.collected}/{progress.total}
         </p>
       </div>
