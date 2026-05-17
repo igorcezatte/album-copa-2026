@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { Flag } from './Flag'
 import { useAlbumStore, stickerId } from '@/store/albumStore'
@@ -14,13 +14,10 @@ interface StickerCardProps {
   sticker: StickerDef
 }
 
-const COUNTER_AUTO_CLOSE = 3500
 
 export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: StickerCardProps) {
   const [animating, setAnimating] = useState(false)
   const [showCounter, setShowCounter] = useState(false)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
   const id = stickerId(teamCode, sticker.number)
   const quantity  = useAlbumStore((s) => s.getQuantity(id))
   const collect   = useAlbumStore((s) => s.collect)
@@ -31,19 +28,11 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
   const collected  = quantity > 0
   const duplicates = Math.max(0, quantity - 1)
 
-  // Fecha o contador automaticamente após inatividade
-  const scheduleClose = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => setShowCounter(false), COUNTER_AUTO_CLOSE)
-  }, [])
-
-  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 
   const openCounter = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     setShowCounter(true)
-    scheduleClose()
-  }, [scheduleClose])
+  }, [])
 
   const handleCardTap = useCallback(() => {
     if (!collected) {
@@ -53,20 +42,14 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
       setTimeout(() => setAnimating(false), 300)
       return
     }
-    if (showCounter) {
-      setShowCounter(false)
-      if (timerRef.current) clearTimeout(timerRef.current)
-    } else {
-      setShowCounter(true)
-      scheduleClose()
-    }
-  }, [collected, collect, id, showCounter, scheduleClose])
+    setShowCounter((prev) => !prev)
+  }, [collected, collect, id])
 
   const handleAdd = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     addDuplicate(id)
-    scheduleClose()
-  }, [addDuplicate, id, scheduleClose])
+    playCollectSound()
+  }, [addDuplicate, id])
 
   const handleRemove = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
@@ -75,9 +58,8 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
       setShowCounter(false)
     } else {
       removeDuplicate(id)
-      scheduleClose()
     }
-  }, [quantity, uncollect, removeDuplicate, id, scheduleClose])
+  }, [quantity, uncollect, removeDuplicate, id])
 
   const typeLabel = {
     badge: 'Escudo',
