@@ -5,6 +5,18 @@ import { useSession } from 'next-auth/react'
 import { useAlbumStore } from '@/store/albumStore'
 import { buildSyncPayload, mergeStickerData, type RemoteStickerEntry } from '@/utils/migration'
 
+// Aguarda o Zustand terminar de hidratar do localStorage antes de continuar.
+// Sem isso, há race condition: o merge roda com store vazio e zera os dados.
+function waitForHydration(): Promise<void> {
+  if (useAlbumStore.persist.hasHydrated()) return Promise.resolve()
+  return new Promise((resolve) => {
+    const unsub = useAlbumStore.persist.onFinishHydration(() => {
+      unsub()
+      resolve()
+    })
+  })
+}
+
 export function useSyncStore() {
   const { data: session, status } = useSession()
   const stickers = useAlbumStore((s) => s.stickers)
@@ -20,9 +32,17 @@ export function useSyncStore() {
     prevUserIdRef.current = userId
 
     isMergingRef.current = true
-    fetch('/api/stickers')
-      .then((r) => r.json())
-      .then((data: { stickers?: RemoteStickerEntry[] }) => {
+
+    // Espera hidratação do localStorage antes de fazer merge
+    waitForHydration()
+      .then(() => fetch('/api/stickers'))
+      .then((r) => {
+        // Não merga se a API retornou erro (sessão inválida, rede, etc.)
+        if (!r.ok) return null
+        return r.json() as Promise<{ stickers?: RemoteStickerEntry[] }>
+      })
+      .then((data) => {
+        if (!data) return  // API com erro — preserva o localStorage
         const remoteStickers = data.stickers ?? []
         const currentLocal = useAlbumStore.getState().stickers
         const merged = mergeStickerData(currentLocal, remoteStickers)
@@ -30,7 +50,6 @@ export function useSyncStore() {
       })
       .catch(console.error)
       .finally(() => {
-        // aguarda um tick para o estado do store atualizar antes de liberar sync
         setTimeout(() => { isMergingRef.current = false }, 100)
       })
   }, [session?.user?.id, mergeStickers])
