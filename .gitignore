@@ -51,3 +51,6 @@ skills.md
 # Scripts utilitários internos
 scripts/
 bug_pdf.png
+
+# QR Code PIX (sensível — embedado como base64 no código)
+QR_Code_PIX*
