@@ -22,7 +22,7 @@ export function GroupCard({ group }: GroupCardProps) {
       <div
         className="rounded-2xl p-3.5 border border-white/5 active:scale-95 transition-transform duration-150"
         style={{
-          background: `linear-gradient(145deg, ${color}18 0%, #0d1424 100%)`,
+          background: `linear-gradient(145deg, ${color}18 0%, var(--copa-card) 100%)`,
           boxShadow: percentage === 100 ? `0 0 20px ${color}40` : undefined,
         }}
       >

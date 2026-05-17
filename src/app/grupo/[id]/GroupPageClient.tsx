@@ -42,7 +42,7 @@ export function GroupPageClient({ group }: Props) {
 
         <div
           className="rounded-2xl p-4 border border-white/5"
-          style={{ background: `linear-gradient(145deg, ${color}18 0%, #0d1424 100%)` }}
+          style={{ background: `linear-gradient(145deg, ${color}18 0%, var(--copa-card) 100%)` }}
         >
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-white/60 font-medium">

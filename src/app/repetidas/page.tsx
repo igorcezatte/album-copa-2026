@@ -44,7 +44,7 @@ export default function RepetidasPage() {
               <div
                 key={id}
                 className="flex items-center gap-3 rounded-xl px-4 py-3 border border-white/5"
-                style={{ background: `linear-gradient(145deg, ${team.primaryColor}10 0%, #0d1424 100%)` }}
+                style={{ background: `linear-gradient(145deg, ${team.primaryColor}10 0%, var(--copa-card) 100%)` }}
               >
                 <Flag code={team.flagCode} size="xs" />
                 <div className="flex-1 min-w-0">

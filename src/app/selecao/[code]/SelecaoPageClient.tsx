@@ -25,7 +25,7 @@ export function SelecaoPageClient({ teamCode }: Props) {
     <div className="animate-fade-in">
       <div
         className="px-4 pt-6 pb-5 relative overflow-hidden"
-        style={{ background: `linear-gradient(180deg, ${team.primaryColor}30 0%, #060a14 100%)` }}
+        style={{ background: `linear-gradient(180deg, ${team.primaryColor}30 0%, var(--copa-bg) 100%)` }}
       >
         <Link
           href={`/grupo/${team.group.toLowerCase()}`}

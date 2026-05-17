@@ -9,6 +9,7 @@ import { pct } from '@/lib/utils'
 import { AuthButton } from '@/components/AuthButton'
 import { SyncBanner } from '@/components/SyncBanner'
 import { SoundToggle } from '@/components/SoundToggle'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 export default function HomePage() {
   const total = useAlbumStore((s) => s.getTotalProgress())
@@ -31,7 +32,8 @@ export default function HomePage() {
               <p className="text-[10px] text-white/40 font-medium">FIFA World Cup</p>
             </div>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
+            <ThemeToggle />
             <SoundToggle />
             <AuthButton />
           </div>
@@ -39,7 +41,7 @@ export default function HomePage() {
 
         {/* Total progress */}
         <div className="mt-4 rounded-2xl border border-white/5 p-4"
-          style={{ background: 'linear-gradient(145deg, #f5c42e18 0%, #0d1424 100%)' }}
+          style={{ background: 'linear-gradient(145deg, #f5c42e18 0%, var(--copa-card) 100%)' }}
         >
           <div className="flex items-end justify-between mb-2">
             <div>
@@ -120,7 +122,7 @@ function SpecialCard({ code, label, total }: { code: string; label: string; tota
       <div
         className="rounded-2xl p-3.5 border active:scale-95 transition-transform duration-150"
         style={{
-          background: `linear-gradient(145deg, ${meta.color}15 0%, #0d1424 100%)`,
+          background: `linear-gradient(145deg, ${meta.color}15 0%, var(--copa-card) 100%)`,
           borderColor: percentage === 100 ? `${meta.color}60` : 'rgba(255,255,255,0.05)',
         }}
       >

@@ -111,7 +111,7 @@ export default function FaltantesPage() {
               <div
                 className="rounded-2xl p-4 border border-white/5 active:scale-95 transition-transform"
                 style={{
-                  background: `linear-gradient(145deg, ${team.primaryColor}15 0%, #0d1424 100%)`,
+                  background: `linear-gradient(145deg, ${team.primaryColor}15 0%, var(--copa-card) 100%)`,
                 }}
               >
                 <div className="flex items-center gap-3 mb-2">

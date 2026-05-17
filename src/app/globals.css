@@ -4,41 +4,81 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Tema Pro (padrão dark) ─────────────────────────────────── */
 :root {
   color-scheme: dark;
+  --copa-bg: #060a14;
+  --copa-card: #0d1424;
 }
 
+/* ── Tema Kids (light) ───────────────────────────────────────── */
+[data-theme="kids"] {
+  color-scheme: light;
+  --copa-bg: #f5f0e8;
+  --copa-card: #ffffff;
+}
+
+/* Texto */
+[data-theme="kids"] .text-white      { color: rgb(26 26 46) }
+[data-theme="kids"] .text-white\/90  { color: rgb(26 26 46 / 0.9) }
+[data-theme="kids"] .text-white\/80  { color: rgb(26 26 46 / 0.8) }
+[data-theme="kids"] .text-white\/70  { color: rgb(26 26 46 / 0.7) }
+[data-theme="kids"] .text-white\/60  { color: rgb(26 26 46 / 0.6) }
+[data-theme="kids"] .text-white\/50  { color: rgb(26 26 46 / 0.5) }
+[data-theme="kids"] .text-white\/40  { color: rgb(26 26 46 / 0.4) }
+[data-theme="kids"] .text-white\/30  { color: rgb(26 26 46 / 0.3) }
+[data-theme="kids"] .text-white\/25  { color: rgb(26 26 46 / 0.25) }
+[data-theme="kids"] .text-white\/20  { color: rgb(26 26 46 / 0.2) }
+[data-theme="kids"] .text-white\/15  { color: rgb(26 26 46 / 0.15) }
+[data-theme="kids"] .text-white\/10  { color: rgb(26 26 46 / 0.1) }
+
+/* Bordas */
+[data-theme="kids"] .border-white\/5  { border-color: rgb(0 0 0 / 0.07) }
+[data-theme="kids"] .border-white\/10 { border-color: rgb(0 0 0 / 0.1) }
+
+/* Fundos */
+[data-theme="kids"] .bg-white\/5  { background-color: rgb(0 0 0 / 0.04) }
+[data-theme="kids"] .bg-white\/10 { background-color: rgb(0 0 0 / 0.07) }
+
+/* NavBar */
+[data-theme="kids"] nav.fixed {
+  background-color: rgb(245 240 232 / 0.95) !important;
+  border-color: rgb(0 0 0 / 0.08) !important;
+}
+
+/* Scrollbar */
+[data-theme="kids"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+/* ── Base ──────────────────────────────────────────────────── */
 * {
   -webkit-tap-highlight-color: transparent;
   box-sizing: border-box;
 }
 
 body {
-  background-color: #060a14;
+  background-color: var(--copa-bg);
   color: #f1f5f9;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease;
 }
 
-/* Safe area support */
+[data-theme="kids"] body { color: #1a1a2e; }
+
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 3px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 2px;
 }
 
-/* Prevent text selection on sticker cards */
 .select-none {
   user-select: none;
   -webkit-user-select: none;
@@ -49,16 +89,10 @@ body {
   50% { transform: scale(1.07); }
   100% { transform: scale(1); }
 }
-
-.animate-pop {
-  animation: pop 0.22s ease-out;
-}
+.animate-pop { animation: pop 0.22s ease-out; }
 
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out both;
-}
+.animate-fade-in { animation: fade-in 0.3s ease-out both; }

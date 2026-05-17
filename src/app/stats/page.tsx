@@ -80,7 +80,7 @@ export default function StatsPage() {
             <div
               key={team.code}
               className="flex items-center gap-2.5 rounded-xl px-3 py-2 border border-white/5"
-              style={{ background: `linear-gradient(90deg, ${color}10 0%, #0d1424 100%)` }}
+              style={{ background: `linear-gradient(90deg, ${color}10 0%, var(--copa-card) 100%)` }}
             >
               <span className="text-[10px] font-black text-white/20 w-4 flex-shrink-0">
                 {i + 1}
@@ -108,7 +108,7 @@ function StatCard({ value, label, color }: { value: number | string; label: stri
   return (
     <div
       className="rounded-2xl p-3 border border-white/5 text-center"
-      style={{ background: `linear-gradient(145deg, ${color}15 0%, #0d1424 100%)` }}
+      style={{ background: `linear-gradient(145deg, ${color}15 0%, var(--copa-card) 100%)` }}
     >
       <p className="text-2xl font-black leading-none" style={{ color }}>{value}</p>
       <p className="text-[10px] text-white/40 mt-1 font-medium">{label}</p>

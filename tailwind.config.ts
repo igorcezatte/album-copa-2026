@@ -10,8 +10,8 @@ const config: Config = {
     extend: {
       colors: {
         copa: {
-          bg: '#060a14',
-          surface: '#0d1424',
+          bg: 'var(--copa-bg)',
+          surface: 'var(--copa-card)',
           card: '#111827',
           border: 'rgba(255,255,255,0.07)',
           gold: '#f5c42e',

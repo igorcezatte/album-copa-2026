@@ -23,7 +23,7 @@ export function TeamCard({ team }: TeamCardProps) {
       <div
         className="rounded-2xl p-4 border active:scale-95 transition-all duration-150"
         style={{
-          background: `linear-gradient(145deg, ${team.primaryColor}20 0%, #0d1424 80%)`,
+          background: `linear-gradient(145deg, ${team.primaryColor}20 0%, var(--copa-card) 80%)`,
           borderColor: complete ? `${color}60` : 'rgba(255,255,255,0.05)',
           boxShadow: complete ? `0 0 16px ${color}30` : undefined,
         }}

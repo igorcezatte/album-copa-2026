@@ -64,8 +64,8 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
       style={{
         aspectRatio: '3/4',
         background: collected
-          ? `linear-gradient(145deg, ${primaryColor}22 0%, #0d1424 60%)`
-          : '#0d1424',
+          ? `linear-gradient(145deg, ${primaryColor}22 0%, var(--copa-card) 60%)`
+          : 'var(--copa-card)',
       }}
       onClick={handleTap}
     >
