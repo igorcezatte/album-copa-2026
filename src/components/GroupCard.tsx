@@ -6,15 +6,19 @@ import { getTeamsByGroup, GROUP_COLORS } from '@/data/teams'
 import { Flag } from './Flag'
 import { ProgressBar } from './ProgressBar'
 import { pct } from '@/lib/utils'
+import { useHydrated } from '@/hooks/useHydrated'
 
 interface GroupCardProps {
   group: string
 }
 
 export function GroupCard({ group }: GroupCardProps) {
+  const hydrated = useHydrated()
   const teams = getTeamsByGroup(group)
   const color = GROUP_COLORS[group]
-  const progress = useAlbumStore((s) => s.getGroupProgress(group))
+  const rawProgress = useAlbumStore((s) => s.getGroupProgress(group))
+  // Só usa os dados reais após a hydratação — evita 0% no carregamento inicial
+  const progress = hydrated ? rawProgress : { collected: 0, total: rawProgress.total }
   const percentage = pct(progress.collected, progress.total)
 
   return (
@@ -38,11 +42,10 @@ export function GroupCard({ group }: GroupCardProps) {
             <span className="text-xs text-white/50 font-medium">Grupo</span>
           </div>
           <span
-            suppressHydrationWarning
-            className="text-sm font-black"
+            className="text-sm font-black transition-all duration-300"
             style={{ color: percentage === 100 ? '#22c55e' : color }}
           >
-            {percentage}%
+            {hydrated ? `${percentage}%` : '—'}
           </span>
         </div>
 
@@ -57,8 +60,8 @@ export function GroupCard({ group }: GroupCardProps) {
         <ProgressBar value={progress.collected} total={progress.total} color={color} height="xs" />
 
         {/* Count */}
-        <p suppressHydrationWarning className="text-right text-[10px] text-white/30 mt-1 font-mono">
-          {progress.collected}/{progress.total}
+        <p className="text-right text-[10px] text-white/30 mt-1 font-mono">
+          {hydrated ? `${progress.collected}/${progress.total}` : '—'}
         </p>
       </div>
     </Link>

@@ -10,8 +10,10 @@ import { AuthButton } from '@/components/AuthButton'
 import { SyncBanner } from '@/components/SyncBanner'
 import { SoundToggle } from '@/components/SoundToggle'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { useHydrated } from '@/hooks/useHydrated'
 
 export default function HomePage() {
+  const hydrated = useHydrated()
   const total = useAlbumStore((s) => s.getTotalProgress())
   const percentage = pct(total.collected, total.total)
 
@@ -45,13 +47,15 @@ export default function HomePage() {
         >
           <div className="flex items-end justify-between mb-2">
             <div>
-              <p suppressHydrationWarning className="text-3xl font-black text-white leading-none">
-                {total.collected}
+              <p className="text-3xl font-black text-white leading-none">
+                {hydrated ? total.collected : '—'}
                 <span className="text-white/30 text-lg">/{total.total}</span>
               </p>
               <p className="text-xs text-white/40 mt-0.5">figurinhas coletadas</p>
             </div>
-            <p suppressHydrationWarning className="text-4xl font-black text-copa-gold leading-none">{percentage}%</p>
+            <p className="text-4xl font-black text-copa-gold leading-none">
+              {hydrated ? `${percentage}%` : '—'}
+            </p>
           </div>
           <ProgressBar
             value={total.collected}
@@ -62,7 +66,7 @@ export default function HomePage() {
 
           {/* Mini stats */}
           <div className="flex gap-4 mt-3">
-            <StatPill label="Faltam" value={total.total - total.collected} />
+            <StatPill label="Faltam" value={hydrated ? total.total - total.collected : '—'} />
             <StatPill label="Grupos" value="12" />
             <StatPill label="Seleções" value="48" />
           </div>
@@ -101,7 +105,7 @@ export default function HomePage() {
 function StatPill({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="flex-1 text-center">
-      <p suppressHydrationWarning className="text-sm font-black text-white">{value}</p>
+      <p className="text-sm font-black text-white">{value}</p>
       <p className="text-[9px] text-white/30 font-medium">{label}</p>
     </div>
   )
@@ -113,7 +117,9 @@ const SPECIAL_META: Record<string, { icon: string; color: string }> = {
 }
 
 function SpecialCard({ code, label, total }: { code: string; label: string; total: number }) {
-  const progress = useAlbumStore((s) => s.getSectionProgress(code))
+  const hydrated = useHydrated()
+  const rawProgress = useAlbumStore((s) => s.getSectionProgress(code))
+  const progress = hydrated ? rawProgress : { collected: 0, total: rawProgress.total }
   const percentage = pct(progress.collected, progress.total)
   const meta = SPECIAL_META[code] ?? { icon: '⭐', color: '#94a3b8' }
 
@@ -129,11 +135,13 @@ function SpecialCard({ code, label, total }: { code: string; label: string; tota
         <div className="flex items-center gap-2 mb-2">
           <span className="text-base leading-none">{meta.icon}</span>
           <span className="text-xs font-bold text-white/70 flex-1 truncate">{label}</span>
-          <span suppressHydrationWarning className="text-xs font-black" style={{ color: meta.color }}>{percentage}%</span>
+          <span className="text-xs font-black" style={{ color: meta.color }}>
+            {hydrated ? `${percentage}%` : '—'}
+          </span>
         </div>
         <ProgressBar value={progress.collected} total={progress.total} color={meta.color} height="xs" />
-        <p suppressHydrationWarning className="text-right text-[10px] text-white/20 mt-1 font-mono">
-          {progress.collected}/{total}
+        <p className="text-right text-[10px] text-white/20 mt-1 font-mono">
+          {hydrated ? `${progress.collected}/${total}` : '—'}
         </p>
       </div>
     </Link>
