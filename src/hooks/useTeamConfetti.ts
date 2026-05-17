@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { useAlbumStore } from '@/store/albumStore'
 import { shouldTriggerConfetti, fireConfetti } from '@/utils/confetti'
+import { playCompleteSound } from '@/utils/sound'
 
 const SPECIAL_CODES = ['FWC', 'CC']
 
@@ -19,6 +20,7 @@ export function useTeamConfetti(teamCode: string) {
     const prev = prevCollectedRef.current
     if (shouldTriggerConfetti(prev, progress.collected, progress.total)) {
       fireConfetti()
+      playCompleteSound()
     }
     prevCollectedRef.current = progress.collected
   }, [progress.collected, progress.total])
