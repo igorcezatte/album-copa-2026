@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { Flag } from './Flag'
 import { useAlbumStore, stickerId } from '@/store/albumStore'
+import { playCollectSound } from '@/utils/sound'
 import type { StickerDef } from '@/data/teams'
 
 interface StickerCardProps {
@@ -34,6 +35,7 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
     }
     if (!collected) {
       collect(id)
+      playCollectSound()
       setAnimating(true)
       setTimeout(() => setAnimating(false), 300)
     } else {

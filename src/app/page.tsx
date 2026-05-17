@@ -8,6 +8,7 @@ import { ProgressBar } from '@/components/ProgressBar'
 import { pct } from '@/lib/utils'
 import { AuthButton } from '@/components/AuthButton'
 import { SyncBanner } from '@/components/SyncBanner'
+import { SoundToggle } from '@/components/SoundToggle'
 
 export default function HomePage() {
   const total = useAlbumStore((s) => s.getTotalProgress())
@@ -30,7 +31,10 @@ export default function HomePage() {
               <p className="text-[10px] text-white/40 font-medium">FIFA World Cup</p>
             </div>
           </div>
-          <AuthButton />
+          <div className="flex items-center gap-1">
+            <SoundToggle />
+            <AuthButton />
+          </div>
         </div>
 
         {/* Total progress */}
