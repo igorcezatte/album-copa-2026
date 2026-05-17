@@ -96,7 +96,7 @@ export default function SobrePage() {
         <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3">🎴 Me pague um pacotinho</p>
         <div className="rounded-2xl border border-white/5 p-5 space-y-4" style={{ background: 'var(--copa-card)' }}>
           <p className="text-[13px] text-white/60 leading-relaxed">
-            Olha, vou ser honesto: <span className="text-white/80 font-semibold">eu também ainda tô na luta pra fechar meu álbum.</span> 😅
+            Por aqui eu também ainda tô na luta pra fechar meu álbum. 😅
             Se esse app te ajudou a organizar suas figurinhas, que tal me ajudar a fechar o meu?
             Me pague um pacotinho — qualquer figurinha boa é bem-vinda! 🎴
           </p>
