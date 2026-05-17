@@ -7,10 +7,12 @@ import { TEAMS } from '@/data/teams'
 import { Flag } from '@/components/Flag'
 import { GROUP_COLORS } from '@/data/teams'
 import { generateShareText, shareAlbum } from '@/utils/share'
+import { buildPdfData, generateAndDownloadPdf } from '@/utils/pdf'
 
 export default function FaltantesPage() {
   const getMissing = useAlbumStore((s) => s.getMissing)
   const [copied, setCopied] = useState(false)
+  const [generatingPdf, setGeneratingPdf] = useState(false)
 
   const teamsWithMissing = TEAMS.map((team) => ({
     team,
@@ -18,6 +20,20 @@ export default function FaltantesPage() {
   })).filter((t) => t.missing.length > 0)
 
   const totalMissing = teamsWithMissing.reduce((acc, t) => acc + t.missing.length, 0)
+
+  const handlePdf = async () => {
+    setGeneratingPdf(true)
+    try {
+      const pdfInput = teamsWithMissing.map((t) => ({
+        teamName: t.team.name,
+        group: t.team.group,
+        missing: t.missing,
+      }))
+      await generateAndDownloadPdf(buildPdfData(pdfInput))
+    } finally {
+      setGeneratingPdf(false)
+    }
+  }
 
   const handleShare = async () => {
     const shareData = teamsWithMissing.map((t) => ({
@@ -37,10 +53,29 @@ export default function FaltantesPage() {
       <div className="flex items-center justify-between mb-1">
         <h1 className="text-xl font-black text-white">Faltantes</h1>
         {totalMissing > 0 && (
-          <button
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-copa-gold/10 text-copa-gold text-xs font-bold active:scale-95 transition-transform"
-            onClick={handleShare}
-          >
+          <div className="flex items-center gap-2">
+            <button
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 text-white/60 text-xs font-bold active:scale-95 transition-transform disabled:opacity-50"
+              onClick={handlePdf}
+              disabled={generatingPdf}
+              aria-label="Baixar PDF"
+            >
+              {generatingPdf ? (
+                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+              ) : (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              )}
+              PDF
+            </button>
+            <button
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-copa-gold/10 text-copa-gold text-xs font-bold active:scale-95 transition-transform"
+              onClick={handleShare}
+            >
             {copied ? (
               <>
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -56,7 +91,8 @@ export default function FaltantesPage() {
                 Compartilhar
               </>
             )}
-          </button>
+            </button>
+          </div>
         )}
       </div>
       <p className="text-sm text-white/40 mb-6">
