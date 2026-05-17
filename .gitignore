@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# Production
+build/
+dist/
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Docs e planejamento interno (não sobe pro repositório)
+CLAUDE.md
+GAMIFICATION.md
+MVP_SCOPE.md
+PERFORMANCE.md
+PROJECT_VISION.md
+ROADMAP.md
+STICKER_DATA_STRUCTURE.md
+TECH_DECISIONS.md
+TODO.md
+UI_UX_GUIDELINES.md
+skills.md
+
+# PDFs e arquivos locais de referência
+*.pdf
+
+# Scripts utilitários internos
+scripts/
