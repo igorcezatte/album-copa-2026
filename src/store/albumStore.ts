@@ -23,6 +23,7 @@ interface AlbumStore {
   getDuplicates: () => Array<{ id: string; quantity: number }>
   getMissing: (teamCode: string) => string[]
   resetAlbum: () => void
+  mergeStickers: (remote: Record<string, { quantity: number }>) => void
 }
 
 export const stickerId = (teamCode: string, number: string) => `${teamCode}_${number}`
@@ -148,6 +149,17 @@ export const useAlbumStore = create<AlbumStore>()(
 
       resetAlbum() {
         set({ stickers: {} })
+      },
+
+      mergeStickers(remote) {
+        set((state) => {
+          const merged = { ...remote }
+          for (const [id, entry] of Object.entries(state.stickers)) {
+            const remoteQty = remote[id]?.quantity ?? 0
+            merged[id] = { quantity: Math.max(entry.quantity, remoteQty) }
+          }
+          return { stickers: merged }
+        })
       },
     }),
     {
