@@ -3,14 +3,17 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useAlbumStore } from '@/store/albumStore'
-import { TEAMS } from '@/data/teams'
+import { TEAMS, FWC_SECTION, CC_SECTION } from '@/data/teams'
 import { Flag } from '@/components/Flag'
 import { GROUP_COLORS } from '@/data/teams'
 import { generateShareText, shareAlbum } from '@/utils/share'
-import { buildPdfData, generateAndDownloadPdf } from '@/utils/pdf'
+import { buildFullPdfData, generateAndDownloadPdf } from '@/utils/pdf'
+import { stickerId } from '@/store/albumStore'
 
 export default function FaltantesPage() {
   const getMissing = useAlbumStore((s) => s.getMissing)
+  const isCollected = useAlbumStore((s) => s.isCollected)
+  const getTotalProgress = useAlbumStore((s) => s.getTotalProgress)
   const [copied, setCopied] = useState(false)
   const [generatingPdf, setGeneratingPdf] = useState(false)
 
@@ -24,12 +27,30 @@ export default function FaltantesPage() {
   const handlePdf = async () => {
     setGeneratingPdf(true)
     try {
-      const pdfInput = teamsWithMissing.map((t) => ({
-        teamName: t.team.name,
-        group: t.team.group,
-        missing: t.missing,
+      const allTeams = TEAMS.map((team) => ({
+        teamName: team.name,
+        group: team.group,
+        primaryColor: team.primaryColor,
+        missing: getMissing(team.code),
       }))
-      await generateAndDownloadPdf(buildPdfData(pdfInput))
+      const specials = [
+        {
+          name: 'Copa History (FWC)',
+          color: '#f5c42e',
+          missing: FWC_SECTION.stickers
+            .filter((s) => !isCollected(stickerId('FWC', s.number)))
+            .map((s) => s.number),
+        },
+        {
+          name: 'Coca-Cola (CC)',
+          color: '#e8222a',
+          missing: CC_SECTION.stickers
+            .filter((s) => !isCollected(stickerId('CC', s.number)))
+            .map((s) => s.number),
+        },
+      ]
+      const data = buildFullPdfData(allTeams, specials, getTotalProgress())
+      await generateAndDownloadPdf(data)
     } finally {
       setGeneratingPdf(false)
     }
