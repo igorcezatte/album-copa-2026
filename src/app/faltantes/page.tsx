@@ -6,15 +6,14 @@ import { useAlbumStore } from '@/store/albumStore'
 import { TEAMS, FWC_SECTION, CC_SECTION } from '@/data/teams'
 import { Flag } from '@/components/Flag'
 import { GROUP_COLORS } from '@/data/teams'
-import { generateShareText, shareAlbum } from '@/utils/share'
-import { buildFullPdfData, generateAndDownloadPdf } from '@/utils/pdf'
+import { buildFullPdfData, generateAndDownloadPdf, generatePdfBlob } from '@/utils/pdf'
 import { stickerId } from '@/store/albumStore'
 
 export default function FaltantesPage() {
   const getMissing = useAlbumStore((s) => s.getMissing)
   const isCollected = useAlbumStore((s) => s.isCollected)
   const getTotalProgress = useAlbumStore((s) => s.getTotalProgress)
-  const [copied, setCopied] = useState(false)
+  const [sharing, setSharing] = useState(false)
   const [generatingPdf, setGeneratingPdf] = useState(false)
 
   const teamsWithMissing = TEAMS.map((team) => ({
@@ -58,15 +57,53 @@ export default function FaltantesPage() {
   }
 
   const handleShare = async () => {
-    const shareData = teamsWithMissing.map((t) => ({
-      teamName: t.team.name,
-      missing: t.missing,
-    }))
-    const text = generateShareText(shareData)
-    const usedNative = await shareAlbum(text)
-    if (!usedNative) {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2500)
+    setSharing(true)
+    try {
+      const allTeams = TEAMS.map((team) => ({
+        teamName: team.name,
+        group: team.group,
+        primaryColor: team.primaryColor,
+        flagCode: team.flagCode,
+        missing: getMissing(team.code),
+      }))
+      const specials = [
+        {
+          name: 'Copa History (FWC)',
+          color: '#f5c42e',
+          missing: FWC_SECTION.stickers
+            .filter((s) => !isCollected(stickerId('FWC', s.number)))
+            .map((s) => s.number),
+        },
+        {
+          name: 'Coca-Cola (CC)',
+          color: '#e8222a',
+          missing: CC_SECTION.stickers
+            .filter((s) => !isCollected(stickerId('CC', s.number)))
+            .map((s) => s.number),
+        },
+      ]
+      const pdfData = buildFullPdfData(allTeams, specials, getTotalProgress())
+      const blob = await generatePdfBlob(pdfData)
+      const file = new File([blob], 'faltantes-copa2026.pdf', { type: 'application/pdf' })
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ title: 'Álbum Copa 2026 — Faltantes', files: [file] })
+      } else {
+        // fallback: baixa o PDF se não suportar share de arquivo
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'faltantes-copa2026.pdf'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }
+    } catch (err) {
+      // usuário cancelou o share — silêncio
+      if (err instanceof Error && err.name !== 'AbortError') console.error(err)
+    } finally {
+      setSharing(false)
     }
   }
 
@@ -95,24 +132,21 @@ export default function FaltantesPage() {
               PDF
             </button>
             <button
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-copa-gold/10 text-copa-gold text-xs font-bold active:scale-95 transition-transform"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-copa-gold/10 text-copa-gold text-xs font-bold active:scale-95 transition-transform disabled:opacity-50"
               onClick={handleShare}
+              disabled={sharing}
             >
-            {copied ? (
-              <>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              {sharing ? (
+                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
-                Copiado!
-              </>
-            ) : (
-              <>
+              ) : (
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
-                Compartilhar
-              </>
-            )}
+              )}
+              Compartilhar
             </button>
           </div>
         )}

@@ -102,9 +102,9 @@ async function fetchFlagBase64(flagCode: string): Promise<string | null> {
   }
 }
 
-// ── Geração do PDF v2 — layout em bandas sincronizadas ───────────
+// ── Rendering interno (compartilhado entre download e share) ─────
 
-export async function generateAndDownloadPdf(data: FullPdfData): Promise<void> {
+async function renderPdfDoc(data: FullPdfData): Promise<import('jspdf').jsPDF> {
   const { jsPDF } = await import('jspdf')
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
@@ -375,5 +375,15 @@ export async function generateAndDownloadPdf(data: FullPdfData): Promise<void> {
     W - margin, H - 3, { align: 'right' },
   )
 
+  return doc
+}
+
+export async function generateAndDownloadPdf(data: FullPdfData): Promise<void> {
+  const doc = await renderPdfDoc(data)
   doc.save('faltantes-copa2026.pdf')
+}
+
+export async function generatePdfBlob(data: FullPdfData): Promise<Blob> {
+  const doc = await renderPdfDoc(data)
+  return doc.output('blob') as Blob
 }
