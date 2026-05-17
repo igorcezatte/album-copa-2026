@@ -93,11 +93,12 @@ export default function SobrePage() {
 
       {/* PIX */}
       <section>
-        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3">☕ Pague um cafézinho</p>
+        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3">🎴 Me pague um pacotinho</p>
         <div className="rounded-2xl border border-white/5 p-5 space-y-4" style={{ background: 'var(--copa-card)' }}>
           <p className="text-[13px] text-white/60 leading-relaxed">
-            Se o app te ajudou e você quiser retribuir, fico muito grato.
-            Qualquer valor é muito bem-vindo!
+            Olha, vou ser honesto: <span className="text-white/80 font-semibold">eu também ainda tô na luta pra fechar meu álbum.</span> 😅
+            Se esse app te ajudou a organizar suas figurinhas, que tal me ajudar a fechar o meu?
+            Me pague um pacotinho — qualquer figurinha boa é bem-vinda! 🎴
           </p>
 
           {/* QR Code */}
