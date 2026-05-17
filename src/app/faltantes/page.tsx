@@ -31,6 +31,7 @@ export default function FaltantesPage() {
         teamName: team.name,
         group: team.group,
         primaryColor: team.primaryColor,
+        flagCode: team.flagCode,
         missing: getMissing(team.code),
       }))
       const specials = [

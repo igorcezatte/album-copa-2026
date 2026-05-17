@@ -55,9 +55,9 @@ describe('buildPdfData', () => {
 // ── buildFullPdfData (v2, uma página com todos os times) ─────────
 describe('buildFullPdfData', () => {
   const allTeams = [
-    { teamName: 'Brasil', group: 'C', primaryColor: '#009C3B', missing: ['3', '7'] },
-    { teamName: 'Marrocos', group: 'C', primaryColor: '#C1272D', missing: [] },
-    { teamName: 'Argentina', group: 'J', primaryColor: '#74ACDF', missing: ['5'] },
+    { teamName: 'Brasil', group: 'C', primaryColor: '#009C3B', flagCode: 'br', missing: ['3', '7'] },
+    { teamName: 'Marrocos', group: 'C', primaryColor: '#C1272D', flagCode: 'ma', missing: [] },
+    { teamName: 'Argentina', group: 'J', primaryColor: '#74ACDF', flagCode: 'ar', missing: ['5'] },
   ]
 
   it('includes all teams, not just those with missing stickers', () => {
@@ -81,6 +81,12 @@ describe('buildFullPdfData', () => {
   it('counts totalMissing correctly', () => {
     const result = buildFullPdfData(allTeams, [], { collected: 50, total: 60 })
     expect(result.totalMissing).toBe(3)
+  })
+
+  it('includes flagCode in team entries', () => {
+    const result = buildFullPdfData(allTeams, [], { collected: 50, total: 60 })
+    const groupC = result.groups.find((g) => g.group === 'C')!
+    expect(groupC.teams[0].flagCode).toBeTruthy()
   })
 
   it('includes special sections', () => {
