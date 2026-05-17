@@ -5,8 +5,8 @@ import { useSession } from 'next-auth/react'
 import { useAlbumStore } from '@/store/albumStore'
 import { buildSyncPayload, mergeStickerData, type RemoteStickerEntry } from '@/utils/migration'
 
-// Aguarda o Zustand terminar de hidratar do localStorage antes de continuar.
-// Sem isso, há race condition: o merge roda com store vazio e zera os dados.
+const SYNCED_KEY = 'copa26-synced-v1'
+
 function waitForHydration(): Promise<void> {
   if (useAlbumStore.persist.hasHydrated()) return Promise.resolve()
   return new Promise((resolve) => {
@@ -17,15 +17,23 @@ function waitForHydration(): Promise<void> {
   })
 }
 
+function remoteToLocal(entries: RemoteStickerEntry[]): Record<string, { quantity: number }> {
+  const result: Record<string, { quantity: number }> = {}
+  for (const { sticker_id, quantity } of entries) {
+    result[sticker_id] = { quantity }
+  }
+  return result
+}
+
 export function useSyncStore() {
   const { data: session, status } = useSession()
   const stickers = useAlbumStore((s) => s.stickers)
-  const mergeStickers = useAlbumStore((s) => s.mergeStickers)
+  const mergeStickers  = useAlbumStore((s) => s.mergeStickers)
+  const replaceStickers = useAlbumStore((s) => s.replaceStickers)
 
-  const isMergingRef = useRef(false)
+  const isMergingRef  = useRef(false)
   const prevUserIdRef = useRef<string | null>(null)
 
-  // Carrega dados do Supabase quando usuário faz login
   useEffect(() => {
     const userId = session?.user?.id ?? null
     if (!userId || userId === prevUserIdRef.current) return
@@ -33,28 +41,35 @@ export function useSyncStore() {
 
     isMergingRef.current = true
 
-    // Espera hidratação do localStorage antes de fazer merge
     waitForHydration()
       .then(() => fetch('/api/stickers'))
       .then((r) => {
-        // Não merga se a API retornou erro (sessão inválida, rede, etc.)
         if (!r.ok) return null
         return r.json() as Promise<{ stickers?: RemoteStickerEntry[] }>
       })
       .then((data) => {
-        if (!data) return  // API com erro — preserva o localStorage
+        if (!data) return
+
         const remoteStickers = data.stickers ?? []
-        const currentLocal = useAlbumStore.getState().stickers
-        const merged = mergeStickerData(currentLocal, remoteStickers)
-        mergeStickers(merged)
+        const syncedBefore = localStorage.getItem(`${SYNCED_KEY}-${userId}`) === 'true'
+
+        if (!syncedBefore) {
+          // Primeiro login: merge (preserva figurinhas adicionadas localmente)
+          const currentLocal = useAlbumStore.getState().stickers
+          const merged = mergeStickerData(currentLocal, remoteStickers)
+          mergeStickers(merged)
+          localStorage.setItem(`${SYNCED_KEY}-${userId}`, 'true')
+        } else {
+          // Logins subsequentes: Supabase é fonte de verdade
+          replaceStickers(remoteToLocal(remoteStickers))
+        }
       })
       .catch(console.error)
       .finally(() => {
         setTimeout(() => { isMergingRef.current = false }, 100)
       })
-  }, [session?.user?.id, mergeStickers])
+  }, [session?.user?.id, mergeStickers, replaceStickers])
 
-  // Sincroniza para o Supabase com debounce (1.5s após última mudança)
   useEffect(() => {
     if (status !== 'authenticated' || !session?.user?.id) return
     if (isMergingRef.current) return

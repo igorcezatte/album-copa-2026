@@ -24,6 +24,7 @@ interface AlbumStore {
   getMissing: (teamCode: string) => string[]
   resetAlbum: () => void
   mergeStickers: (remote: Record<string, { quantity: number }>) => void
+  replaceStickers: (remote: Record<string, { quantity: number }>) => void
 }
 
 export const stickerId = (teamCode: string, number: string) => `${teamCode}_${number}`
@@ -160,6 +161,12 @@ export const useAlbumStore = create<AlbumStore>()(
           }
           return { stickers: merged }
         })
+      },
+
+      // Substitui completamente o estado pelo que veio do Supabase.
+      // Usado após o primeiro sync — Supabase é fonte de verdade.
+      replaceStickers(remote) {
+        set({ stickers: remote })
       },
     }),
     {
