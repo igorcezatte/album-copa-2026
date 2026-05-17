@@ -35,10 +35,18 @@ export async function PUT(request: Request) {
   const supabase = createSupabaseAdmin()
   const userId = session.user.id
 
+  // Full replace: apaga tudo do usuário e insere o estado atual.
+  // Upsert simples não funciona para remoções — stickers descoleados
+  // ficavam no Supabase e voltavam ao recarregar a página.
+  const { error: deleteError } = await supabase
+    .from('sticker_entries')
+    .delete()
+    .eq('user_id', userId)
+
+  if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 })
+
   if (entries.length === 0) {
-    // Sync vazia = deletar tudo (reset)
-    await supabase.from('sticker_entries').delete().eq('user_id', userId)
-    return Response.json({ ok: true })
+    return Response.json({ ok: true, synced: 0 })
   }
 
   const rows = entries.map((e) => ({
@@ -48,11 +56,11 @@ export async function PUT(request: Request) {
     updated_at: new Date().toISOString(),
   }))
 
-  const { error } = await supabase
+  const { error: insertError } = await supabase
     .from('sticker_entries')
-    .upsert(rows, { onConflict: 'user_id,sticker_id' })
+    .insert(rows)
 
-  if (error) return Response.json({ error: error.message }, { status: 500 })
+  if (insertError) return Response.json({ error: insertError.message }, { status: 500 })
 
   return Response.json({ ok: true, synced: rows.length })
 }
