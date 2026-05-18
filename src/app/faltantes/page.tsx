@@ -83,7 +83,7 @@ export default function FaltantesPage() {
             .map((s) => s.number),
         },
       ]
-      const pdfData = buildFullPdfData(allTeams, specials, getTotalProgress())
+      const pdfData = buildFullPdfData(allTeams, specials, getTotalProgress(), getDuplicates())
       const blob = await generatePdfBlob(pdfData)
       const file = new File([blob], 'faltantes-copa2026.pdf', { type: 'application/pdf' })
 
