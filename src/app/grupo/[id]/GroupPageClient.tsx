@@ -6,6 +6,7 @@ import { getTeamsByGroup, GROUP_COLORS } from '@/data/teams'
 import { TeamCard } from '@/components/TeamCard'
 import { ProgressBar } from '@/components/ProgressBar'
 import { pct } from '@/lib/utils'
+import { useShallow } from 'zustand/react/shallow'
 
 interface Props {
   group: string
@@ -14,7 +15,7 @@ interface Props {
 export function GroupPageClient({ group }: Props) {
   const teams = getTeamsByGroup(group)
   const color = GROUP_COLORS[group]
-  const progress = useAlbumStore((s) => s.getGroupProgress(group))
+  const progress = useAlbumStore(useShallow((s) => s.getGroupProgress(group)))
   const percentage = pct(progress.collected, progress.total)
 
   return (

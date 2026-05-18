@@ -7,13 +7,14 @@ import { ProgressBar } from './ProgressBar'
 import { pct } from '@/lib/utils'
 import type { Team } from '@/data/teams'
 import { GROUP_COLORS } from '@/data/teams'
+import { useShallow } from 'zustand/react/shallow'
 
 interface TeamCardProps {
   team: Team
 }
 
 export function TeamCard({ team }: TeamCardProps) {
-  const progress = useAlbumStore((s) => s.getTeamProgress(team.code))
+  const progress = useAlbumStore(useShallow((s) => s.getTeamProgress(team.code)))
   const percentage = pct(progress.collected, progress.total)
   const color = GROUP_COLORS[team.group]
   const complete = percentage === 100

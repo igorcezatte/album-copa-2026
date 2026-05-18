@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import { useAlbumStore } from '@/store/albumStore'
 import { shouldShowSyncBanner, getBannerDismissed, dismissBanner } from '@/utils/syncBanner'
+import { useShallow } from 'zustand/react/shallow'
 
 export function SyncBanner() {
   const { data: session } = useSession()
-  const total = useAlbumStore((s) => s.getTotalProgress())
+  const total = useAlbumStore(useShallow((s) => s.getTotalProgress()))
   const [dismissed, setDismissed] = useState(true) // começa true pra evitar flash
 
   useEffect(() => {

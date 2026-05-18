@@ -8,13 +8,14 @@ import Image from 'next/image'
 import { useAlbumStore } from '@/store/albumStore'
 import { pct } from '@/lib/utils'
 import { useHydrated } from '@/hooks/useHydrated'
+import { useShallow } from 'zustand/react/shallow'
 
 const CONFIRM_PHRASE = 'REMOVER TUDO'
 
 export default function ConfigPage() {
   const { data: session } = useSession()
   const hydrated = useHydrated()
-  const total = useAlbumStore((s) => s.getTotalProgress())
+  const total = useAlbumStore(useShallow((s) => s.getTotalProgress()))
   const resetAlbum = useAlbumStore((s) => s.resetAlbum)
   const router = useRouter()
 

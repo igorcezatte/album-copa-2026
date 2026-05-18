@@ -7,6 +7,7 @@ import { StickerCard } from '@/components/StickerCard'
 import { ProgressBar } from '@/components/ProgressBar'
 import { pct } from '@/lib/utils'
 import { useTeamConfetti } from '@/hooks/useTeamConfetti'
+import { useShallow } from 'zustand/react/shallow'
 
 const SECTION_META = {
   FWC: {
@@ -30,7 +31,7 @@ interface Props {
 export function SpecialPageClient({ sectionCode }: Props) {
   const section = sectionCode === 'FWC' ? FWC_SECTION : CC_SECTION
   const meta = SECTION_META[sectionCode as keyof typeof SECTION_META]
-  const progress = useAlbumStore((s) => s.getSectionProgress(sectionCode))
+  const progress = useAlbumStore(useShallow((s) => s.getSectionProgress(sectionCode)))
   const percentage = pct(progress.collected, progress.total)
   useTeamConfetti(sectionCode)
 

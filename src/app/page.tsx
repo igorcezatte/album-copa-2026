@@ -11,10 +11,11 @@ import { SyncBanner } from '@/components/SyncBanner'
 import { SoundToggle } from '@/components/SoundToggle'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useHydrated } from '@/hooks/useHydrated'
+import { useShallow } from 'zustand/react/shallow'
 
 export default function HomePage() {
   const hydrated = useHydrated()
-  const total = useAlbumStore((s) => s.getTotalProgress())
+  const total = useAlbumStore(useShallow((s) => s.getTotalProgress()))
   const percentage = pct(total.collected, total.total)
 
   return (
@@ -124,7 +125,7 @@ const SPECIAL_META: Record<string, { icon: string; color: string }> = {
 
 function SpecialCard({ code, label, total }: { code: string; label: string; total: number }) {
   const hydrated = useHydrated()
-  const rawProgress = useAlbumStore((s) => s.getSectionProgress(code))
+  const rawProgress = useAlbumStore(useShallow((s) => s.getSectionProgress(code)))
   const progress = hydrated ? rawProgress : { collected: 0, total: rawProgress.total }
   const percentage = pct(progress.collected, progress.total)
   const meta = SPECIAL_META[code] ?? { icon: '⭐', color: '#94a3b8' }

@@ -7,6 +7,7 @@ import { Flag } from './Flag'
 import { ProgressBar } from './ProgressBar'
 import { pct } from '@/lib/utils'
 import { useHydrated } from '@/hooks/useHydrated'
+import { useShallow } from 'zustand/react/shallow'
 
 interface GroupCardProps {
   group: string
@@ -16,7 +17,7 @@ export function GroupCard({ group }: GroupCardProps) {
   const hydrated = useHydrated()
   const teams = getTeamsByGroup(group)
   const color = GROUP_COLORS[group]
-  const rawProgress = useAlbumStore((s) => s.getGroupProgress(group))
+  const rawProgress = useAlbumStore(useShallow((s) => s.getGroupProgress(group)))
   // Só usa os dados reais após a hydratação — evita 0% no carregamento inicial
   const progress = hydrated ? rawProgress : { collected: 0, total: rawProgress.total }
   const percentage = pct(progress.collected, progress.total)

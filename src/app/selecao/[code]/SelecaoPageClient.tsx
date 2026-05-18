@@ -8,6 +8,7 @@ import { StickerCard } from '@/components/StickerCard'
 import { ProgressBar } from '@/components/ProgressBar'
 import { pct } from '@/lib/utils'
 import { useTeamConfetti } from '@/hooks/useTeamConfetti'
+import { useShallow } from 'zustand/react/shallow'
 
 interface Props {
   teamCode: string
@@ -16,7 +17,7 @@ interface Props {
 export function SelecaoPageClient({ teamCode }: Props) {
   useTeamConfetti(teamCode)
   const team = TEAMS.find((t) => t.code === teamCode)!
-  const progress = useAlbumStore((s) => s.getTeamProgress(team.code))
+  const progress = useAlbumStore(useShallow((s) => s.getTeamProgress(team.code)))
   const percentage = pct(progress.collected, progress.total)
   const color = GROUP_COLORS[team.group]
   const complete = percentage === 100
