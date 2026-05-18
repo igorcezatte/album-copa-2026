@@ -58,7 +58,7 @@ export function GroupCard({ group }: GroupCardProps) {
         </div>
 
         {/* Progress bar */}
-        <ProgressBar value={progress.collected} total={progress.total} color={color} height="xs" />
+        <ProgressBar key={hydrated ? 1 : 0} value={progress.collected} total={progress.total} color={color} height="xs" />
 
         {/* Count */}
         <p className="text-right text-[10px] text-white/30 mt-1 font-mono">

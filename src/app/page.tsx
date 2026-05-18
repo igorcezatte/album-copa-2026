@@ -65,6 +65,7 @@ export default function HomePage() {
             </p>
           </div>
           <ProgressBar
+            key={hydrated ? 1 : 0}
             value={total.collected}
             total={total.total}
             color="#f5c42e"
@@ -146,7 +147,7 @@ function SpecialCard({ code, label, total }: { code: string; label: string; tota
             {hydrated ? `${percentage}%` : '—'}
           </span>
         </div>
-        <ProgressBar value={progress.collected} total={progress.total} color={meta.color} height="xs" />
+        <ProgressBar key={hydrated ? 1 : 0} value={progress.collected} total={progress.total} color={meta.color} height="xs" />
         <p className="text-right text-[10px] text-white/20 mt-1 font-mono">
           {hydrated ? `${progress.collected}/${total}` : '—'}
         </p>
