@@ -1,11 +1,12 @@
-export type Theme = 'pro' | 'kids'
+export type Theme = 'pro' | 'light'
 
 export const THEME_KEY = 'copa26-theme'
 
 export function getTheme(): Theme {
   if (typeof window === 'undefined') return 'pro'
   const stored = localStorage.getItem(THEME_KEY)
-  return stored === 'kids' ? 'kids' : 'pro'
+  // retrocompatibilidade: 'kids' vira 'light'
+  return stored === 'light' || stored === 'kids' ? 'light' : 'pro'
 }
 
 export function setTheme(theme: Theme): void {
@@ -14,5 +15,5 @@ export function setTheme(theme: Theme): void {
 }
 
 export function toggleTheme(): void {
-  setTheme(getTheme() === 'pro' ? 'kids' : 'pro')
+  setTheme(getTheme() === 'pro' ? 'light' : 'pro')
 }
