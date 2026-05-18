@@ -130,7 +130,7 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
         {/* Número grande central */}
         <div className="flex-1 flex items-center justify-center">
           <span className={cn('text-3xl font-black transition-all duration-200', collected ? 'text-white' : 'text-white/10')}>
-            {sticker.number === '1' ? '①' : sticker.number}
+            {sticker.type === 'badge' ? '①' : sticker.number}
           </span>
         </div>
 
