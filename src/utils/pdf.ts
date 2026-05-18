@@ -88,19 +88,18 @@ export function buildFullPdfData(
 
     let totalDuplicates = 0
     for (const { id, quantity } of rawDuplicates) {
-      const extras = quantity - 1
-      if (extras < 1) continue
-      totalDuplicates += extras
+      // getDuplicates() already returns quantity-1 (the extra copies count)
+      if (quantity < 1) continue
+      totalDuplicates += quantity
 
       const cat = getStickerCategory(id)
       const [teamCode, number] = id.split('_')
-      // teamName lookup
       const teamEntry = ALL_TEAMS.find((t) => t.code === teamCode)
       const teamName = teamEntry?.name ?? (teamCode === 'FWC' ? 'Copa History' : teamCode === 'CC' ? 'Coca-Cola' : teamCode)
 
       const teamMap = catMap.get(cat)!
       if (!teamMap.has(teamCode)) teamMap.set(teamCode, { teamCode, teamName, numbers: [] })
-      for (let i = 0; i < extras; i++) teamMap.get(teamCode)!.numbers.push(number)
+      for (let i = 0; i < quantity; i++) teamMap.get(teamCode)!.numbers.push(number)
     }
 
     const byCategory: PdfDupCategory[] = cats.map((cat) => {
@@ -470,7 +469,7 @@ async function renderPdfDoc(data: FullPdfData): Promise<import('jspdf').jsPDF> {
 
       if (cat.category === 'player') {
         // Jogadores: "TIME nnn nnn · TIME nnn..."
-        const parts = cat.items.map((item) => `${item.teamCode} ${Array.from(new Set(item.numbers)).join(' ')}`)
+        const parts = cat.items.map((item) => `${item.teamCode} ${item.numbers.join(' ')}`)
         const line = doc.splitTextToSize(parts.join('  ·  '), contentW - 35) as string[]
         const visibleLines = line.slice(0, 2)
         if (line.length > 2) visibleLines[1] = (visibleLines[1] as string).trimEnd() + '...'

@@ -149,8 +149,8 @@ describe('FWC section', () => {
   it('includes mascote, troféu and bola stickers', () => {
     const labels = FWC_SECTION.stickers.map((s) => s.label.toLowerCase())
     expect(labels.some((l) => l.includes('mascote'))).toBe(true)
-    expect(labels.some((l) => l.includes('troféu') || l.includes('trofeu'))).toBe(true)
     expect(labels.some((l) => l.includes('bola'))).toBe(true)
+    expect(labels.some((l) => l.includes('emblema'))).toBe(true)
   })
 })
 
