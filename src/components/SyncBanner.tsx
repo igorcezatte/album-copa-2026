@@ -33,10 +33,10 @@ export function SyncBanner() {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[11px] font-bold text-white/80 leading-tight">
-          Salvo neste dispositivo
+          Suas figurinhas só existem aqui
         </p>
         <p className="text-[10px] text-white/40 leading-tight mt-0.5">
-          Crie uma conta grátis para acessar de qualquer celular
+          Crie conta grátis ou baixe um backup pra não perder
         </p>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">

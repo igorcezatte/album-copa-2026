@@ -8,6 +8,7 @@ import { ProgressBar } from '@/components/ProgressBar'
 import { pct } from '@/lib/utils'
 import { AuthButton } from '@/components/AuthButton'
 import { SyncBanner } from '@/components/SyncBanner'
+import { ExtendedBackupReminder } from '@/components/ExtendedBackupReminder'
 import { SoundToggle } from '@/components/SoundToggle'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useHydrated } from '@/hooks/useHydrated'
@@ -81,8 +82,10 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Sync banner — aparece após 10+ figurinhas, apenas para anônimos */}
+      {/* Sync banner — aparece após 5+ figurinhas pra anônimos */}
       <SyncBanner />
+      {/* Lembrete estendido — só pra anônimos que dispensaram o banner e tem 30+ */}
+      <ExtendedBackupReminder />
 
       {/* Groups grid */}
       <div className="mb-4">
