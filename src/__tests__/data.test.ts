@@ -28,7 +28,7 @@ describe('TEAMS data integrity', () => {
     }
   })
 
-  it('every team sticker 2 is a player (primeiro jogador do álbum)', () => {
+  it('every team sticker 2 is a player', () => {
     for (const team of TEAMS) {
       const second = team.stickers[1]
       expect(second.number).toBe('2')
@@ -36,11 +36,19 @@ describe('TEAMS data integrity', () => {
     }
   })
 
-  it('every team sticker 20 is the team photo (Seleção)', () => {
+  it('every team sticker 13 is the team photo (Seleção — paisagem)', () => {
+    for (const team of TEAMS) {
+      const photo = team.stickers.find((s) => s.number === '13')
+      expect(photo).toBeDefined()
+      expect(photo!.type).toBe('photo')
+    }
+  })
+
+  it('every team sticker 20 is a player', () => {
     for (const team of TEAMS) {
       const last = team.stickers[team.stickers.length - 1]
       expect(last.number).toBe('20')
-      expect(last.type).toBe('photo')
+      expect(last.type).toBe('player')
     }
   })
 
@@ -102,12 +110,12 @@ describe('TEAMS data integrity', () => {
     }
   })
 
-  it('player stickers (2-19) have type player', () => {
+  it('player stickers (2-12 e 14-20) have type player (18 no total)', () => {
     for (const team of TEAMS) {
-      // índices 1-18 = números 2-19 = jogadores
-      const playerStickers = team.stickers.slice(1, 19)
-      for (const sticker of playerStickers) {
-        expect(sticker.type).toBe('player')
+      const playerStickers = team.stickers.filter((s) => s.type === 'player')
+      expect(playerStickers).toHaveLength(18)
+      for (const s of playerStickers) {
+        expect(['2','3','4','5','6','7','8','9','10','11','12','14','15','16','17','18','19','20']).toContain(s.number)
       }
     }
   })

@@ -21,16 +21,21 @@ export interface SpecialSection {
 }
 
 // Estrutura real do álbum Panini Copa 2026:
-// N1 = Escudo (badge), N2-N19 = 18 jogadores, N20 = Seleção (foto da equipe)
+// N1 = Escudo, N2–N12 = 11 jogadores, N13 = Seleção (paisagem), N14–N20 = 7 jogadores
 function players(names: string[]): StickerDef[] {
   return [
     { number: '1', label: 'Escudo', type: 'badge' },
-    ...names.map((name, i) => ({
+    ...names.slice(0, 11).map((name, i) => ({
       number: String(i + 2),
       label: name,
       type: 'player' as const,
     })),
-    { number: '20', label: 'Seleção', type: 'photo' },
+    { number: '13', label: 'Seleção', type: 'photo' },
+    ...names.slice(11).map((name, i) => ({
+      number: String(i + 14),
+      label: name,
+      type: 'player' as const,
+    })),
   ]
 }
 

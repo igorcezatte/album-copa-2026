@@ -25,8 +25,9 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
   const addDuplicate    = useAlbumStore((s) => s.addDuplicate)
   const removeDuplicate = useAlbumStore((s) => s.removeDuplicate)
 
-  const collected  = quantity > 0
-  const duplicates = Math.max(0, quantity - 1)
+  const collected   = quantity > 0
+  const duplicates  = Math.max(0, quantity - 1)
+  const isLandscape = sticker.type === 'photo'   // N13 Seleção — card paisagem
 
 
   const openCounter = useCallback((e: React.MouseEvent) => {
@@ -75,9 +76,10 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
         'transition-all duration-200 ease-out border',
         collected ? 'border-white/10 shadow-lg' : 'border-white/5',
         animating && 'animate-pop',
+        isLandscape && 'col-span-2',
       )}
       style={{
-        aspectRatio: '3/4',
+        aspectRatio: isLandscape ? '4/3' : '3/4',
         background: collected
           ? `linear-gradient(145deg, ${primaryColor}22 0%, var(--copa-card) 60%)`
           : 'var(--copa-card)',
@@ -130,7 +132,7 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
         {/* Número grande central */}
         <div className="flex-1 flex items-center justify-center">
           <span className={cn('text-3xl font-black transition-all duration-200', collected ? 'text-white' : 'text-white/10')}>
-            {sticker.number === '1' ? '①' : sticker.number === '2' ? '②' : sticker.number}
+            {sticker.number === '1' ? '①' : sticker.type === 'photo' ? '⊡' : sticker.number}
           </span>
         </div>
 
