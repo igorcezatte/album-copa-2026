@@ -9,6 +9,7 @@ import { useAlbumStore } from '@/store/albumStore'
 import { pct } from '@/lib/utils'
 import { useHydrated } from '@/hooks/useHydrated'
 import { useShallow } from 'zustand/react/shallow'
+import { BackupSection } from '@/components/BackupSection'
 
 const CONFIRM_PHRASE = 'REMOVER TUDO'
 
@@ -191,6 +192,8 @@ export default function ConfigPage() {
           )}
         </div>
       </section>
+
+      <BackupSection />
 
       {/* Sobre */}
       <section>
