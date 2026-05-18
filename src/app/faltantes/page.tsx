@@ -13,6 +13,7 @@ export default function FaltantesPage() {
   const getMissing = useAlbumStore((s) => s.getMissing)
   const isCollected = useAlbumStore((s) => s.isCollected)
   const getTotalProgress = useAlbumStore((s) => s.getTotalProgress)
+  const getDuplicates = useAlbumStore((s) => s.getDuplicates)
   const [sharing, setSharing] = useState(false)
   const [generatingPdf, setGeneratingPdf] = useState(false)
 
@@ -49,7 +50,7 @@ export default function FaltantesPage() {
             .map((s) => s.number),
         },
       ]
-      const data = buildFullPdfData(allTeams, specials, getTotalProgress())
+      const data = buildFullPdfData(allTeams, specials, getTotalProgress(), getDuplicates())
       await generateAndDownloadPdf(data)
     } finally {
       setGeneratingPdf(false)

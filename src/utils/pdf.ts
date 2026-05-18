@@ -1,4 +1,5 @@
-import { GROUP_COLORS } from '@/data/teams'
+import { GROUP_COLORS, TEAMS as ALL_TEAMS } from '@/data/teams'
+import { getStickerCategory, CATEGORY_META, type TradeCategory } from '@/utils/trade'
 
 // ── Tipos v1 (mantidos para compatibilidade) ────────────────────
 
@@ -33,17 +34,30 @@ export interface FullPdfTeamEntry {
   teamName: string; primaryColor: string; flagCode: string; missing: string[]
 }
 export interface FullPdfGroupEntry { group: string; color: string; teams: FullPdfTeamEntry[] }
+export interface PdfDupCategory {
+  category: TradeCategory
+  label: string
+  icon: string
+  items: Array<{ teamCode: string; teamName: string; numbers: string[] }>
+  total: number
+}
+
 export interface FullPdfData {
   title: string; generatedAt: string; totalMissing: number; completedTeams: number
   totalProgress: { collected: number; total: number }
   groups: FullPdfGroupEntry[]
   specialSections: Array<{ name: string; color: string; missing: string[] }>
+  duplicatesSection?: {
+    totalDuplicates: number
+    byCategory: PdfDupCategory[]
+  }
 }
 
 export function buildFullPdfData(
   teams: FullTeamInput[],
   specialSections: FullSpecialInput[],
   totalProgress: { collected: number; total: number },
+  rawDuplicates?: Array<{ id: string; quantity: number }>,
 ): FullPdfData {
   let totalMissing = 0
   let completedTeams = 0
@@ -65,10 +79,48 @@ export function buildFullPdfData(
 
   const generatedAt = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
+  // Seção de repetidas (panorama para troca)
+  let duplicatesSection: FullPdfData['duplicatesSection']
+  if (rawDuplicates && rawDuplicates.length > 0) {
+    const catMap = new Map<TradeCategory, Map<string, { teamCode: string; teamName: string; numbers: string[] }>>()
+    const cats: TradeCategory[] = ['badge', 'photo', 'player', 'special']
+    for (const cat of cats) catMap.set(cat, new Map())
+
+    let totalDuplicates = 0
+    for (const { id, quantity } of rawDuplicates) {
+      const extras = quantity - 1
+      if (extras < 1) continue
+      totalDuplicates += extras
+
+      const cat = getStickerCategory(id)
+      const [teamCode, number] = id.split('_')
+      // teamName lookup
+      const teamEntry = ALL_TEAMS.find((t) => t.code === teamCode)
+      const teamName = teamEntry?.name ?? (teamCode === 'FWC' ? 'Copa History' : teamCode === 'CC' ? 'Coca-Cola' : teamCode)
+
+      const teamMap = catMap.get(cat)!
+      if (!teamMap.has(teamCode)) teamMap.set(teamCode, { teamCode, teamName, numbers: [] })
+      for (let i = 0; i < extras; i++) teamMap.get(teamCode)!.numbers.push(number)
+    }
+
+    const byCategory: PdfDupCategory[] = cats.map((cat) => {
+      const meta = CATEGORY_META[cat]
+      const itemsMap = catMap.get(cat)!
+      const items = Array.from(itemsMap.values())
+      const total = items.reduce((s, i) => s + i.numbers.length, 0)
+      return { category: cat, label: meta.label, icon: meta.icon, items, total }
+    }).filter((c) => c.total > 0)
+
+    if (byCategory.length > 0) {
+      duplicatesSection = { totalDuplicates, byCategory }
+    }
+  }
+
   return {
     title: 'Álbum Copa 2026', generatedAt, totalMissing, completedTeams, totalProgress,
     groups,
     specialSections: specialSections.map((s) => ({ name: s.name, color: s.color, missing: s.missing })),
+    duplicatesSection,
   }
 }
 
@@ -368,6 +420,73 @@ async function renderPdfDoc(data: FullPdfData): Promise<import('jspdf').jsPDF> {
       })
     }
   })
+
+  // ── Seção de repetidas para troca ────────────────────────────
+  if (data.duplicatesSection && data.duplicatesSection.totalDuplicates > 0) {
+    const dup = data.duplicatesSection
+
+    // Se estamos perto do fim da página, inicia uma nova
+    const maxSpecY = specY + GH + 20  // approximate end of special sections
+    let dupY = maxSpecY + 6
+    if (dupY > 245) {
+      doc.addPage()
+      dupY = 14
+      // Footer da página 2
+      doc.setFillColor(235, 236, 240)
+      doc.rect(0, H - 7, W, 7, 'F')
+      doc.setTextColor(...muted)
+      doc.setFontSize(5.5)
+      doc.text('Álbum Copa 2026', margin, H - 3)
+    }
+
+    // Header da seção
+    doc.setFillColor(...blendWithWhite(dark, 0.15))
+    doc.rect(margin, dupY, contentW, 6, 'F')
+    doc.setFillColor(...gold)
+    doc.rect(margin, dupY, 4, 6, 'F')
+    doc.setTextColor(...gold)
+    doc.setFontSize(6.5)
+    doc.setFont('helvetica', 'bold')
+    doc.text('REPETIDAS PARA TROCA', margin + 6, dupY + 4.2)
+    doc.setTextColor(...muted)
+    doc.setFontSize(6)
+    doc.text(`${dup.totalDuplicates} total`, W - margin, dupY + 4.2, { align: 'right' })
+    dupY += 8
+
+    // Cada categoria
+    for (const cat of dup.byCategory) {
+      if (cat.total === 0) continue
+
+      // Label da categoria
+      doc.setTextColor(...ink)
+      doc.setFontSize(6)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`${cat.label} (${cat.total})`, margin, dupY + 3)
+
+      // Itens compactos
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(5.5)
+      doc.setTextColor(...muted)
+
+      if (cat.category === 'player') {
+        // Jogadores: "TIME nnn nnn · TIME nnn..."
+        const parts = cat.items.map((item) => `${item.teamCode} ${Array.from(new Set(item.numbers)).join(' ')}`)
+        const line = doc.splitTextToSize(parts.join('  ·  '), contentW - 35) as string[]
+        const visibleLines = line.slice(0, 2)
+        if (line.length > 2) visibleLines[1] = (visibleLines[1] as string).trimEnd() + '...'
+        visibleLines.forEach((l, li) => {
+          doc.text(l, W - margin, dupY + 3 + li * 3.5, { align: 'right' })
+        })
+        dupY += 4 + visibleLines.length * 3.5
+      } else {
+        // Outros: lista de times
+        const names = cat.items.map((i) => i.teamName).join('  ·  ')
+        const line = (doc.splitTextToSize(names, contentW - 35) as string[])[0] as string
+        doc.text(line, W - margin, dupY + 3, { align: 'right' })
+        dupY += 7
+      }
+    }
+  }
 
   // ── Footer ───────────────────────────────────────────────────
   doc.setFillColor(235, 236, 240)
