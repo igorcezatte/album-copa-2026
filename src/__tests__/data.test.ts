@@ -28,11 +28,19 @@ describe('TEAMS data integrity', () => {
     }
   })
 
-  it('every team sticker 2 is the team photo', () => {
+  it('every team sticker 2 is a player (primeiro jogador do álbum)', () => {
     for (const team of TEAMS) {
       const second = team.stickers[1]
       expect(second.number).toBe('2')
-      expect(second.type).toBe('photo')
+      expect(second.type).toBe('player')
+    }
+  })
+
+  it('every team sticker 20 is the team photo (Seleção)', () => {
+    for (const team of TEAMS) {
+      const last = team.stickers[team.stickers.length - 1]
+      expect(last.number).toBe('20')
+      expect(last.type).toBe('photo')
     }
   })
 
@@ -94,10 +102,11 @@ describe('TEAMS data integrity', () => {
     }
   })
 
-  it('player stickers (3-20) have type player', () => {
+  it('player stickers (2-19) have type player', () => {
     for (const team of TEAMS) {
-      const players = team.stickers.slice(2)
-      for (const sticker of players) {
+      // índices 1-18 = números 2-19 = jogadores
+      const playerStickers = team.stickers.slice(1, 19)
+      for (const sticker of playerStickers) {
         expect(sticker.type).toBe('player')
       }
     }
