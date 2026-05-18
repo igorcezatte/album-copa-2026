@@ -1,5 +1,4 @@
-import { GROUP_COLORS, TEAMS as ALL_TEAMS } from '@/data/teams'
-import { getStickerCategory, CATEGORY_META, type TradeCategory } from '@/utils/trade'
+import { GROUP_COLORS, TEAMS as ALL_TEAMS, FWC_SECTION, CC_SECTION } from '@/data/teams'
 
 // ── Tipos v1 (mantidos para compatibilidade) ────────────────────
 
@@ -34,12 +33,13 @@ export interface FullPdfTeamEntry {
   teamName: string; primaryColor: string; flagCode: string; missing: string[]
 }
 export interface FullPdfGroupEntry { group: string; color: string; teams: FullPdfTeamEntry[] }
-export interface PdfDupCategory {
-  category: TradeCategory
-  label: string
-  icon: string
-  items: Array<{ teamCode: string; teamName: string; numbers: string[] }>
-  total: number
+export interface PdfDupEntry {
+  teamCode: string
+  teamName: string
+  flagCode?: string
+  primaryColor: string
+  labels: string[]
+  totalExtras: number
 }
 
 export interface FullPdfData {
@@ -49,7 +49,7 @@ export interface FullPdfData {
   specialSections: Array<{ name: string; color: string; missing: string[] }>
   duplicatesSection?: {
     totalDuplicates: number
-    byCategory: PdfDupCategory[]
+    entries: PdfDupEntry[]
   }
 }
 
@@ -79,39 +79,60 @@ export function buildFullPdfData(
 
   const generatedAt = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
-  // Seção de repetidas (panorama para troca)
+  // Seção de repetidas
   let duplicatesSection: FullPdfData['duplicatesSection']
   if (rawDuplicates && rawDuplicates.length > 0) {
-    const catMap = new Map<TradeCategory, Map<string, { teamCode: string; teamName: string; numbers: string[] }>>()
-    const cats: TradeCategory[] = ['badge', 'photo', 'player', 'special']
-    for (const cat of cats) catMap.set(cat, new Map())
-
+    const entryMap = new Map<string, {
+      teamCode: string; teamName: string; flagCode?: string; primaryColor: string
+      stickerExtras: Map<string, { label: string; extras: number }>
+    }>()
     let totalDuplicates = 0
+
     for (const { id, quantity } of rawDuplicates) {
-      // getDuplicates() already returns quantity-1 (the extra copies count)
+      // getDuplicates() already returns the extra copies count
       if (quantity < 1) continue
       totalDuplicates += quantity
 
-      const cat = getStickerCategory(id)
       const [teamCode, number] = id.split('_')
       const teamEntry = ALL_TEAMS.find((t) => t.code === teamCode)
       const teamName = teamEntry?.name ?? (teamCode === 'FWC' ? 'Copa History' : teamCode === 'CC' ? 'Coca-Cola' : teamCode)
+      const flagCode = teamEntry?.flagCode
+      const primaryColor = teamEntry?.primaryColor ?? (teamCode === 'FWC' ? '#f5c42e' : '#e8222a')
 
-      const teamMap = catMap.get(cat)!
-      if (!teamMap.has(teamCode)) teamMap.set(teamCode, { teamCode, teamName, numbers: [] })
-      for (let i = 0; i < quantity; i++) teamMap.get(teamCode)!.numbers.push(number)
+      // Resolve display label: for specials use sticker name, for players use number
+      let stickerLabel: string
+      if (teamCode === 'FWC') {
+        const def = FWC_SECTION.stickers.find((s) => s.number === number)
+        stickerLabel = def ? def.label : `FWC${number}`
+      } else if (teamCode === 'CC') {
+        const def = CC_SECTION.stickers.find((s) => s.number === number)
+        stickerLabel = def ? def.label : `CC${number}`
+      } else {
+        stickerLabel = number
+      }
+
+      if (!entryMap.has(teamCode)) {
+        entryMap.set(teamCode, { teamCode, teamName, flagCode, primaryColor, stickerExtras: new Map() })
+      }
+      const entry = entryMap.get(teamCode)!
+      if (!entry.stickerExtras.has(number)) {
+        entry.stickerExtras.set(number, { label: stickerLabel, extras: 0 })
+      }
+      entry.stickerExtras.get(number)!.extras += quantity
     }
 
-    const byCategory: PdfDupCategory[] = cats.map((cat) => {
-      const meta = CATEGORY_META[cat]
-      const itemsMap = catMap.get(cat)!
-      const items = Array.from(itemsMap.values())
-      const total = items.reduce((s, i) => s + i.numbers.length, 0)
-      return { category: cat, label: meta.label, icon: meta.icon, items, total }
-    }).filter((c) => c.total > 0)
+    const entries: PdfDupEntry[] = Array.from(entryMap.values()).map(
+      ({ teamCode, teamName, flagCode, primaryColor, stickerExtras }) => {
+        const labels = Array.from(stickerExtras.values()).map(({ label, extras }) =>
+          extras > 1 ? `${label} ×${extras}` : label,
+        )
+        const totalExtras = Array.from(stickerExtras.values()).reduce((s, e) => s + e.extras, 0)
+        return { teamCode, teamName, flagCode, primaryColor, labels, totalExtras }
+      },
+    ).sort((a, b) => b.totalExtras - a.totalExtras)
 
-    if (byCategory.length > 0) {
-      duplicatesSection = { totalDuplicates, byCategory }
+    if (entries.length > 0) {
+      duplicatesSection = { totalDuplicates, entries }
     }
   }
 
@@ -420,70 +441,115 @@ async function renderPdfDoc(data: FullPdfData): Promise<import('jspdf').jsPDF> {
     }
   })
 
-  // ── Seção de repetidas para troca ────────────────────────────
+  // ── Página 2: Repetidas para troca (clone do layout da página 1) ─
   if (data.duplicatesSection && data.duplicatesSection.totalDuplicates > 0) {
     const dup = data.duplicatesSection
 
-    // Se estamos perto do fim da página, inicia uma nova
-    const maxSpecY = specY + GH + 20  // approximate end of special sections
-    let dupY = maxSpecY + 6
-    if (dupY > 245) {
-      doc.addPage()
-      dupY = 14
-      // Footer da página 2
-      doc.setFillColor(235, 236, 240)
-      doc.rect(0, H - 7, W, 7, 'F')
-      doc.setTextColor(...muted)
-      doc.setFontSize(5.5)
-      doc.text('Álbum Copa 2026', margin, H - 3)
+    doc.addPage()
+
+    // Header idêntico ao da página 1
+    doc.setFillColor(...dark)
+    doc.rect(0, 0, W, headerH, 'F')
+    doc.setFillColor(...gold)
+    doc.rect(0, 0, 4, headerH, 'F')
+
+    doc.setTextColor(...gold)
+    doc.setFontSize(13)
+    doc.setFont('helvetica', 'bold')
+    doc.text('REPETIDAS PARA TROCA', 7, 9)
+
+    doc.setTextColor(200, 205, 220)
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`${dup.totalDuplicates} figurinha${dup.totalDuplicates !== 1 ? 's' : ''} disponíveis para troca`, 7, 14.5)
+    doc.text(`Gerado em ${data.generatedAt}`, 7, 18.5)
+
+    const dupBadgeW = 36
+    doc.setFillColor(...gold)
+    doc.roundedRect(W - margin - dupBadgeW, 3, dupBadgeW, 14, 2, 2, 'F')
+    doc.setTextColor(...dark)
+    doc.setFontSize(15)
+    doc.setFont('helvetica', 'bold')
+    doc.text(String(dup.totalDuplicates), W - margin - dupBadgeW / 2, 11.5, { align: 'center' })
+    doc.setFontSize(5)
+    doc.setFont('helvetica', 'normal')
+    doc.text('repetidas', W - margin - dupBadgeW / 2, 15, { align: 'center' })
+
+    // Distribui entradas nas 3 colunas (round-robin por altura estimada para equilíbrio)
+    const dupEntries = dup.entries
+    const colLists: PdfDupEntry[][] = [[], [], []]
+    dupEntries.forEach((e, i) => colLists[i % 3].push(e))
+
+    function dupRowH(labels: string[]): number {
+      if (labels.length === 0) return ROW_MIN
+      const str = labels.join(' · ')
+      const lines = doc.splitTextToSize(str, numW) as string[]
+      return ROW_MIN + (Math.min(lines.length, MAX_LINES) - 1) * LINE_H
     }
 
-    // Header da seção
-    doc.setFillColor(...blendWithWhite(dark, 0.15))
-    doc.rect(margin, dupY, contentW, 6, 'F')
-    doc.setFillColor(...gold)
-    doc.rect(margin, dupY, 4, 6, 'F')
-    doc.setTextColor(...gold)
-    doc.setFontSize(6.5)
-    doc.setFont('helvetica', 'bold')
-    doc.text('REPETIDAS PARA TROCA', margin + 6, dupY + 4.2)
-    doc.setTextColor(...muted)
-    doc.setFontSize(6)
-    doc.text(`${dup.totalDuplicates} total`, W - margin, dupY + 4.2, { align: 'right' })
-    dupY += 8
+    let dupStartY = headerH + 4
 
-    // Cada categoria
-    for (const cat of dup.byCategory) {
-      if (cat.total === 0) continue
+    for (let col = 0; col < 3; col++) {
+      const cx = colXs[col]
+      let y = dupStartY
 
-      // Label da categoria
-      doc.setTextColor(...ink)
-      doc.setFontSize(6)
-      doc.setFont('helvetica', 'bold')
-      doc.text(`${cat.label} (${cat.total})`, margin, dupY + 3)
+      colLists[col].forEach((entry, slot) => {
+        const rH = dupRowH(entry.labels)
+        const midY = y + rH / 2
 
-      // Itens compactos
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(5.5)
-      doc.setTextColor(...muted)
+        // Fundo alternado
+        if (slot % 2 === 1) {
+          doc.setFillColor(248, 249, 251)
+          doc.rect(cx, y, colW, rH, 'F')
+        }
 
-      if (cat.category === 'player') {
-        // Jogadores: "TIME nnn nnn · TIME nnn..."
-        const parts = cat.items.map((item) => `${item.teamCode} ${item.numbers.join(' ')}`)
-        const line = doc.splitTextToSize(parts.join('  ·  '), contentW - 35) as string[]
-        const visibleLines = line.slice(0, 2)
-        if (line.length > 2) visibleLines[1] = (visibleLines[1] as string).trimEnd() + '...'
-        visibleLines.forEach((l, li) => {
-          doc.text(l, W - margin, dupY + 3 + li * 3.5, { align: 'right' })
+        // Bandeira ou círculo colorido
+        const flagB64 = flagCache.get(entry.flagCode ?? '') ?? null
+        if (flagB64) {
+          try {
+            doc.addImage(`data:image/png;base64,${flagB64}`, 'PNG', cx + 1, midY - FLAG_H / 2, FLAG_W, FLAG_H)
+          } catch {
+            const [r, g, b] = hexToRgb(entry.primaryColor)
+            doc.setFillColor(r, g, b)
+            doc.circle(cx + 1 + FLAG_W / 2, midY, 2, 'F')
+          }
+        } else {
+          const [r, g, b] = hexToRgb(entry.primaryColor)
+          doc.setFillColor(r, g, b)
+          doc.circle(cx + 1 + FLAG_W / 2, midY, 2, 'F')
+        }
+
+        // Nome do time
+        doc.setTextColor(...ink)
+        doc.setFontSize(6.5)
+        doc.setFont('helvetica', 'bold')
+        const truncName = (doc.splitTextToSize(entry.teamName, nameW) as string[])[0]
+        doc.text(truncName, cx + nameX, midY + 2.2)
+
+        // Labels das figurinhas repetidas
+        const labelStr = entry.labels.join(' · ')
+        const allLines = doc.splitTextToSize(labelStr, numW) as string[]
+        const lines = allLines.slice(0, MAX_LINES)
+        if (allLines.length > MAX_LINES) {
+          lines[MAX_LINES - 1] = (lines[MAX_LINES - 1] as string).trimEnd() + '...'
+        }
+        const textBlockH = lines.length * LINE_H
+        const textStartY = midY - textBlockH / 2 + 2.2
+
+        doc.setTextColor(...muted)
+        doc.setFontSize(5.5)
+        doc.setFont('helvetica', 'normal')
+        lines.forEach((line, li) => {
+          doc.text(line, cx + colW - 1, textStartY + li * LINE_H, { align: 'right' })
         })
-        dupY += 4 + visibleLines.length * 3.5
-      } else {
-        // Outros: lista de times
-        const names = cat.items.map((i) => i.teamName).join('  ·  ')
-        const line = (doc.splitTextToSize(names, contentW - 35) as string[])[0] as string
-        doc.text(line, W - margin, dupY + 3, { align: 'right' })
-        dupY += 7
-      }
+
+        // Divisória
+        doc.setDrawColor(...divCol)
+        doc.setLineWidth(0.15)
+        doc.line(cx, y + rH, cx + colW, y + rH)
+
+        y += rH
+      })
     }
   }
 
