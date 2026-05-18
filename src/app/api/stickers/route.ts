@@ -1,11 +1,20 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createSupabaseAdmin } from '@/lib/supabase'
+import { rlGet, rlPut } from '@/lib/ratelimit'
 
 export async function GET() {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Rate limiting: 20 requisicoes por minuto por usuario
+  if (rlGet) {
+    const { success } = await rlGet.limit(`get:${session.user.id}`)
+    if (!success) {
+      return Response.json({ error: 'Too many requests' }, { status: 429 })
+    }
   }
 
   const supabase = createSupabaseAdmin()
@@ -25,6 +34,14 @@ export async function PUT(request: Request) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Rate limiting: 60 requisicoes por minuto por usuario
+  if (rlPut) {
+    const { success } = await rlPut.limit(`put:${session.user.id}`)
+    if (!success) {
+      return Response.json({ error: 'Too many requests' }, { status: 429 })
+    }
+  }
+
   const body = await request.json()
   const entries: Array<{ sticker_id: string; quantity: number }> = body.stickers ?? []
 
@@ -35,9 +52,6 @@ export async function PUT(request: Request) {
   const supabase = createSupabaseAdmin()
   const userId = session.user.id
 
-  // Full replace: apaga tudo do usuário e insere o estado atual.
-  // Upsert simples não funciona para remoções — stickers descoleados
-  // ficavam no Supabase e voltavam ao recarregar a página.
   const { error: deleteError } = await supabase
     .from('sticker_entries')
     .delete()
