@@ -29,16 +29,19 @@ export default function ConfigPage() {
     if (!canConfirm) return
     setResetting(true)
 
-    resetAlbum()
-
-    // Limpa no Supabase também se logado
+    // Wipe servidor primeiro com force:true (bypass do sanity guard).
+    // Ordem importa: se chamássemos resetAlbum() antes, o debounce do useSyncStore
+    // dispararia PUT [] sem force e o servidor responderia 409 (catastrophic shrink),
+    // abrindo modal de conflito indevidamente.
     if (session?.user?.id) {
       await fetch('/api/stickers', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stickers: [] }),
+        body: JSON.stringify({ stickers: [], force: true }),
       }).catch(console.error)
     }
+
+    resetAlbum()
 
     setStep('done')
     setResetting(false)
