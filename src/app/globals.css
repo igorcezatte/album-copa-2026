@@ -73,6 +73,15 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Viewport-height seguro pra mobile: usa dvh (dynamic viewport) que se ajusta
+   conforme a barra de endereço do browser aparece/some, em vez do 100vh
+   tradicional que causa "espaço fantasma" no fim da página em iOS Safari
+   e Chrome Android. Fallback automático para 100vh em browsers antigos. */
+.min-h-screen-safe {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {

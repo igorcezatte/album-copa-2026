@@ -48,8 +48,8 @@ export default function SobrePage() {
             </div>
           </div>
           <p className="text-[13px] text-white/60 leading-relaxed">
-            Controle suas figurinhas da Copa do Mundo 2026 de forma simples e bonita.
-            Marque as que você tem, gerencie repetidas, veja o progresso por grupo e compartilhe a lista de faltantes.
+            Controle suas figurinhas da Copa do Mundo 2026 de forma simples e divertida.
+            Marque as que você tem, gerencie repetidas, veja o progresso por grupo e compartilhe sua lista atualizada com amigos.
           </p>
           <p className="text-[11px] text-white/30">994 figurinhas · 48 seleções · 12 grupos</p>
         </div>
@@ -85,7 +85,7 @@ export default function SobrePage() {
           </div>
           <p className="text-[13px] text-white/60 leading-relaxed">
             Apaixonado por tecnologia, desenvolvendo projetos nas horas vagas.
-            Este álbum surgiu da necessidade real de controlar figurinhas da Copa —
+            Este álbum surgiu da necessidade real de controlar figurinhas da Copa,
             espero que esteja facilitando a sua vida também!
           </p>
         </div>
@@ -97,8 +97,8 @@ export default function SobrePage() {
         <div className="rounded-2xl border border-white/5 p-5 space-y-4" style={{ background: 'var(--copa-card)' }}>
           <p className="text-[13px] text-white/60 leading-relaxed">
             Por aqui eu também ainda tô na luta pra fechar meu álbum. 😅
-            Se esse app te ajudou a organizar suas figurinhas, que tal me ajudar a fechar o meu?
-            Me pague um pacotinho — qualquer figurinha boa é bem-vinda! 🎴
+            Se essa página te ajudou a organizar suas figurinhas, que tal me ajudar a fechar o meu?
+            Me pague um pacotinho, qualquer figurinha é bem-vinda! 🎴
           </p>
 
           {/* QR Code */}

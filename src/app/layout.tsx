@@ -21,10 +21,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className="min-h-screen bg-copa-bg">
+      <body className="min-h-screen-safe bg-copa-bg">
         <ThemeProvider>
         <AuthProvider>
-          <div className="max-w-lg mx-auto min-h-screen relative">
+          {/* Sem min-h aqui: o body já garante altura mínima e empilhar dois
+              min-h causa "espaço fantasma" no fim da página em mobile. */}
+          <div className="max-w-lg mx-auto relative">
             <main className="pb-20">{children}</main>
             <NavBar />
           </div>
