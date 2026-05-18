@@ -480,7 +480,7 @@ async function renderPdfDoc(data: FullPdfData): Promise<import('jspdf').jsPDF> {
     const colLists: PdfDupEntry[][] = [[], [], []]
     dupEntries.forEach((e, i) => colLists[i % 3].push(e))
 
-    function dupRowH(labels: string[]): number {
+    const dupRowH = (labels: string[]): number => {
       if (labels.length === 0) return ROW_MIN
       const str = labels.join(' · ')
       const lines = doc.splitTextToSize(str, numW) as string[]
