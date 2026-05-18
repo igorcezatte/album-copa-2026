@@ -10,13 +10,13 @@ describe('theme preference', () => {
   })
 
   it('setTheme persists to localStorage', () => {
-    setTheme('kids')
-    expect(localStorage.getItem(THEME_KEY)).toBe('kids')
+    setTheme('light')
+    expect(localStorage.getItem(THEME_KEY)).toBe('light')
   })
 
-  it('getTheme reads kids from localStorage', () => {
-    localStorage.setItem(THEME_KEY, 'kids')
-    expect(getTheme()).toBe('kids')
+  it('getTheme reads light from localStorage', () => {
+    localStorage.setItem(THEME_KEY, 'light')
+    expect(getTheme()).toBe('light')
   })
 
   it('getTheme reads pro from localStorage', () => {
@@ -24,14 +24,14 @@ describe('theme preference', () => {
     expect(getTheme()).toBe('pro')
   })
 
-  it('toggleTheme flips pro → kids', () => {
+  it('toggleTheme flips pro → light', () => {
     setTheme('pro')
     toggleTheme()
-    expect(getTheme()).toBe('kids')
+    expect(getTheme()).toBe('light')
   })
 
-  it('toggleTheme flips kids → pro', () => {
-    setTheme('kids')
+  it('toggleTheme flips light → pro', () => {
+    setTheme('light')
     toggleTheme()
     expect(getTheme()).toBe('pro')
   })

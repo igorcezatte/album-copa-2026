@@ -122,19 +122,18 @@ describe('TEAMS data integrity', () => {
 })
 
 describe('FWC section', () => {
-  it('has exactly 20 stickers', () => {
-    expect(FWC_SECTION.stickers).toHaveLength(20)
+  it('has exactly 19 stickers', () => {
+    expect(FWC_SECTION.stickers).toHaveLength(19)
   })
 
-  it('starts with sticker 00 (abertura)', () => {
-    expect(FWC_SECTION.stickers[0].number).toBe('00')
+  it('starts with sticker 1', () => {
+    expect(FWC_SECTION.stickers[0].number).toBe('1')
     expect(FWC_SECTION.stickers[0].label).toBeTruthy()
   })
 
-  it('has stickers numbered 00 then 1-19', () => {
+  it('has stickers numbered 1-19', () => {
     const numbers = FWC_SECTION.stickers.map((s) => s.number)
-    expect(numbers[0]).toBe('00')
-    expect(numbers.slice(1)).toEqual(Array.from({ length: 19 }, (_, i) => String(i + 1)))
+    expect(numbers).toEqual(Array.from({ length: 19 }, (_, i) => String(i + 1)))
   })
 
   it('all sticker labels are non-empty', () => {
@@ -172,8 +171,8 @@ describe('Coca-Cola section', () => {
 })
 
 describe('TOTAL_STICKERS', () => {
-  it('equals 994 (48×20 + 20 FWC + 14 CC)', () => {
-    expect(TOTAL_STICKERS).toBe(994)
+  it('equals 993 (48×20 + 19 FWC + 14 CC)', () => {
+    expect(TOTAL_STICKERS).toBe(993)
   })
 })
 

@@ -12,7 +12,7 @@ beforeEach(() => {
 describe('stickerId helper', () => {
   it('formats id correctly', () => {
     expect(stickerId('BRA', '1')).toBe('BRA_1')
-    expect(stickerId('FWC', '00')).toBe('FWC_00')
+    expect(stickerId('FWC', '1')).toBe('FWC_1')
     expect(stickerId('CC', '14')).toBe('CC_14')
   })
 })
@@ -146,14 +146,14 @@ describe('getGroupProgress', () => {
 })
 
 describe('getTotalProgress', () => {
-  it('starts at 0/994', () => {
+  it('starts at 0/993', () => {
     const p = useAlbumStore.getState().getTotalProgress()
     expect(p.collected).toBe(0)
-    expect(p.total).toBe(994)
+    expect(p.total).toBe(993)
   })
 
   it('counts stickers from FWC section', () => {
-    useAlbumStore.getState().collect(stickerId('FWC', '00'))
+    useAlbumStore.getState().collect(stickerId('FWC', '1'))
     const p = useAlbumStore.getState().getTotalProgress()
     expect(p.collected).toBe(1)
   })
@@ -166,9 +166,9 @@ describe('getTotalProgress', () => {
 })
 
 describe('getSectionProgress', () => {
-  it('FWC starts at 0/20', () => {
+  it('FWC starts at 0/19', () => {
     const p = useAlbumStore.getState().getSectionProgress('FWC')
-    expect(p.total).toBe(20)
+    expect(p.total).toBe(19)
     expect(p.collected).toBe(0)
   })
 
@@ -179,8 +179,8 @@ describe('getSectionProgress', () => {
   })
 
   it('FWC counts correctly after collect', () => {
-    useAlbumStore.getState().collect(stickerId('FWC', '00'))
     useAlbumStore.getState().collect(stickerId('FWC', '1'))
+    useAlbumStore.getState().collect(stickerId('FWC', '2'))
     const p = useAlbumStore.getState().getSectionProgress('FWC')
     expect(p.collected).toBe(2)
   })

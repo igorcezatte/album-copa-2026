@@ -100,7 +100,7 @@ export default function HomePage() {
           Especiais
         </h2>
         <div className="grid grid-cols-2 gap-3">
-          <SpecialCard code="FWC" label="Copa History" total={20} />
+          <SpecialCard code="FWC" label="Copa History" total={19} />
           <SpecialCard code="CC" label="Coca-Cola" total={14} />
         </div>
       </div>
