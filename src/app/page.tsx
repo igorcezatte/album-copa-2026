@@ -85,19 +85,19 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Abrir pacote — entrada rápida global */}
+      {/* Entrada rápida global — várias figurinhas de uma vez */}
       <button
         onClick={() => setPackOpen(true)}
         className="w-full mb-5 rounded-2xl border border-copa-gold/30 bg-copa-gold/10 px-4 py-3 flex items-center gap-3 active:scale-[0.98] transition-transform"
-        aria-label="Abri um pacote — adicionar várias figurinhas"
+        aria-label="Adicionar várias figurinhas rapidamente"
       >
-        <span className="text-xl">📦</span>
+        <span className="text-xl">⚡</span>
         <div className="flex-1 min-w-0 text-left">
           <p className="text-[13px] font-black text-white leading-tight">
-            Abri um pacote
+            Adicionar rapidamente
           </p>
           <p className="text-[10px] text-white/50 leading-tight mt-0.5">
-            Registre várias figurinhas de uma vez
+            Várias figurinhas de uma vez
           </p>
         </div>
         <svg

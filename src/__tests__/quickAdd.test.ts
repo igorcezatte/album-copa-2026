@@ -168,6 +168,105 @@ describe('parsePackInput', () => {
     const r = parsePackInput('BRA-5; MEX:12, FWC.19\nBRA 7')
     expect(r.items).toHaveLength(4)
   })
+
+  // ─── Nomes em português ───────────────────────────────────────
+  it('reconhece nome em português', () => {
+    const r = parsePackInput('Alemanha 12')
+    expect(r.items).toEqual([{ teamCode: 'GER', number: '12' }])
+  })
+
+  it('reconhece nome sem espaço entre letras e número', () => {
+    const r = parsePackInput('alemanha12')
+    expect(r.items).toEqual([{ teamCode: 'GER', number: '12' }])
+  })
+
+  it('aceita maiúsculas e acentos opcionais no nome', () => {
+    expect(parsePackInput('México 5').items).toEqual([
+      { teamCode: 'MEX', number: '5' },
+    ])
+    expect(parsePackInput('mexico 5').items).toEqual([
+      { teamCode: 'MEX', number: '5' },
+    ])
+    expect(parsePackInput('MÉXICO 5').items).toEqual([
+      { teamCode: 'MEX', number: '5' },
+    ])
+  })
+
+  it('reconhece times com nome composto (3 palavras)', () => {
+    const r = parsePackInput('Coreia do Sul 5, 7')
+    expect(r.items).toEqual([
+      { teamCode: 'KOR', number: '5' },
+      { teamCode: 'KOR', number: '7' },
+    ])
+  })
+
+  it('reconhece "África do Sul" com e sem acento', () => {
+    expect(parsePackInput('África do Sul 1').items).toEqual([
+      { teamCode: 'RSA', number: '1' },
+    ])
+    expect(parsePackInput('africa do sul 1').items).toEqual([
+      { teamCode: 'RSA', number: '1' },
+    ])
+  })
+
+  it('aceita múltiplos times com nome em português', () => {
+    const r = parsePackInput('Alemanha 5, México 12, Brasil 7')
+    expect(r.items).toEqual([
+      { teamCode: 'GER', number: '5' },
+      { teamCode: 'MEX', number: '12' },
+      { teamCode: 'BRA', number: '7' },
+    ])
+  })
+
+  it('mistura códigos curtos e nomes longos no mesmo input', () => {
+    const r = parsePackInput('BRA 5, Alemanha 12, MEX 1')
+    expect(r.items).toEqual([
+      { teamCode: 'BRA', number: '5' },
+      { teamCode: 'GER', number: '12' },
+      { teamCode: 'MEX', number: '1' },
+    ])
+  })
+
+  it('reconhece alias "coreia" sem "do sul"', () => {
+    const r = parsePackInput('coreia 5')
+    expect(r.items).toEqual([{ teamCode: 'KOR', number: '5' }])
+  })
+
+  it('reconhece alias "tcheca" sem "rep"', () => {
+    const r = parsePackInput('tcheca 3')
+    expect(r.items).toEqual([{ teamCode: 'CZE', number: '3' }])
+  })
+
+  it('reconhece "EUA" como Estados Unidos', () => {
+    const r = parsePackInput('EUA 5')
+    expect(r.items).toEqual([{ teamCode: 'USA', number: '5' }])
+  })
+
+  it('reconhece "Coca" e variações pra CC', () => {
+    expect(parsePackInput('coca 5').items).toEqual([
+      { teamCode: 'CC', number: '5' },
+    ])
+    expect(parsePackInput('Coca-Cola 5').items).toEqual([
+      { teamCode: 'CC', number: '5' },
+    ])
+  })
+
+  it('greedy match prefere nome mais longo', () => {
+    // "Coreia 5" sozinho → KOR ; "Coreia do Sul 5" → KOR (3 tokens consumidos)
+    // Garante que o "do" + "sul" não viram errors
+    const r = parsePackInput('Coreia do Sul 5')
+    expect(r.items).toEqual([{ teamCode: 'KOR', number: '5' }])
+    expect(r.errors).toEqual([])
+  })
+
+  it('número herda time mesmo após nome longo', () => {
+    const r = parsePackInput('Costa do Marfim 5 7 12')
+    expect(r.items).toEqual([
+      { teamCode: 'CIV', number: '5' },
+      { teamCode: 'CIV', number: '7' },
+      { teamCode: 'CIV', number: '12' },
+    ])
+  })
 })
 
 describe('itemsToCounts', () => {

@@ -98,14 +98,14 @@ export function PackAddSheet({ open, onClose }: Props) {
         {/* Header */}
         <div className="p-5 border-b border-white/5 flex items-start gap-3 flex-shrink-0">
           <div className="flex-shrink-0 w-10 h-10 rounded-2xl bg-copa-gold/15 flex items-center justify-center text-xl">
-            📦
+            ⚡
           </div>
           <div className="flex-1 min-w-0">
             <h2 id="packadd-title" className="text-base font-black text-white">
-              Abri um pacote
+              Adicionar rapidamente
             </h2>
             <p className="text-[11px] text-white/40">
-              Registre várias figurinhas de uma vez
+              Várias figurinhas de uma vez
             </p>
           </div>
           <button
@@ -132,18 +132,20 @@ export function PackAddSheet({ open, onClose }: Props) {
         {/* Body */}
         <div className="p-5 space-y-3 overflow-y-auto flex-1">
           <p className="text-[12px] text-white/50 leading-relaxed">
-            Digite o código do time seguido dos números. Pode misturar times
-            e usar vírgula, espaço ou nova linha. Repetir vira repetida.
+            Digite o nome ou código do time seguido dos números. Pode usar
+            código (BRA, MEX), nome em português (Alemanha, Coreia do Sul),
+            misturar times e separar por vírgula, espaço ou nova linha.
+            Repetir o mesmo número vira repetida.
           </p>
 
           <textarea
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={'Ex: BRA 5, 7, 13\nMEX 12\nFWC 19'}
+            placeholder={'Ex: Alemanha 12, BRA 5, 7, 13\nMéxico 8'}
             rows={4}
             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/25 outline-none focus:border-white/30 font-mono resize-none"
-            aria-label="Códigos e números das figurinhas"
+            aria-label="Nomes ou códigos e números das figurinhas"
           />
 
           {/* Preview agrupado por time */}
@@ -207,11 +209,12 @@ export function PackAddSheet({ open, onClose }: Props) {
           {total === 0 && result.errors.length === 0 && input.trim() === '' && (
             <div className="rounded-xl bg-white/3 border border-white/5 p-3">
               <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">
-                Exemplos
+                Exemplos que funcionam
               </p>
               <ul className="text-[11px] text-white/50 space-y-1 font-mono">
                 <li>BRA 5, 7, 13</li>
-                <li>bra 5 mex 12 fwc 19</li>
+                <li>Alemanha 12, México 8</li>
+                <li>coreia do sul 5, fwc 19</li>
                 <li>BRA 5, BRA 5 (= 1 repetida)</li>
               </ul>
             </div>

@@ -96,9 +96,11 @@ export default function SobrePage() {
         <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3">🎴 Me pague um pacotinho</p>
         <div className="rounded-2xl border border-white/5 p-5 space-y-4" style={{ background: 'var(--copa-card)' }}>
           <p className="text-[13px] text-white/60 leading-relaxed">
+            Essa aplicação é totalmente gratuita, use o quanto quiser. 💙
+            Mas, se ela te ajudou e você quiser/puder dar uma força, me pague um pacotinho! 🎴
+
             Por aqui eu também ainda tô na luta pra fechar meu álbum. 😅
-            Se essa página te ajudou a organizar suas figurinhas, que tal me ajudar a fechar o meu?
-            Me pague um pacotinho, qualquer figurinha é bem-vinda! 🎴
+            Qualquer figurinha é bem-vinda!
           </p>
 
           {/* QR Code */}
