@@ -1,21 +1,18 @@
 'use client'
 
-import { useState, useRef, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useAlbumStore, stickerId } from '@/store/albumStore'
 import { TEAMS, FWC_SECTION, CC_SECTION, GROUP_COLORS } from '@/data/teams'
 import { Flag } from '@/components/Flag'
-import {
-  ShareableCollectionCard,
-  type ShareableData,
-} from '@/components/ShareableCollectionCard'
+import type { ShareableData } from '@/utils/shareCanvas'
 import { ShareSheet, type ShareFormat } from '@/components/ShareSheet'
 import {
   buildFullPdfData,
   generatePdfBlob,
 } from '@/utils/pdf'
 import { buildShareText } from '@/utils/shareText'
-import { elementToPng } from '@/utils/sharePng'
+import { generateShareCanvas } from '@/utils/shareCanvas'
 import { cn } from '@/lib/utils'
 
 type View = 'faltantes' | 'repetidas'
@@ -70,10 +67,6 @@ export default function ColecaoPage() {
 
   const [view, setView] = useState<View>('faltantes')
   const [shareOpen, setShareOpen] = useState(false)
-  // ShareableCollectionCard só monta durante a captura PNG, evita custo
-  // de DOM grande sempre presente e qualquer interferência de layout.
-  const [pngCardVisible, setPngCardVisible] = useState(false)
-  const shareCardRef = useRef<HTMLDivElement>(null)
 
   // Computa faltantes
   const teamsWithMissing = TEAMS.map((team) => ({
@@ -173,23 +166,12 @@ export default function ColecaoPage() {
   const handleShare = async (format: ShareFormat): Promise<void> => {
     try {
       if (format === 'png') {
-        // Monta o card off-screen só pra captura, desmonta depois
-        setPngCardVisible(true)
-        // Aguarda dois frames pra garantir mount + layout
-        await new Promise((r) => requestAnimationFrame(r))
-        await new Promise((r) => requestAnimationFrame(r))
-        if (!shareCardRef.current) {
-          setPngCardVisible(false)
-          return
-        }
-        try {
-          const blob = await elementToPng(shareCardRef.current)
-          if (!blob) return
-          const file = new File([blob], 'colecao-copa2026.png', { type: 'image/png' })
-          await shareFileOrDownload(file, 'Álbum Copa 2026 — Minha coleção')
-        } finally {
-          setPngCardVisible(false)
-        }
+        // Canvas 2D nativo — não depende de captura DOM/CSS, evita
+        // os problemas de html-to-image com CSS global do app.
+        const blob = await generateShareCanvas(shareableData)
+        if (!blob) return
+        const file = new File([blob], 'colecao-copa2026.png', { type: 'image/png' })
+        await shareFileOrDownload(file, 'Álbum Copa 2026 — Minha coleção')
         return
       }
 
@@ -318,26 +300,6 @@ export default function ColecaoPage() {
         onShare={handleShare}
       />
 
-      {/* Card off-screen — só monta durante a captura PNG.
-          NÃO usar opacity:0 nem visibility:hidden — html-to-image captura
-          o estado pintado, então elemento invisível resulta em PNG vazio.
-          Off-screen via left:-3000 + width:1080 garante que o card está
-          pintado normalmente mas fora da viewport. */}
-      {pngCardVisible && (
-        <div
-          ref={shareCardRef}
-          style={{
-            position: 'fixed',
-            left: -3000,
-            top: 0,
-            width: 1080,
-            pointerEvents: 'none',
-          }}
-          aria-hidden
-        >
-          <ShareableCollectionCard data={shareableData} />
-        </div>
-      )}
     </div>
   )
 }

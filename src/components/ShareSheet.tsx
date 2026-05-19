@@ -19,10 +19,10 @@ const OPTIONS: Array<{
   highlight?: boolean
 }> = [
   {
-    format: 'png',
-    icon: '🖼️',
-    label: 'Imagem',
-    subtitle: 'Melhor pra WhatsApp e redes sociais',
+    format: 'pdf',
+    icon: '📄',
+    label: 'PDF',
+    subtitle: 'Lista completa com bandeiras',
     highlight: true,
   },
   {
@@ -30,12 +30,6 @@ const OPTIONS: Array<{
     icon: '💬',
     label: 'Texto',
     subtitle: 'Mensagem rápida copiável',
-  },
-  {
-    format: 'pdf',
-    icon: '📄',
-    label: 'PDF',
-    subtitle: 'Pra imprimir ou abrir no computador',
   },
 ]
 
