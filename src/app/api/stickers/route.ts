@@ -2,11 +2,38 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createSupabaseAdmin } from '@/lib/supabase'
 import { isCatastrophicShrink } from '@/utils/syncGuards'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 // O álbum tem 994 figurinhas. Qualquer payload acima disso é absurdo.
 const MAX_PAYLOAD = 1100
 
 type IncomingEntry = { sticker_id: string; quantity: number }
+
+/**
+ * Upsert do perfil — popula user_profiles a cada interação. Falha silenciosa:
+ * é metadata pro admin panel, não pode quebrar o sync se a tabela não existir
+ * ainda (a migration v3 precisa ser rodada manualmente no Supabase).
+ */
+async function touchProfile(
+  supabase: SupabaseClient,
+  user: { id: string; email?: string | null; name?: string | null; image?: string | null }
+): Promise<void> {
+  try {
+    await supabase.from('user_profiles').upsert(
+      {
+        user_id: user.id,
+        email: user.email ?? null,
+        name: user.name ?? null,
+        image_url: user.image ?? null,
+        last_seen_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id' }
+    )
+  } catch {
+    // ignora — tabela pode nao existir antes da migration, e queremos que
+    // o sync continue funcionando independente disso
+  }
+}
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -15,6 +42,14 @@ export async function GET() {
   }
 
   const supabase = createSupabaseAdmin()
+  // Toca o perfil em paralelo — não esperamos pra responder o GET
+  void touchProfile(supabase, {
+    id: session.user.id,
+    email: session.user.email,
+    name: session.user.name,
+    image: session.user.image,
+  })
+
   const { data, error } = await supabase
     .from('sticker_entries')
     .select('sticker_id, quantity, collected_at')
@@ -58,6 +93,14 @@ export async function PUT(request: Request) {
   const supabase = createSupabaseAdmin()
   const userId = session.user.id
   const now = new Date().toISOString()
+
+  // Toca o perfil — atualiza last_seen_at e dados de display
+  void touchProfile(supabase, {
+    id: session.user.id,
+    email: session.user.email,
+    name: session.user.name,
+    image: session.user.image,
+  })
 
   // 1. Lê o estado atual ATIVO (removed_at IS NULL) para diff e sanity guard
   const { data: currentRows, error: readError } = await supabase

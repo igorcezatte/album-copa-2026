@@ -35,3 +35,27 @@ CREATE INDEX IF NOT EXISTS idx_sticker_entries_active
 
 -- Sem RLS: acesso controlado via service_role_key nas API routes do Next.js
 -- (a sessão NextAuth é verificada antes de qualquer query Supabase)
+
+-- ─── Perfis de usuário ──────────────────────────────────────────────
+--
+-- NextAuth usa JWT (não persiste sessões em DB), então não temos onde olhar
+-- "qual o email do user X". Esta tabela é populada via upsert em /api/stickers
+-- a cada GET/PUT — primeira interação após login do user já registra seu
+-- email/nome. Usada pelo painel admin pra listar usuários por algo legível.
+--
+-- v3: adiciona user_profiles (idempotente)
+
+CREATE TABLE IF NOT EXISTS user_profiles (
+  user_id       TEXT        PRIMARY KEY,           -- Google sub ID
+  email         TEXT,
+  name          TEXT,
+  image_url     TEXT,
+  first_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_seen_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_profiles_last_seen
+  ON user_profiles (last_seen_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_user_profiles_email
+  ON user_profiles (email);
