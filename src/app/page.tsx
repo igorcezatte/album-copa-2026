@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useAlbumStore } from '@/store/albumStore'
 import { GROUPS, TOTAL_STICKERS } from '@/data/teams'
@@ -11,6 +12,7 @@ import { SyncBanner } from '@/components/SyncBanner'
 import { ExtendedBackupReminder } from '@/components/ExtendedBackupReminder'
 import { SoundToggle } from '@/components/SoundToggle'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { PackAddSheet } from '@/components/PackAddSheet'
 import { useHydrated } from '@/hooks/useHydrated'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -18,6 +20,7 @@ export default function HomePage() {
   const hydrated = useHydrated()
   const total = useAlbumStore(useShallow((s) => s.getTotalProgress()))
   const percentage = pct(total.collected, total.total)
+  const [packOpen, setPackOpen] = useState(false)
 
   return (
     <div className="px-4 pt-6 animate-fade-in">
@@ -82,6 +85,32 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Abrir pacote — entrada rápida global */}
+      <button
+        onClick={() => setPackOpen(true)}
+        className="w-full mb-5 rounded-2xl border border-copa-gold/30 bg-copa-gold/10 px-4 py-3 flex items-center gap-3 active:scale-[0.98] transition-transform"
+        aria-label="Abri um pacote — adicionar várias figurinhas"
+      >
+        <span className="text-xl">📦</span>
+        <div className="flex-1 min-w-0 text-left">
+          <p className="text-[13px] font-black text-white leading-tight">
+            Abri um pacote
+          </p>
+          <p className="text-[10px] text-white/50 leading-tight mt-0.5">
+            Registre várias figurinhas de uma vez
+          </p>
+        </div>
+        <svg
+          className="w-4 h-4 text-copa-gold flex-shrink-0"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+
       {/* Sync banner — aparece após 5+ figurinhas pra anônimos */}
       <SyncBanner />
       {/* Lembrete estendido — só pra anônimos que dispensaram o banner e tem 30+ */}
@@ -109,6 +138,8 @@ export default function HomePage() {
           <SpecialCard code="CC" label="Coca-Cola" total={14} />
         </div>
       </div>
+
+      <PackAddSheet open={packOpen} onClose={() => setPackOpen(false)} />
     </div>
   )
 }
