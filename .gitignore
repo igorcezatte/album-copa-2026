@@ -30,7 +30,11 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+.claude/
 *.swp
+
+# Build cache
+tsconfig.tsbuildinfo
 
 # Docs e planejamento interno (não sobe pro repositório)
 CLAUDE.md
