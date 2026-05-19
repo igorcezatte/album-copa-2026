@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 export type ShareFormat = 'png' | 'text' | 'pdf'
 
@@ -40,8 +41,13 @@ const OPTIONS: Array<{
 
 export function ShareSheet({ open, onClose, onShare }: Props) {
   const [busy, setBusy] = useState<ShareFormat | null>(null)
+  const [mounted, setMounted] = useState(false)
 
-  if (!open) return null
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!open || !mounted) return null
 
   const handle = async (format: ShareFormat) => {
     if (busy) return
@@ -55,7 +61,9 @@ export function ShareSheet({ open, onClose, onShare }: Props) {
     }
   }
 
-  return (
+  // Portal pra document.body — escapa containing blocks criados por
+  // transforms nos wrappers das páginas (animate-fade-in etc.)
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -144,6 +152,7 @@ export function ShareSheet({ open, onClose, onShare }: Props) {
           })}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

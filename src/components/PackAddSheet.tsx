@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useAlbumStore } from '@/store/albumStore'
 import { TEAMS, FWC_SECTION, CC_SECTION } from '@/data/teams'
 import { parsePackInput, itemsToCounts } from '@/utils/quickAdd'
@@ -59,6 +60,11 @@ export function PackAddSheet({ open, onClose }: Props) {
   const total = result.items.length
   const canConfirm = total > 0
 
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   useEffect(() => {
     if (open) {
       const t = setTimeout(() => inputRef.current?.focus(), 50)
@@ -70,7 +76,7 @@ export function PackAddSheet({ open, onClose }: Props) {
     if (!open) setInput('')
   }, [open])
 
-  if (!open) return null
+  if (!open || !mounted) return null
 
   const handleConfirm = () => {
     if (!canConfirm) return
@@ -81,7 +87,7 @@ export function PackAddSheet({ open, onClose }: Props) {
     onClose()
   }
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -238,6 +244,7 @@ export function PackAddSheet({ open, onClose }: Props) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

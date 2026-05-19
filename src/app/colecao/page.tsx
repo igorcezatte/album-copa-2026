@@ -70,6 +70,9 @@ export default function ColecaoPage() {
 
   const [view, setView] = useState<View>('faltantes')
   const [shareOpen, setShareOpen] = useState(false)
+  // ShareableCollectionCard só monta durante a captura PNG, evita custo
+  // de DOM grande sempre presente e qualquer interferência de layout.
+  const [pngCardVisible, setPngCardVisible] = useState(false)
   const shareCardRef = useRef<HTMLDivElement>(null)
 
   // Computa faltantes
@@ -170,11 +173,23 @@ export default function ColecaoPage() {
   const handleShare = async (format: ShareFormat): Promise<void> => {
     try {
       if (format === 'png') {
-        if (!shareCardRef.current) return
-        const blob = await elementToPng(shareCardRef.current)
-        if (!blob) return
-        const file = new File([blob], 'colecao-copa2026.png', { type: 'image/png' })
-        await shareFileOrDownload(file, 'Álbum Copa 2026 — Minha coleção')
+        // Monta o card off-screen só pra captura, desmonta depois
+        setPngCardVisible(true)
+        // Aguarda dois frames pra garantir mount + layout
+        await new Promise((r) => requestAnimationFrame(r))
+        await new Promise((r) => requestAnimationFrame(r))
+        if (!shareCardRef.current) {
+          setPngCardVisible(false)
+          return
+        }
+        try {
+          const blob = await elementToPng(shareCardRef.current)
+          if (!blob) return
+          const file = new File([blob], 'colecao-copa2026.png', { type: 'image/png' })
+          await shareFileOrDownload(file, 'Álbum Copa 2026 — Minha coleção')
+        } finally {
+          setPngCardVisible(false)
+        }
         return
       }
 
@@ -303,19 +318,21 @@ export default function ColecaoPage() {
         onShare={handleShare}
       />
 
-      {/* Card off-screen pra captura PNG. Renderizado sempre, fora da viewport. */}
-      <div
-        ref={shareCardRef}
-        style={{
-          position: 'fixed',
-          left: -20000,
-          top: 0,
-          pointerEvents: 'none',
-        }}
-        aria-hidden
-      >
-        <ShareableCollectionCard data={shareableData} />
-      </div>
+      {/* Card off-screen — só monta durante a captura PNG */}
+      {pngCardVisible && (
+        <div
+          ref={shareCardRef}
+          style={{
+            position: 'fixed',
+            left: -20000,
+            top: 0,
+            pointerEvents: 'none',
+          }}
+          aria-hidden
+        >
+          <ShareableCollectionCard data={shareableData} />
+        </div>
+      )}
     </div>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useAlbumStore } from '@/store/albumStore'
 import {
   parseQuickNumbers,
@@ -57,6 +58,11 @@ export function QuickAddSheet({
   const total = result.items.length
   const canConfirm = total > 0
 
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Foca o input quando abre
   useEffect(() => {
     if (open) {
@@ -71,7 +77,7 @@ export function QuickAddSheet({
     if (!open) setInput('')
   }, [open])
 
-  if (!open) return null
+  if (!open || !mounted) return null
 
   const handleConfirm = () => {
     if (!canConfirm) return
@@ -82,7 +88,7 @@ export function QuickAddSheet({
     onClose()
   }
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -229,6 +235,7 @@ export function QuickAddSheet({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
