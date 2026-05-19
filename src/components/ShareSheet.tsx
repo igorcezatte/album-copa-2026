@@ -18,18 +18,16 @@ const OPTIONS: Array<{
   subtitle: string
   highlight?: boolean
 }> = [
-  {
-    format: 'png',
-    icon: '🖼️',
-    label: 'Imagem',
-    subtitle: 'Card de progresso pra status e stories',
-    highlight: true,
-  },
+  // PNG temporariamente removido — quando o canvas fica muito alto pra
+  // caber todas as figurinhas, iOS Safari estoura o limite e toBlob falha
+  // silenciosamente; e mesmo quando funciona o WhatsApp recomprime e o
+  // texto fica ilegivel. Retomar com outra abordagem.
   {
     format: 'pdf',
     icon: '📄',
     label: 'PDF',
     subtitle: 'Lista completa com bandeiras',
+    highlight: true,
   },
   {
     format: 'text',

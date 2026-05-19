@@ -178,6 +178,9 @@ async function fetchFlagBase64(flagCode: string): Promise<string | null> {
 
 // ── Rendering interno (compartilhado entre download e share) ─────
 
+const APP_URL = 'meualbumcopa26.vercel.app'
+const APP_URL_HREF = 'https://meualbumcopa26.vercel.app/'
+
 async function renderPdfDoc(data: FullPdfData): Promise<import('jspdf').jsPDF> {
   const { jsPDF } = await import('jspdf')
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
@@ -245,7 +248,14 @@ async function renderPdfDoc(data: FullPdfData): Promise<import('jspdf').jsPDF> {
   doc.setFontSize(7)
   doc.setFont('helvetica', 'normal')
   doc.text('Lista de Figurinhas Faltantes', 7, 14.5)
-  doc.text(`Gerado em ${data.generatedAt}`, 7, 18.5)
+
+  // Data + URL clicavel destacada em dourado
+  const dateStr = `Gerado em ${data.generatedAt}  ·  `
+  doc.text(dateStr, 7, 18.5)
+  const dateW = doc.getTextWidth(dateStr)
+  doc.setTextColor(...gold)
+  doc.setFont('helvetica', 'bold')
+  doc.textWithLink(APP_URL, 7 + dateW, 18.5, { url: APP_URL_HREF })
 
   const badgeW = 36
   doc.setFillColor(...gold)
@@ -464,7 +474,13 @@ async function renderPdfDoc(data: FullPdfData): Promise<import('jspdf').jsPDF> {
     doc.setFontSize(7)
     doc.setFont('helvetica', 'normal')
     doc.text(`${dup.totalDuplicates} figurinha${dup.totalDuplicates !== 1 ? 's' : ''} disponíveis para troca`, 7, 14.5)
-    doc.text(`Gerado em ${data.generatedAt}`, 7, 18.5)
+
+    const dupDateStr = `Gerado em ${data.generatedAt}  ·  `
+    doc.text(dupDateStr, 7, 18.5)
+    const dupDateW = doc.getTextWidth(dupDateStr)
+    doc.setTextColor(...gold)
+    doc.setFont('helvetica', 'bold')
+    doc.textWithLink(APP_URL, 7 + dupDateW, 18.5, { url: APP_URL_HREF })
 
     const dupBadgeW = 36
     doc.setFillColor(...gold)
@@ -555,17 +571,34 @@ async function renderPdfDoc(data: FullPdfData): Promise<import('jspdf').jsPDF> {
     }
   }
 
-  // ── Footer ───────────────────────────────────────────────────
-  doc.setFillColor(235, 236, 240)
-  doc.rect(0, H - 7, W, 7, 'F')
-  doc.setTextColor(...muted)
-  doc.setFontSize(5.5)
-  doc.setFont('helvetica', 'normal')
-  doc.text('Álbum Copa 2026', margin, H - 3)
-  doc.text(
-    `${data.totalProgress.collected}/${data.totalProgress.total} figurinhas coletadas`,
-    W - margin, H - 3, { align: 'right' },
-  )
+  // ── Footer (em todas as páginas) ─────────────────────────────
+  const totalPages = doc.getNumberOfPages()
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p)
+    doc.setFillColor(235, 236, 240)
+    doc.rect(0, H - 8, W, 8, 'F')
+
+    doc.setTextColor(...muted)
+    doc.setFontSize(5.5)
+    doc.setFont('helvetica', 'normal')
+    doc.text('Álbum Copa 2026', margin, H - 3)
+
+    // URL clicavel centralizada em dourado
+    const goldDark: [number, number, number] = [180, 140, 12]
+    doc.setTextColor(...goldDark)
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'bold')
+    const urlW = doc.getTextWidth(APP_URL)
+    doc.textWithLink(APP_URL, W / 2 - urlW / 2, H - 3, { url: APP_URL_HREF })
+
+    doc.setTextColor(...muted)
+    doc.setFontSize(5.5)
+    doc.setFont('helvetica', 'normal')
+    doc.text(
+      `${data.totalProgress.collected}/${data.totalProgress.total} coletadas`,
+      W - margin, H - 3, { align: 'right' },
+    )
+  }
 
   return doc
 }
