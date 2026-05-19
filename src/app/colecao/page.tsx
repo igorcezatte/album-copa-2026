@@ -1,15 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import { useAlbumStore, stickerId } from '@/store/albumStore'
 import { TEAMS, FWC_SECTION, CC_SECTION, GROUP_COLORS } from '@/data/teams'
 import { Flag } from '@/components/Flag'
 import {
+  ShareableCollectionCard,
+  type ShareableData,
+} from '@/components/ShareableCollectionCard'
+import { ShareSheet, type ShareFormat } from '@/components/ShareSheet'
+import {
   buildFullPdfData,
-  generateAndDownloadPdf,
   generatePdfBlob,
 } from '@/utils/pdf'
+import { buildShareText } from '@/utils/shareText'
+import { elementToPng } from '@/utils/sharePng'
 import { cn } from '@/lib/utils'
 
 type View = 'faltantes' | 'repetidas'
@@ -22,6 +28,37 @@ function getStickerInfo(id: string) {
   return { team, sticker, number, teamCode }
 }
 
+// Web Share com fallback pra download.
+// Pra texto: tenta share via Web Share API; senão, copia pra clipboard.
+async function shareFileOrDownload(file: File, title: string): Promise<void> {
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    await navigator.share({ title, files: [file] })
+    return
+  }
+  // fallback: download
+  const url = URL.createObjectURL(file)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = file.name
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+async function shareTextOrCopy(text: string, title: string): Promise<void> {
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, text })
+      return
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
+      // segue pra clipboard fallback
+    }
+  }
+  await navigator.clipboard.writeText(text)
+}
+
 export default function ColecaoPage() {
   const getMissing = useAlbumStore((s) => s.getMissing)
   const isCollected = useAlbumStore((s) => s.isCollected)
@@ -32,8 +69,8 @@ export default function ColecaoPage() {
   const removeDuplicate = useAlbumStore((s) => s.removeDuplicate)
 
   const [view, setView] = useState<View>('faltantes')
-  const [sharing, setSharing] = useState(false)
-  const [generatingPdf, setGeneratingPdf] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
+  const shareCardRef = useRef<HTMLDivElement>(null)
 
   // Computa faltantes
   const teamsWithMissing = TEAMS.map((team) => ({
@@ -49,6 +86,59 @@ export default function ColecaoPage() {
   const totalDuplicates = duplicates.reduce((acc, d) => acc + d.quantity, 0)
 
   const hasContent = totalMissing > 0 || duplicates.length > 0
+
+  const totalProgress = getTotalProgress()
+
+  // Dados compartilháveis (PNG + texto)
+  const shareableData = useMemo<ShareableData>(() => {
+    const specials = [
+      {
+        name: 'Copa History',
+        icon: '🏆',
+        missing: FWC_SECTION.stickers
+          .filter((s) => !isCollected(stickerId('FWC', s.number)))
+          .map((s) => s.number),
+      },
+      {
+        name: 'Coca-Cola',
+        icon: '🥤',
+        missing: CC_SECTION.stickers
+          .filter((s) => !isCollected(stickerId('CC', s.number)))
+          .map((s) => s.number),
+      },
+    ]
+    const dupes = duplicates
+      .map((d) => {
+        const info = getStickerInfo(d.id)
+        if (!info.team) return null
+        return {
+          teamCode: info.team.code,
+          teamName: info.team.name,
+          flagCode: info.team.flagCode,
+          number: info.number,
+          extras: d.quantity,
+        }
+      })
+      .filter(Boolean) as ShareableData['duplicates']
+
+    return {
+      collected: totalProgress.collected,
+      total: totalProgress.total,
+      teamsMissing: teamsWithMissing.map((t) => ({
+        teamName: t.team.name,
+        flagCode: t.team.flagCode,
+        missing: t.missing,
+      })),
+      specialsMissing: specials,
+      duplicates: dupes,
+    }
+  }, [
+    duplicates,
+    teamsWithMissing,
+    totalProgress.collected,
+    totalProgress.total,
+    isCollected,
+  ])
 
   const buildPdfDataInputs = () => {
     const allTeams = TEAMS.map((team) => ({
@@ -77,42 +167,47 @@ export default function ColecaoPage() {
     return buildFullPdfData(allTeams, specials, getTotalProgress(), getDuplicatesFn())
   }
 
-  const handlePdf = async () => {
-    setGeneratingPdf(true)
+  const handleShare = async (format: ShareFormat): Promise<void> => {
     try {
-      await generateAndDownloadPdf(buildPdfDataInputs())
-    } finally {
-      setGeneratingPdf(false)
-    }
-  }
+      if (format === 'png') {
+        if (!shareCardRef.current) return
+        const blob = await elementToPng(shareCardRef.current)
+        if (!blob) return
+        const file = new File([blob], 'colecao-copa2026.png', { type: 'image/png' })
+        await shareFileOrDownload(file, 'Álbum Copa 2026 — Minha coleção')
+        return
+      }
 
-  const handleShare = async () => {
-    setSharing(true)
-    try {
-      const blob = await generatePdfBlob(buildPdfDataInputs())
-      const file = new File([blob], 'colecao-copa2026.pdf', {
-        type: 'application/pdf',
-      })
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: 'Álbum Copa 2026 — Minha coleção',
-          files: [file],
+      if (format === 'text') {
+        const text = buildShareText({
+          collected: shareableData.collected,
+          total: shareableData.total,
+          teamsMissing: shareableData.teamsMissing,
+          specialsMissing: shareableData.specialsMissing.map((s) => ({
+            name: s.name,
+            icon: s.icon,
+            missing: s.missing,
+          })),
+          duplicates: shareableData.duplicates.map((d) => ({
+            teamName: d.teamName,
+            number: d.number,
+            extras: d.extras,
+          })),
         })
-      } else {
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = 'colecao-copa2026.pdf'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
+        await shareTextOrCopy(text, 'Álbum Copa 2026 — Minha coleção')
+        return
+      }
+
+      if (format === 'pdf') {
+        const blob = await generatePdfBlob(buildPdfDataInputs())
+        const file = new File([blob], 'colecao-copa2026.pdf', {
+          type: 'application/pdf',
+        })
+        await shareFileOrDownload(file, 'Álbum Copa 2026 — Minha coleção')
+        return
       }
     } catch (err) {
       if (err instanceof Error && err.name !== 'AbortError') console.error(err)
-    } finally {
-      setSharing(false)
     }
   }
 
@@ -129,43 +224,16 @@ export default function ColecaoPage() {
         </div>
 
         {hasContent && (
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 text-white/60 text-xs font-bold active:scale-95 transition-transform disabled:opacity-50"
-              onClick={handlePdf}
-              disabled={generatingPdf}
-              aria-label="Baixar PDF"
-            >
-              {generatingPdf ? (
-                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                </svg>
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              )}
-              PDF
-            </button>
-            <button
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-copa-gold/10 text-copa-gold text-xs font-bold active:scale-95 transition-transform disabled:opacity-50"
-              onClick={handleShare}
-              disabled={sharing}
-            >
-              {sharing ? (
-                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                </svg>
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-              )}
-              Compartilhar
-            </button>
-          </div>
+          <button
+            onClick={() => setShareOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-copa-gold/10 text-copa-gold text-xs font-bold active:scale-95 transition-transform flex-shrink-0"
+            aria-label="Compartilhar coleção"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+            Compartilhar
+          </button>
         )}
       </div>
 
@@ -227,6 +295,27 @@ export default function ColecaoPage() {
           removeDuplicate={removeDuplicate}
         />
       )}
+
+      {/* ShareSheet — abre com 3 opções de formato */}
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        onShare={handleShare}
+      />
+
+      {/* Card off-screen pra captura PNG. Renderizado sempre, fora da viewport. */}
+      <div
+        ref={shareCardRef}
+        style={{
+          position: 'fixed',
+          left: -20000,
+          top: 0,
+          pointerEvents: 'none',
+        }}
+        aria-hidden
+      >
+        <ShareableCollectionCard data={shareableData} />
+      </div>
     </div>
   )
 }

@@ -160,9 +160,11 @@ function blendWithWhite([r, g, b]: [number, number, number], alpha: number): [nu
   ]
 }
 
+// Bandeira em 160px: jsPDF reduz pra ~3mm de largura no layout, então 160px
+// de origem dá ~13x a densidade exibida — sem pixelação no PDF impresso.
 async function fetchFlagBase64(flagCode: string): Promise<string | null> {
   try {
-    const res = await fetch(`https://flagcdn.com/w20/${flagCode}.png`)
+    const res = await fetch(`https://flagcdn.com/w160/${flagCode}.png`)
     if (!res.ok) return null
     const buf = await res.arrayBuffer()
     const arr = new Uint8Array(buf)
