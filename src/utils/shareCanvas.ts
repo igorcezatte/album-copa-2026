@@ -32,10 +32,9 @@ export interface ShareableData {
 
 const CARD_W = 1080
 const PADDING = 60
-// SCALE 4: WhatsApp/Instagram recomprimem como JPEG bem agressivo. SCALE
-// 4 + fontes grandes (abaixo) é o mínimo pra texto sobreviver à compressão
-// e zoom do usuário.
-const SCALE = 4
+// SCALE alto pra garantir nitidez em telas retina (3x DPR) e sobreviver
+// à recompressão JPEG do WhatsApp/Instagram.
+const SCALE = 3
 
 const COLOR_BG_TOP = '#0a1226'
 const COLOR_BG_BOTTOM = '#060a14'
@@ -152,16 +151,16 @@ function drawFlag(
 
 // ─── Layout config ────────────────────────────────────────────────
 
-const COL_GAP = 24
+const COL_GAP = 20
 const COL_W = (CARD_W - PADDING * 2 - COL_GAP) / 2
-const ROW_PAD = 24
-const FLAG_W = 88
-const FLAG_H = 58
-const FLAG_GAP = 20
-const NAME_FONT_SIZE = 40
-const NUM_FONT_SIZE = 36
-const NUM_LINE_H = 46
-const MAX_NUM_LINES = 6
+const ROW_PAD = 18
+const FLAG_W = 64
+const FLAG_H = 42
+const FLAG_GAP = 16
+const NAME_FONT_SIZE = 28
+const NUM_FONT_SIZE = 24
+const NUM_LINE_H = 30
+const MAX_NUM_LINES = 4
 
 // ─── Pre-compute heights ──────────────────────────────────────────
 
@@ -182,7 +181,7 @@ function measureRow(
   if (row.isComplete || !row.itemsText) {
     return { lines: [], height: ROW_PAD * 2 + FLAG_H }
   }
-  ctx.font = `700 ${NUM_FONT_SIZE}px ${FONT_STACK}`
+  ctx.font = `500 ${NUM_FONT_SIZE}px ${FONT_STACK}`
   const maxW = COL_W - ROW_PAD * 2
   const lines = wrapText(ctx, row.itemsText, maxW)
   const visibleLines = Math.min(lines.length, MAX_NUM_LINES)
@@ -191,7 +190,7 @@ function measureRow(
   }
   const trimmed = lines.slice(0, MAX_NUM_LINES)
   // header (bandeira+nome) ~ FLAG_H, depois espaço, depois números
-  const headerH = FLAG_H + 20
+  const headerH = FLAG_H + 16
   const numsH = visibleLines * NUM_LINE_H
   return { lines: trimmed, height: ROW_PAD * 2 + headerH + numsH }
 }
@@ -212,7 +211,7 @@ function drawHeader(
   y: number
 ): number {
   // Logo "26"
-  const logoSize = 96
+  const logoSize = 72
   const logoX = PADDING
   const logoGrad = ctx.createLinearGradient(
     logoX,
@@ -223,27 +222,27 @@ function drawHeader(
   logoGrad.addColorStop(0, COLOR_GOLD)
   logoGrad.addColorStop(1, COLOR_GOLD_DARK)
   ctx.fillStyle = logoGrad
-  roundRect(ctx, logoX, y, logoSize, logoSize, 22)
+  roundRect(ctx, logoX, y, logoSize, logoSize, 18)
   ctx.fill()
 
   ctx.fillStyle = '#000'
-  ctx.font = `900 50px ${FONT_STACK}`
+  ctx.font = `900 36px ${FONT_STACK}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText('26', logoX + logoSize / 2, y + logoSize / 2 + 3)
+  ctx.fillText('26', logoX + logoSize / 2, y + logoSize / 2 + 2)
 
   // Título
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
   ctx.fillStyle = COLOR_TEXT
-  ctx.font = `900 54px ${FONT_STACK}`
-  ctx.fillText('Álbum Copa 2026', logoX + logoSize + 24, y + 46)
+  ctx.font = `900 40px ${FONT_STACK}`
+  ctx.fillText('Álbum Copa 2026', logoX + logoSize + 20, y + 34)
 
   ctx.fillStyle = COLOR_MUTED
-  ctx.font = `600 28px ${FONT_STACK}`
-  ctx.fillText(`Minha coleção · ${data.generatedAt}`, logoX + logoSize + 24, y + 84)
+  ctx.font = `500 22px ${FONT_STACK}`
+  ctx.fillText(`Minha coleção · ${data.generatedAt}`, logoX + logoSize + 20, y + 64)
 
-  return y + logoSize + 50
+  return y + logoSize + 40
 }
 
 function drawHero(
@@ -256,9 +255,9 @@ function drawHero(
   const isComplete = pctInt === 100
 
   // Card hero
-  const heroH = 280
+  const heroH = 200
   ctx.fillStyle = 'rgba(255,255,255,0.03)'
-  roundRect(ctx, PADDING, y, CARD_W - PADDING * 2, heroH, 28)
+  roundRect(ctx, PADDING, y, CARD_W - PADDING * 2, heroH, 24)
   ctx.fill()
   ctx.strokeStyle = 'rgba(255,255,255,0.06)'
   ctx.lineWidth = 1
@@ -266,22 +265,22 @@ function drawHero(
 
   // % grande à esquerda
   ctx.fillStyle = isComplete ? COLOR_GREEN : COLOR_GOLD
-  ctx.font = `900 150px ${FONT_STACK}`
+  ctx.font = `900 110px ${FONT_STACK}`
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
-  ctx.fillText(`${pctInt}%`, PADDING + 40, y + 150)
+  ctx.fillText(`${pctInt}%`, PADDING + 32, y + 110)
 
   // collected/total
   ctx.fillStyle = COLOR_TEXT
-  ctx.font = `900 54px ${FONT_STACK}`
-  ctx.fillText(String(data.collected), PADDING + 40, y + 220)
+  ctx.font = `900 40px ${FONT_STACK}`
+  ctx.fillText(String(data.collected), PADDING + 32, y + 160)
   const cw = ctx.measureText(String(data.collected)).width
   ctx.fillStyle = COLOR_MUTED_LIGHT
-  ctx.font = `900 38px ${FONT_STACK}`
-  ctx.fillText(`/ ${data.total}`, PADDING + 40 + cw + 12, y + 220)
-  ctx.font = `600 28px ${FONT_STACK}`
+  ctx.font = `900 28px ${FONT_STACK}`
+  ctx.fillText(`/ ${data.total}`, PADDING + 32 + cw + 8, y + 160)
+  ctx.font = `500 20px ${FONT_STACK}`
   ctx.fillStyle = COLOR_MUTED
-  ctx.fillText('figurinhas', PADDING + 40 + cw + 12 + ctx.measureText(`/ ${data.total}`).width + 16, y + 220)
+  ctx.fillText('figurinhas', PADDING + 32 + cw + 8 + ctx.measureText(`/ ${data.total}`).width + 12, y + 160)
 
   // Mini stats à direita
   const totalMissing =
@@ -289,24 +288,24 @@ function drawHero(
     data.specialSections.reduce((acc, s) => acc + s.missing.length, 0)
   const totalDupes = data.duplicates.reduce((acc, d) => acc + d.totalExtras, 0)
 
-  const statsX = CARD_W - PADDING - 40
+  const statsX = CARD_W - PADDING - 32
   ctx.textAlign = 'right'
   ctx.fillStyle = COLOR_RED
-  ctx.font = `900 80px ${FONT_STACK}`
-  ctx.fillText(String(totalMissing), statsX, y + 110)
+  ctx.font = `900 56px ${FONT_STACK}`
+  ctx.fillText(String(totalMissing), statsX, y + 80)
   ctx.fillStyle = 'rgba(239,68,68,0.7)'
-  ctx.font = `800 26px ${FONT_STACK}`
-  ctx.fillText('FALTAM', statsX, y + 150)
+  ctx.font = `700 18px ${FONT_STACK}`
+  ctx.fillText('FALTAM', statsX, y + 108)
 
   ctx.fillStyle = COLOR_GOLD
-  ctx.font = `900 80px ${FONT_STACK}`
-  ctx.fillText(String(totalDupes), statsX, y + 220)
+  ctx.font = `900 56px ${FONT_STACK}`
+  ctx.fillText(String(totalDupes), statsX, y + 162)
   ctx.fillStyle = 'rgba(245,196,46,0.7)'
-  ctx.font = `800 26px ${FONT_STACK}`
-  ctx.fillText('REPETIDAS', statsX, y + 260)
+  ctx.font = `700 18px ${FONT_STACK}`
+  ctx.fillText('REPETIDAS', statsX, y + 190)
 
   ctx.textAlign = 'left'
-  return y + heroH + 40
+  return y + heroH + 30
 }
 
 function drawSectionTitle(
@@ -317,20 +316,20 @@ function drawSectionTitle(
   y: number
 ): number {
   ctx.fillStyle = accent
-  ctx.font = `900 52px ${FONT_STACK}`
+  ctx.font = `900 36px ${FONT_STACK}`
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
-  ctx.fillText(title, PADDING, y + 50)
+  ctx.fillText(title, PADDING, y + 36)
 
   ctx.fillStyle = COLOR_MUTED
-  ctx.font = `600 28px ${FONT_STACK}`
-  ctx.fillText(subtitle, PADDING, y + 90)
+  ctx.font = `500 22px ${FONT_STACK}`
+  ctx.fillText(subtitle, PADDING, y + 66)
 
   // linha sutil
   ctx.fillStyle = `${accent}33` // hex alpha
-  ctx.fillRect(PADDING, y + 116, CARD_W - PADDING * 2, 3)
+  ctx.fillRect(PADDING, y + 86, CARD_W - PADDING * 2, 2)
 
-  return y + 150
+  return y + 110
 }
 
 function drawRow(
@@ -366,7 +365,7 @@ function drawRow(
   ctx.textBaseline = 'middle'
 
   // Trunca nome se necessário
-  const maxNameW = w - ROW_PAD - FLAG_W - FLAG_GAP - 140 - ROW_PAD // 140 ~ badge
+  const maxNameW = w - ROW_PAD - FLAG_W - FLAG_GAP - 90 - ROW_PAD // 90 ~ badge
   let name = row.title
   if (ctx.measureText(name).width > maxNameW) {
     while (name.length > 4 && ctx.measureText(name + '…').width > maxNameW) {
@@ -377,10 +376,10 @@ function drawRow(
   ctx.fillText(name, nameX, nameY)
 
   // Badge
-  ctx.font = `900 32px ${FONT_STACK}`
+  ctx.font = `900 22px ${FONT_STACK}`
   const badgeTextW = ctx.measureText(row.badgeText).width
-  const badgeW = badgeTextW + 36
-  const badgeH = 52
+  const badgeW = badgeTextW + 26
+  const badgeH = 38
   const badgeX = x + w - ROW_PAD - badgeW
   const badgeY = y + ROW_PAD + (FLAG_H - badgeH) / 2
   const badgeBg =
@@ -411,10 +410,9 @@ function drawRow(
   if (measured.lines.length > 0) {
     ctx.textAlign = 'left'
     ctx.textBaseline = 'alphabetic'
-    // weight 700 + cor mais clara: legibilidade resiste melhor à compressão
-    ctx.fillStyle = 'rgba(255,255,255,0.78)'
-    ctx.font = `700 ${NUM_FONT_SIZE}px ${FONT_STACK}`
-    let lineY = y + ROW_PAD + FLAG_H + 20 + NUM_FONT_SIZE - 4
+    ctx.fillStyle = 'rgba(255,255,255,0.55)'
+    ctx.font = `500 ${NUM_FONT_SIZE}px ${FONT_STACK}`
+    let lineY = y + ROW_PAD + FLAG_H + 16 + NUM_FONT_SIZE - 4
     for (const line of measured.lines) {
       ctx.fillText(line, x + ROW_PAD, lineY)
       lineY += NUM_LINE_H
@@ -441,10 +439,10 @@ function drawGrid(
     const m = measures[i]
     if (leftH <= rightH) {
       left.push({ row: r, m })
-      leftH += m.height + 16
+      leftH += m.height + 12
     } else {
       right.push({ row: r, m })
-      rightH += m.height + 16
+      rightH += m.height + 12
     }
   })
 
@@ -455,31 +453,31 @@ function drawGrid(
   let ry = y
   for (const { row, m } of left) {
     drawRow(ctx, row, m, leftX, ly)
-    ly += m.height + 16
+    ly += m.height + 12
   }
   for (const { row, m } of right) {
     drawRow(ctx, row, m, rightX, ry)
-    ry += m.height + 16
+    ry += m.height + 12
   }
 
   return Math.max(ly, ry)
 }
 
 function drawFooter(ctx: CanvasRenderingContext2D, y: number, height: number) {
-  ctx.fillStyle = 'rgba(255,255,255,0.08)'
-  ctx.fillRect(PADDING, y, CARD_W - PADDING * 2, 2)
-  y += 36
+  ctx.fillStyle = 'rgba(255,255,255,0.06)'
+  ctx.fillRect(PADDING, y, CARD_W - PADDING * 2, 1)
+  y += 28
 
   ctx.fillStyle = COLOR_GOLD
-  ctx.font = `900 34px ${FONT_STACK}`
+  ctx.font = `900 26px ${FONT_STACK}`
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
-  ctx.fillText('meualbumcopa26.vercel.app', PADDING, y + 28)
+  ctx.fillText('meualbumcopa26.vercel.app', PADDING, y + 22)
 
-  ctx.fillStyle = 'rgba(255,255,255,0.35)'
-  ctx.font = `600 22px ${FONT_STACK}`
+  ctx.fillStyle = 'rgba(255,255,255,0.3)'
+  ctx.font = `500 18px ${FONT_STACK}`
   ctx.textAlign = 'right'
-  ctx.fillText('FIFA World Cup 2026™', CARD_W - PADDING, y + 28)
+  ctx.fillText('FIFA World Cup 2026™', CARD_W - PADDING, y + 22)
   void height
 }
 
@@ -544,41 +542,40 @@ export async function generateShareCanvas(
   const repetidasRows = buildRepetidasRows(data)
 
   // Calcula altura total iterando o layout (sem desenhar)
-  const ROW_GAP = 16
   let totalH = PADDING
-  totalH += 96 + 50 // header (logoSize + spacer)
-  totalH += 280 + 40 // hero (heroH + spacer)
+  totalH += 72 + 40 // header
+  totalH += 200 + 30 // hero
 
   if (faltanteRows.length > 0) {
-    totalH += 150 // section title
+    totalH += 110 // section title
 
     // simula 2 colunas pra altura
     const measures = faltanteRows.map((r) => measureRow(measureCtx, r))
     let leftH = 0
     let rightH = 0
     measures.forEach((m) => {
-      if (leftH <= rightH) leftH += m.height + ROW_GAP
-      else rightH += m.height + ROW_GAP
+      if (leftH <= rightH) leftH += m.height + 12
+      else rightH += m.height + 12
     })
     totalH += Math.max(leftH, rightH)
-    totalH += 40
+    totalH += 30
   }
 
   if (repetidasRows.length > 0) {
-    totalH += 150 // section title
+    totalH += 110 // section title
 
     const measures = repetidasRows.map((r) => measureRow(measureCtx, r))
     let leftH = 0
     let rightH = 0
     measures.forEach((m) => {
-      if (leftH <= rightH) leftH += m.height + ROW_GAP
-      else rightH += m.height + ROW_GAP
+      if (leftH <= rightH) leftH += m.height + 12
+      else rightH += m.height + 12
     })
     totalH += Math.max(leftH, rightH)
-    totalH += 40
+    totalH += 30
   }
 
-  totalH += 110 // footer
+  totalH += 80 // footer
   totalH += PADDING
 
   // Renderiza
@@ -607,7 +604,7 @@ export async function generateShareCanvas(
       y
     )
     y = drawGrid(ctx, faltanteRows, y)
-    y += 40
+    y += 30
   }
 
   if (repetidasRows.length > 0) {
@@ -619,10 +616,10 @@ export async function generateShareCanvas(
       y
     )
     y = drawGrid(ctx, repetidasRows, y)
-    y += 40
+    y += 30
   }
 
-  drawFooter(ctx, totalH - PADDING - 110, totalH)
+  drawFooter(ctx, totalH - PADDING - 80, totalH)
 
   return new Promise((resolve) => {
     canvas.toBlob((blob) => resolve(blob), 'image/png')
