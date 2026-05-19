@@ -3,18 +3,25 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { PIX_QR_BASE64 } from '@/lib/pix-qr'
+import { PIX_QR_BASE64, PIX_BR_CODE, PIX_SUGGESTED_AMOUNT } from '@/lib/pix-qr'
 
 const PIX_KEY = 'igormcezatte@gmail.com'
 
 export default function SobrePage() {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
+  const [qrCopied, setQrCopied] = useState(false)
 
   const handleCopyPix = async () => {
     await navigator.clipboard.writeText(PIX_KEY)
     setCopied(true)
     setTimeout(() => setCopied(false), 2500)
+  }
+
+  const handleCopyBrCode = async () => {
+    await navigator.clipboard.writeText(PIX_BR_CODE)
+    setQrCopied(true)
+    setTimeout(() => setQrCopied(false), 2500)
   }
 
   return (
@@ -95,17 +102,26 @@ export default function SobrePage() {
       <section>
         <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3">🎴 Me pague um pacotinho</p>
         <div className="rounded-2xl border border-white/5 p-5 space-y-4" style={{ background: 'var(--copa-card)' }}>
-          <p className="text-[13px] text-white/60 leading-relaxed">
-            Essa aplicação é totalmente gratuita, use o quanto quiser. 💙
-            Mas, se ela te ajudou e você quiser/puder dar uma força, me pague um pacotinho! 🎴
+          <div className="text-[13px] text-white/60 leading-relaxed space-y-2.5">
+            <p>Essa aplicação é totalmente gratuita, use o quanto quiser. 💙</p>
+            <p>
+              Mas, se ela te ajudou e você quiser/puder dar uma força,
+              me pague um pacotinho! 🎴
+            </p>
+            <p>
+              Por aqui eu também ainda tô na luta pra fechar meu álbum. 😅
+              Qualquer figurinha é bem-vinda!
+            </p>
+          </div>
 
-            Por aqui eu também ainda tô na luta pra fechar meu álbum. 😅
-            Qualquer figurinha é bem-vinda!
-          </p>
-
-          {/* QR Code */}
-          <div className="flex justify-center">
-            <div className="bg-white rounded-2xl p-3 inline-block">
+          {/* QR Code — clicável: copia o código PIX (Copia e Cola) */}
+          <div className="flex flex-col items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCopyBrCode}
+              className="bg-white rounded-2xl p-3 inline-block active:scale-95 transition-transform relative group"
+              aria-label="Copiar código PIX (Copia e Cola)"
+            >
               <Image
                 src={PIX_QR_BASE64}
                 alt="QR Code PIX"
@@ -113,7 +129,19 @@ export default function SobrePage() {
                 height={180}
                 className="rounded-xl"
               />
-            </div>
+              {/* Overlay com feedback de copiado */}
+              {qrCopied && (
+                <div className="absolute inset-0 rounded-2xl bg-copa-green/90 flex flex-col items-center justify-center animate-fade-in">
+                  <svg className="w-12 h-12 text-white mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <p className="text-white font-black text-sm">Código copiado!</p>
+                </div>
+              )}
+            </button>
+            <p className="text-[11px] text-white/50 text-center max-w-[220px] leading-tight">
+              Toque no QR pra copiar o código PIX <span className="text-copa-gold font-bold">(R$ {PIX_SUGGESTED_AMOUNT.toFixed(2).replace('.', ',')} sugerido</span>, você pode editar no app do banco)
+            </p>
           </div>
 
           {/* Chave PIX */}

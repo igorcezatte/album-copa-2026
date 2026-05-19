@@ -570,7 +570,7 @@ async function renderPdfDoc(data: FullPdfData): Promise<import('jspdf').jsPDF> {
 
 export async function generateAndDownloadPdf(data: FullPdfData): Promise<void> {
   const doc = await renderPdfDoc(data)
-  doc.save('faltantes-copa2026.pdf')
+  doc.save('colecao-copa2026.pdf')
 }
 
 export async function generatePdfBlob(data: FullPdfData): Promise<Blob> {
