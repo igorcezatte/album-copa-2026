@@ -318,14 +318,20 @@ export default function ColecaoPage() {
         onShare={handleShare}
       />
 
-      {/* Card off-screen — só monta durante a captura PNG */}
+      {/* Card off-screen — só monta durante a captura PNG.
+          Width explícita (1080) garante que html-to-image meça dimensões
+          corretas. opacity:0 + zIndex:-1 mantém invisível mas no fluxo de
+          layout (offset fora da viewport por left:-2000 + width 1080). */}
       {pngCardVisible && (
         <div
           ref={shareCardRef}
           style={{
             position: 'fixed',
-            left: -20000,
+            left: -2000,
             top: 0,
+            width: 1080,
+            opacity: 0,
+            zIndex: -1,
             pointerEvents: 'none',
           }}
           aria-hidden
