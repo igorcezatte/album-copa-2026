@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useAlbumStore } from '@/store/albumStore'
+import { useHydrated } from '@/hooks/useHydrated'
 import { TEAMS, FWC_SECTION, CC_SECTION } from '@/data/teams'
 import { parsePackInput, itemsToCounts } from '@/utils/quickAdd'
 
@@ -28,6 +29,7 @@ const NAME_BY_CODE: Record<string, string> = (() => {
 export function PackAddSheet({ open, onClose }: Props) {
   const [input, setInput] = useState('')
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const hydrated = useHydrated()
   const stickers = useAlbumStore((s) => s.stickers)
   const addDuplicate = useAlbumStore((s) => s.addDuplicate)
 
@@ -58,7 +60,8 @@ export function PackAddSheet({ open, onClose }: Props) {
   })
 
   const total = result.items.length
-  const canConfirm = total > 0
+  // Guard de hidratação: igual ao StickerCard/QuickAddSheet
+  const canConfirm = total > 0 && hydrated
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
@@ -79,7 +82,7 @@ export function PackAddSheet({ open, onClose }: Props) {
   if (!open || !mounted) return null
 
   const handleConfirm = () => {
-    if (!canConfirm) return
+    if (!canConfirm || !hydrated) return
     counts.forEach((count, id) => {
       for (let i = 0; i < count; i++) addDuplicate(id)
     })

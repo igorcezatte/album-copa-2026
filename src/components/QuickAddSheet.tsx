@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useAlbumStore } from '@/store/albumStore'
+import { useHydrated } from '@/hooks/useHydrated'
 import {
   parseQuickNumbers,
   itemsToCounts,
@@ -31,6 +32,7 @@ export function QuickAddSheet({
 }: Props) {
   const [input, setInput] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  const hydrated = useHydrated()
   const stickers = useAlbumStore((s) => s.stickers)
   const addDuplicate = useAlbumStore((s) => s.addDuplicate)
 
@@ -56,7 +58,9 @@ export function QuickAddSheet({
   })
 
   const total = result.items.length
-  const canConfirm = total > 0
+  // Bloqueia confirmação ate o store estar hidratado pra evitar que o add
+  // seja sobrescrito pela hidratação tardia do persist.
+  const canConfirm = total > 0 && hydrated
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
@@ -80,7 +84,7 @@ export function QuickAddSheet({
   if (!open || !mounted) return null
 
   const handleConfirm = () => {
-    if (!canConfirm) return
+    if (!canConfirm || !hydrated) return
     counts.forEach((count, id) => {
       for (let i = 0; i < count; i++) addDuplicate(id)
     })

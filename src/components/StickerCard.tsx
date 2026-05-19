@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { Flag } from './Flag'
 import { useAlbumStore, stickerId } from '@/store/albumStore'
+import { useHydrated } from '@/hooks/useHydrated'
 import { playCollectSound } from '@/utils/sound'
 import type { StickerDef } from '@/data/teams'
 
@@ -19,6 +20,11 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
   const [animating, setAnimating] = useState(false)
   const [showCounter, setShowCounter] = useState(false)
   const id = stickerId(teamCode, sticker.number)
+  // Hidratação: bloqueia interação até o Zustand persist carregar do localStorage.
+  // Sem isso, um clique nos primeiros ms apos o load criava uma escrita que era
+  // sobrescrita logo em seguida quando a hidratação terminava (race condition
+  // que fazia figurinhas recém-coletadas sumirem).
+  const hydrated = useHydrated()
   const quantity  = useAlbumStore((s) => s.getQuantity(id))
   const collect   = useAlbumStore((s) => s.collect)
   const uncollect = useAlbumStore((s) => s.uncollect)
@@ -31,10 +37,12 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
 
   const openCounter = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
+    if (!hydrated) return
     setShowCounter(true)
-  }, [])
+  }, [hydrated])
 
   const handleCardTap = useCallback(() => {
+    if (!hydrated) return
     if (!collected) {
       collect(id)
       playCollectSound()
@@ -43,23 +51,25 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
       return
     }
     setShowCounter((prev) => !prev)
-  }, [collected, collect, id])
+  }, [hydrated, collected, collect, id])
 
   const handleAdd = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
+    if (!hydrated) return
     addDuplicate(id)
     playCollectSound()
-  }, [addDuplicate, id])
+  }, [hydrated, addDuplicate, id])
 
   const handleRemove = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
+    if (!hydrated) return
     if (quantity <= 1) {
       uncollect(id)
       setShowCounter(false)
     } else {
       removeDuplicate(id)
     }
-  }, [quantity, uncollect, removeDuplicate, id])
+  }, [hydrated, quantity, uncollect, removeDuplicate, id])
 
   const typeLabel = {
     badge: 'Escudo',

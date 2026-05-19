@@ -21,22 +21,49 @@ export function isCatastrophicShrink(
   )
 }
 
-// Cliente abre modal de conflito se local e remoto diferem em ≥ 10 figurinhas
-// E essa diferença é ≥ 20% do maior lado. Casos com um lado vazio só contam
-// como divergência se o outro lado tem volume relevante.
+// Cliente abre modal de conflito quando local e remoto divergem o suficiente
+// pra que aplicar o remoto silenciosamente possa destruir dados que o usuário
+// se importa. A função é ASSIMÉTRICA por design:
+//
+// - SHRINK (remote < local) é muito mais perigoso: o sync replace vai apagar
+//   stickers que existem só localmente. Dispara modal pra qualquer perda
+//   visível (>= 2 stickers OU >= 5% do local), desde que o usuário já tenha
+//   pelo menos SHRINK_MIN_LOCAL stickers (evita interromper quem tá começando).
+//
+// - GROW (remote > local) é geralmente benigno (sync com outro device que tem
+//   mais). Mantém o threshold original mais permissivo.
+//
+// Lados vazios entram pelo threshold absoluto.
 export const SIGNIFICANT_DIVERGENCE_ABS = 10
 export const SIGNIFICANT_DIVERGENCE_RATIO = 0.2
+
+export const SHRINK_MIN_LOCAL = 5
+export const SHRINK_MIN_LOSS = 2
+export const SHRINK_RATIO_THRESHOLD = 0.05
 
 export function isSignificantDivergence(
   localSize: number,
   remoteSize: number
 ): boolean {
-  if (localSize === 0 && remoteSize === 0) return false
+  if (localSize === remoteSize) return false
+
   if (localSize === 0 || remoteSize === 0) {
     return Math.max(localSize, remoteSize) >= SIGNIFICANT_DIVERGENCE_ABS
   }
-  const diff = Math.abs(localSize - remoteSize)
-  const ratio = diff / Math.max(localSize, remoteSize)
+
+  // Shrink: mais sensível (qualquer perda detectável conta)
+  if (remoteSize < localSize) {
+    if (localSize < SHRINK_MIN_LOCAL) return false
+    const loss = localSize - remoteSize
+    return (
+      loss >= SHRINK_MIN_LOSS ||
+      loss / localSize >= SHRINK_RATIO_THRESHOLD
+    )
+  }
+
+  // Grow: mantém threshold original (sync com device que tem mais)
+  const diff = remoteSize - localSize
+  const ratio = diff / remoteSize
   return (
     diff >= SIGNIFICANT_DIVERGENCE_ABS &&
     ratio >= SIGNIFICANT_DIVERGENCE_RATIO

@@ -10,6 +10,7 @@ import { pct } from '@/lib/utils'
 import { useHydrated } from '@/hooks/useHydrated'
 import { useShallow } from 'zustand/react/shallow'
 import { BackupSection } from '@/components/BackupSection'
+import { saveSnapshot } from '@/utils/localBackup'
 
 const CONFIRM_PHRASE = 'REMOVER TUDO'
 
@@ -18,6 +19,7 @@ export default function ConfigPage() {
   const hydrated = useHydrated()
   const total = useAlbumStore(useShallow((s) => s.getTotalProgress()))
   const resetAlbum = useAlbumStore((s) => s.resetAlbum)
+  const stickersSnapshot = useAlbumStore((s) => s.stickers)
   const router = useRouter()
 
   const [confirmText, setConfirmText] = useState('')
@@ -42,6 +44,8 @@ export default function ConfigPage() {
       }).catch(console.error)
     }
 
+    // Snapshot antes do wipe local (safety net mesmo em ação deliberada)
+    saveSnapshot(stickersSnapshot, 'reset-album')
     resetAlbum()
 
     setStep('done')

@@ -9,6 +9,7 @@ import {
   backupFileName,
   type BackupFile,
 } from '@/utils/backup'
+import { saveSnapshot } from '@/utils/localBackup'
 
 type ImportState =
   | { kind: 'idle' }
@@ -75,6 +76,8 @@ export function BackupSection() {
 
   const handleConfirmRestore = () => {
     if (importState.kind !== 'confirm') return
+    // Snapshot do estado atual antes de sobrescrever com o backup importado
+    saveSnapshot(stickers, 'restore-backup')
     replaceStickers(importState.backup.stickers)
     setImportState({ kind: 'done' })
   }

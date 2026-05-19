@@ -10,6 +10,11 @@ import {
   type RemoteStickerEntry,
 } from '@/utils/migration'
 import { isSignificantDivergence } from '@/utils/syncGuards'
+import { saveSnapshot, type SnapshotReason } from '@/utils/localBackup'
+
+function snapshotBeforeReplace(reason: SnapshotReason) {
+  saveSnapshot(useAlbumStore.getState().stickers, reason)
+}
 
 const SYNCED_KEY = 'copa26-synced-v1'
 const RETRY_DELAYS = [0, 2000, 8000] // ms — 3 tentativas com backoff
@@ -101,6 +106,7 @@ export function useSyncStore() {
       (remoteStickers: RemoteStickerEntry[]) =>
       async (resolution: ConflictResolution) => {
         if (resolution === 'keep-cloud') {
+          snapshotBeforeReplace('sync-conflict-keep-cloud')
           replaceStickers(remoteToLocal(remoteStickers))
           isBlockedRef.current = false
           closeConflict()
@@ -160,6 +166,10 @@ export function useSyncStore() {
         mergeStickers(merged)
         localStorage.setItem(`${SYNCED_KEY}-${userId}`, 'true')
       } else {
+        // Estado local sera substituído pelo remoto — salva snapshot pra
+        // recuperar em /config caso o usuário tenha adicionado coisas sem
+        // login antes desse sync.
+        snapshotBeforeReplace('sync-replace')
         replaceStickers(remoteToLocal(remoteStickers))
       }
 
@@ -213,6 +223,7 @@ export function useSyncStore() {
           },
           async (resolution) => {
             if (resolution === 'keep-cloud') {
+              snapshotBeforeReplace('sync-conflict-keep-cloud')
               replaceStickers(remoteToLocal(remote))
               isBlockedRef.current = false
               closeConflict()
