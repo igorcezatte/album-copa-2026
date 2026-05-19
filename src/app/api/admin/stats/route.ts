@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { isAdminSession, isMissingTableError } from '@/lib/admin'
+import { fetchAllRows, isAdminSession, isMissingTableError } from '@/lib/admin'
 import { createSupabaseAdmin } from '@/lib/supabase'
 import type { AdminStats } from '@/types/admin'
 
@@ -20,22 +20,34 @@ export async function GET() {
   // sticker_entries é fonte de verdade pra "quem tem dados". user_profiles
   // entra só como complemento de atividade (last_seen_at é atualizado em
   // GETs/PUTs e pode ser mais recente que o updated_at da última sticker).
+  //
+  // fetchAllRows pagina via .range() — Supabase REST corta em 1000 rows por
+  // resposta. Sem isso, totais ficavam travados em 1000 figurinhas exatas.
   const [activeStickersRes, profilesRes] = await Promise.all([
-    supabase
-      .from('sticker_entries')
-      .select('user_id, quantity, updated_at')
-      .is('removed_at', null),
-    supabase
-      .from('user_profiles')
-      .select('user_id, last_seen_at'),
+    fetchAllRows<{ user_id: string; quantity: number; updated_at: string }>(
+      () =>
+        supabase
+          .from('sticker_entries')
+          .select('user_id, quantity, updated_at')
+          .is('removed_at', null)
+    ),
+    fetchAllRows<{ user_id: string; last_seen_at: string }>(() =>
+      supabase.from('user_profiles').select('user_id, last_seen_at')
+    ),
   ])
 
   if (activeStickersRes.error) {
-    return Response.json({ error: activeStickersRes.error.message }, { status: 500 })
+    return Response.json(
+      { error: String((activeStickersRes.error as { message?: string }).message ?? activeStickersRes.error) },
+      { status: 500 }
+    )
   }
 
   if (profilesRes.error && !isMissingTableError(profilesRes.error)) {
-    return Response.json({ error: profilesRes.error.message }, { status: 500 })
+    return Response.json(
+      { error: String((profilesRes.error as { message?: string }).message ?? profilesRes.error) },
+      { status: 500 }
+    )
   }
 
   // Agrega stickers por usuário pra calcular: total coletadas, completos, média

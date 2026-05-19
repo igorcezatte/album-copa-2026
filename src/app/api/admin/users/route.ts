@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { isAdminSession, isMissingTableError } from '@/lib/admin'
+import { fetchAllRows, isAdminSession, isMissingTableError } from '@/lib/admin'
 import { createSupabaseAdmin } from '@/lib/supabase'
 import type { AdminUserSummary, AdminUsersList } from '@/types/admin'
 
@@ -39,13 +39,24 @@ export async function GET(request: Request) {
   const supabase = createSupabaseAdmin()
 
   // 1. Agrega user_ids a partir de sticker_entries
-  const { data: stickerRows, error: stickerErr } = await supabase
-    .from('sticker_entries')
-    .select('user_id, updated_at, collected_at')
-    .is('removed_at', null)
+  // fetchAllRows pagina via .range() — Supabase REST corta em 1000 rows por
+  // resposta, e sem isso usuarios e contagens ficavam travados em 1000.
+  const { data: stickerRows, error: stickerErr } = await fetchAllRows<{
+    user_id: string
+    updated_at: string
+    collected_at: string
+  }>(() =>
+    supabase
+      .from('sticker_entries')
+      .select('user_id, updated_at, collected_at')
+      .is('removed_at', null)
+  )
 
   if (stickerErr) {
-    return Response.json({ error: stickerErr.message }, { status: 500 })
+    return Response.json(
+      { error: String((stickerErr as { message?: string }).message ?? stickerErr) },
+      { status: 500 }
+    )
   }
 
   type Agg = { count: number; firstSeen: string; lastSeen: string }

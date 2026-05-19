@@ -36,3 +36,37 @@ export function isMissingTableError(err: unknown): boolean {
   }
   return false
 }
+
+const PAGE_SIZE = 1000
+
+/**
+ * Lê TODAS as linhas de uma query Supabase usando .range() em loop.
+ *
+ * Supabase REST tem um cap default de 1000 rows por response (db-rest-max-rows).
+ * Sem paginação, qualquer somatório acima disso fica truncado silenciosamente
+ * — exatamente o bug do /admin que travava em "1000 figurinhas exatas".
+ *
+ * Recebe uma factory que cria a query base (sem range) e a invoca repetidamente
+ * com offsets crescentes. Para quando uma página vem menor que PAGE_SIZE.
+ */
+interface RangeableQuery<T> {
+  range(from: number, to: number): PromiseLike<{ data: T[] | null; error: unknown }>
+}
+
+export async function fetchAllRows<T>(
+  buildQuery: () => RangeableQuery<T>
+): Promise<{ data: T[]; error: unknown }> {
+  const all: T[] = []
+  let from = 0
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const to = from + PAGE_SIZE - 1
+    const { data, error } = await buildQuery().range(from, to)
+    if (error) return { data: all, error }
+    const rows = data ?? []
+    all.push(...rows)
+    if (rows.length < PAGE_SIZE) break
+    from += PAGE_SIZE
+  }
+  return { data: all, error: null }
+}
