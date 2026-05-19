@@ -11,7 +11,7 @@ import {
   buildFullPdfData,
   generatePdfBlob,
 } from '@/utils/pdf'
-import { buildShareText } from '@/utils/shareText'
+import { buildShareText, buildTextDuplicates } from '@/utils/shareText'
 import { generateShareCanvas } from '@/utils/shareCanvas'
 import { cn } from '@/lib/utils'
 
@@ -217,17 +217,15 @@ export default function ColecaoPage() {
       }
 
       if (format === 'text') {
-        const textDupes = duplicates
-          .map((d) => {
-            const info = getStickerInfo(d.id)
-            if (!info.team) return null
-            return {
-              teamName: info.team.name,
-              number: info.number,
-              extras: d.quantity,
-            }
-          })
-          .filter(Boolean) as Array<{ teamName: string; number: string; extras: number }>
+        // Resolve teamName/label preservando FWC/CC (bug: antes esses caiam no
+        // filtro `if (!info.team)` e somiam do total)
+        const textDupes = buildTextDuplicates(duplicates, (teamCode, number) => {
+          const team = TEAMS.find((t) => t.code === teamCode)
+          if (team) return { teamName: team.name, label: number }
+          if (teamCode === 'FWC') return { teamName: 'Copa History', label: `FWC${number}` }
+          if (teamCode === 'CC') return { teamName: 'Coca-Cola', label: `CC${number}` }
+          return null
+        })
 
         const text = buildShareText({
           collected: shareableData.collected,

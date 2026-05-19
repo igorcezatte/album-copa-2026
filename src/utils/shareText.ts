@@ -3,6 +3,47 @@
  * e outros chats. Função pura — fácil de testar.
  */
 
+export interface RawDuplicate {
+  id: string
+  quantity: number
+}
+
+export interface ResolvedSticker {
+  teamName: string
+  /** Label exibido no texto (ex: '5' pra jogador, 'FWC1' pra especial). */
+  label: string
+}
+
+export type StickerResolver = (
+  teamCode: string,
+  number: string
+) => ResolvedSticker | null
+
+/**
+ * Transforma raw duplicates do store nas entries que `buildShareText` espera.
+ * Função separada pra que FWC/CC nao sejam descartados pelo filtro de time
+ * (bug: getDuplicates() inclui especiais, mas TEAMS so tem selecoes).
+ */
+export function buildTextDuplicates(
+  rawDuplicates: RawDuplicate[],
+  resolve: StickerResolver
+): Array<{ teamName: string; number: string; extras: number }> {
+  const out: Array<{ teamName: string; number: string; extras: number }> = []
+  for (const d of rawDuplicates) {
+    if (d.quantity < 1) continue
+    const [teamCode, ...numParts] = d.id.split('_')
+    const number = numParts.join('_')
+    const resolved = resolve(teamCode, number)
+    if (!resolved) continue
+    out.push({
+      teamName: resolved.teamName,
+      number: resolved.label,
+      extras: d.quantity,
+    })
+  }
+  return out
+}
+
 export interface ShareTextInput {
   collected: number
   total: number

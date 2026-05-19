@@ -1,4 +1,8 @@
-import { buildShareText } from '@/utils/shareText'
+import {
+  buildShareText,
+  buildTextDuplicates,
+  type StickerResolver,
+} from '@/utils/shareText'
 
 describe('buildShareText', () => {
   it('inclui título, progresso e URL', () => {
@@ -148,5 +152,73 @@ describe('buildShareText', () => {
     })
     expect(text).toContain('Brasil')
     expect(text).not.toContain('• México:')
+  })
+})
+
+describe('buildTextDuplicates', () => {
+  const resolver: StickerResolver = (teamCode, number) => {
+    if (teamCode === 'BRA') return { teamName: 'Brasil', label: number }
+    if (teamCode === 'ARG') return { teamName: 'Argentina', label: number }
+    if (teamCode === 'FWC') return { teamName: 'Copa History', label: `FWC${number}` }
+    if (teamCode === 'CC') return { teamName: 'Coca-Cola', label: `CC${number}` }
+    return null
+  }
+
+  it('mapeia repetidas de times normais', () => {
+    const res = buildTextDuplicates([{ id: 'BRA_5', quantity: 2 }], resolver)
+    expect(res).toEqual([{ teamName: 'Brasil', number: '5', extras: 2 }])
+  })
+
+  it('regression: inclui FWC nas repetidas (antes sumia)', () => {
+    const res = buildTextDuplicates([{ id: 'FWC_1', quantity: 1 }], resolver)
+    expect(res).toEqual([{ teamName: 'Copa History', number: 'FWC1', extras: 1 }])
+  })
+
+  it('regression: inclui CC nas repetidas (antes sumia)', () => {
+    const res = buildTextDuplicates([{ id: 'CC_3', quantity: 2 }], resolver)
+    expect(res).toEqual([{ teamName: 'Coca-Cola', number: 'CC3', extras: 2 }])
+  })
+
+  it('regression: total agrega time + FWC + CC corretamente', () => {
+    // Cenario do bug reportado: 27 totais (25 time + 2 FWC/CC), texto mostrava 25
+    const raw = [
+      { id: 'BRA_5', quantity: 25 },
+      { id: 'FWC_1', quantity: 1 },
+      { id: 'CC_3', quantity: 1 },
+    ]
+    const res = buildTextDuplicates(raw, resolver)
+    const total = res.reduce((acc, d) => acc + d.extras, 0)
+    expect(total).toBe(27)
+
+    const text = buildShareText({
+      collected: 100,
+      total: 994,
+      teamsMissing: [],
+      specialsMissing: [],
+      duplicates: res,
+    })
+    expect(text).toContain('Repetidas 27')
+  })
+
+  it('descarta entries com quantity < 1', () => {
+    const res = buildTextDuplicates(
+      [
+        { id: 'BRA_5', quantity: 0 },
+        { id: 'BRA_6', quantity: 1 },
+      ],
+      resolver
+    )
+    expect(res).toHaveLength(1)
+  })
+
+  it('descarta stickers desconhecidas (resolver retorna null)', () => {
+    const res = buildTextDuplicates([{ id: 'UNKNOWN_1', quantity: 5 }], resolver)
+    expect(res).toEqual([])
+  })
+
+  it('preserva numero do sticker quando contem underscore', () => {
+    // Edge case: split('_') com numParts.join('_') preserva 'FWC_1_2'
+    const res = buildTextDuplicates([{ id: 'BRA_1_a', quantity: 1 }], resolver)
+    expect(res[0].number).toBe('1_a')
   })
 })
