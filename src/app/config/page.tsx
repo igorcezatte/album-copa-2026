@@ -10,7 +10,9 @@ import { pct } from '@/lib/utils'
 import { useHydrated } from '@/hooks/useHydrated'
 import { useShallow } from 'zustand/react/shallow'
 import { BackupSection } from '@/components/BackupSection'
+import { HistorySection } from '@/components/HistorySection'
 import { saveSnapshot, clearLastUserId } from '@/utils/localBackup'
+import { clearVersions } from '@/utils/versions'
 
 const CONFIRM_PHRASE = 'REMOVER TUDO'
 
@@ -44,11 +46,14 @@ export default function ConfigPage() {
       }).catch(console.error)
     }
 
-    // Snapshot antes do wipe local (safety net mesmo em ação deliberada)
-    saveSnapshot(stickersSnapshot, 'reset-album')
     // Limpa marca de "última conta nesse browser" pra que o próximo login
     // siga o caminho "primeira vez" em vez de "mesma conta voltando".
     clearLastUserId()
+    // Wipe do histórico antigo + insere snapshot "antes do reset" como ponto
+    // único de retorno. Usuario pediu reset total, mas se mudar de ideia em
+    // /config → Histórico, consegue voltar.
+    clearVersions()
+    saveSnapshot(stickersSnapshot, 'reset-album')
     resetAlbum()
 
     setStep('done')
@@ -201,6 +206,8 @@ export default function ConfigPage() {
       </section>
 
       <BackupSection />
+
+      <HistorySection />
 
       {/* Sobre */}
       <section>
