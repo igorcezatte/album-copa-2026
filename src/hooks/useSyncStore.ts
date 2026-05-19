@@ -28,6 +28,11 @@ function snapshotBeforeReplace(reason: SnapshotReason) {
 const SYNCED_KEY = 'copa26-synced-v1'
 const RETRY_DELAYS = [0, 2000, 8000] // ms — 3 tentativas com backoff
 const PUT_DEBOUNCE = 1500
+// Mesmo com atividade contínua, força flush a cada PUT_MAX_WAIT ms. Sem isso,
+// um user que coleta sem parar (<PUT_DEBOUNCE entre coletas) nunca dispararia
+// o setTimeout e nada chegaria no Supabase — exatamente o bug catastrófico de
+// perda de dados ao deslogar/recarregar após muita coleta rápida.
+const PUT_MAX_WAIT = 4000
 
 function waitForHydration(): Promise<void> {
   if (useAlbumStore.persist.hasHydrated()) return Promise.resolve()
@@ -85,6 +90,26 @@ async function pushFullState(force: boolean): Promise<Response | null> {
 }
 
 /**
+ * Variante com keepalive=true pra disparar durante pagehide/visibilitychange
+ * sem ser cancelada pelo browser. Limite de 64KB de body (suficiente pros 994
+ * stickers possíveis). Sem retry e sem inspeção do response — best effort.
+ */
+function pushFullStateKeepalive(): void {
+  if (typeof window === 'undefined') return
+  const payload = buildSyncPayload(useAlbumStore.getState().stickers)
+  try {
+    void fetch('/api/stickers', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stickers: payload }),
+      keepalive: true,
+    })
+  } catch {
+    // silencioso — não há o que fazer se até keepalive falhar
+  }
+}
+
+/**
  * PUT com retry+backoff. Usado depois que o user resolveu o modal de conflito
  * pra evitar que uma falha transitória de rede deixe o modal travado ou os
  * dados sem subir. NÃO retenta em 409 (servidor rejeitou conscientemente).
@@ -116,6 +141,13 @@ export function useSyncStore() {
   // Guard persistente após falha de GET ou conflito — bloqueia PUTs até resolução
   const isBlockedRef = useRef(false)
   const prevUserIdRef = useRef<string | null>(null)
+  // Timestamp da primeira mudança ainda não enviada — alimenta o maxWait do
+  // debounce pra que coleta contínua não cancele o PUT infinitamente.
+  const firstPendingChangeAtRef = useRef<number | null>(null)
+  // JSON do último estado que conseguimos enviar com sucesso. Usado pra
+  // detectar pendência real (vs. re-renders que não mudam stickers) e
+  // alimentar o flush em pagehide.
+  const lastFlushedJsonRef = useRef<string>('')
 
   // ============================================================
   // INITIAL SYNC: corre 1x por userId após login/reload
@@ -141,6 +173,9 @@ export function useSyncStore() {
           replaceStickers(remoteToLocal(remoteStickers))
           isBlockedRef.current = false
           closeConflict()
+          lastFlushedJsonRef.current = JSON.stringify(
+            useAlbumStore.getState().stickers
+          )
           return
         }
 
@@ -152,7 +187,12 @@ export function useSyncStore() {
           closeConflict()
           // force:true — user escolheu deliberadamente, não faz sentido o
           // sanity guard do servidor barrar a operação dele
+          const snapshot = JSON.stringify(useAlbumStore.getState().stickers)
           const r = await pushWithRetry(true)
+          if (r && r.ok) {
+            lastFlushedJsonRef.current = snapshot
+            firstPendingChangeAtRef.current = null
+          }
           setSyncStatus(r && r.ok ? 'ok' : 'error')
           return
         }
@@ -160,7 +200,12 @@ export function useSyncStore() {
         if (resolution === 'keep-local') {
           isBlockedRef.current = false
           closeConflict()
+          const snapshot = JSON.stringify(useAlbumStore.getState().stickers)
           const r = await pushWithRetry(true)
+          if (r && r.ok) {
+            lastFlushedJsonRef.current = snapshot
+            firstPendingChangeAtRef.current = null
+          }
           setSyncStatus(r && r.ok ? 'ok' : 'error')
           return
         }
@@ -196,7 +241,12 @@ export function useSyncStore() {
           // Force pra contornar o guard do servidor se conta atual estiver vazia
           // e estivermos enviando volume relevante (caso welcome). Retry pra
           // sobreviver a falhas transitórias e nao deixar o modal travado.
+          const snapshot = JSON.stringify(useAlbumStore.getState().stickers)
           const r = await pushWithRetry(true)
+          if (r && r.ok) {
+            lastFlushedJsonRef.current = snapshot
+            firstPendingChangeAtRef.current = null
+          }
           setSyncStatus(r && r.ok ? 'ok' : 'error')
           return
         }
@@ -210,6 +260,9 @@ export function useSyncStore() {
           setLastUserId(userId)
           isBlockedRef.current = false
           closeAccountChoice()
+          lastFlushedJsonRef.current = JSON.stringify(
+            useAlbumStore.getState().stickers
+          )
           setSyncStatus('ok')
           return
         }
@@ -256,6 +309,9 @@ export function useSyncStore() {
           snapshotBeforeReplace('sync-replace')
           replaceStickers(remoteToLocal(remoteStickers))
           setLastUserId(userId)
+          lastFlushedJsonRef.current = JSON.stringify(
+            useAlbumStore.getState().stickers
+          )
           setSyncStatus('ok')
           return
         }
@@ -265,6 +321,9 @@ export function useSyncStore() {
           replaceStickers(remoteToLocal(remoteStickers))
           localStorage.setItem(`${SYNCED_KEY}-${userId}`, 'true')
           setLastUserId(userId)
+          lastFlushedJsonRef.current = JSON.stringify(
+            useAlbumStore.getState().stickers
+          )
           setSyncStatus('ok')
           return
         }
@@ -303,13 +362,37 @@ export function useSyncStore() {
   ])
 
   // ============================================================
-  // PUSH PUT: debounce de mudanças locais
+  // PUSH PUT: debounce com maxWait + flush em pagehide
   // ============================================================
+  //
+  // Bug original: debounce puro re-agendava o setTimeout a cada coleta. Se o
+  // user coletasse <PUT_DEBOUNCE entre figurinhas, o PUT nunca disparava;
+  // deslogar/fechar a aba destruía o timer e os dados sumiam.
+  //
+  // Solução: o setTimeout normal usa PUT_DEBOUNCE, mas se já passou
+  // PUT_MAX_WAIT desde a primeira mudança pendente, força delay=0 (envia
+  // imediato). Plus, listener em pagehide/visibilitychange dispara um PUT
+  // com keepalive:true que sobrevive ao unload.
   useEffect(() => {
     if (status !== 'authenticated' || !session?.user?.id) return
     if (isMergingRef.current || isBlockedRef.current) return
 
+    const stickersJson = JSON.stringify(stickers)
+    // Sem pendência real (estado igual ao último enviado) — não agenda nada
+    if (stickersJson === lastFlushedJsonRef.current) {
+      firstPendingChangeAtRef.current = null
+      return
+    }
+
+    if (firstPendingChangeAtRef.current === null) {
+      firstPendingChangeAtRef.current = Date.now()
+    }
+    const sincePending = Date.now() - firstPendingChangeAtRef.current
+    const remaining = Math.max(0, PUT_MAX_WAIT - sincePending)
+    const delay = Math.min(PUT_DEBOUNCE, remaining)
+
     const timer = setTimeout(async () => {
+      const snapshot = JSON.stringify(useAlbumStore.getState().stickers)
       const r = await pushFullState(false)
       if (!r) {
         setSyncStatus('error')
@@ -339,6 +422,9 @@ export function useSyncStore() {
               replaceStickers(remoteToLocal(remote))
               isBlockedRef.current = false
               closeConflict()
+              lastFlushedJsonRef.current = JSON.stringify(
+                useAlbumStore.getState().stickers
+              )
               return
             }
             if (resolution === 'merge') {
@@ -347,14 +433,24 @@ export function useSyncStore() {
               mergeStickers(merged)
               isBlockedRef.current = false
               closeConflict()
+              const snapshot = JSON.stringify(useAlbumStore.getState().stickers)
               const r2 = await pushWithRetry(true)
+              if (r2 && r2.ok) {
+                lastFlushedJsonRef.current = snapshot
+                firstPendingChangeAtRef.current = null
+              }
               setSyncStatus(r2 && r2.ok ? 'ok' : 'error')
               return
             }
             if (resolution === 'keep-local') {
               isBlockedRef.current = false
               closeConflict()
+              const snapshot = JSON.stringify(useAlbumStore.getState().stickers)
               const r2 = await pushWithRetry(true)
+              if (r2 && r2.ok) {
+                lastFlushedJsonRef.current = snapshot
+                firstPendingChangeAtRef.current = null
+              }
               setSyncStatus(r2 && r2.ok ? 'ok' : 'error')
               return
             }
@@ -368,8 +464,12 @@ export function useSyncStore() {
         return
       }
 
+      // Sucesso: marca o snapshot como persistido e zera o relógio de
+      // pendência. Próximas mudanças começam o debounce do zero.
+      lastFlushedJsonRef.current = snapshot
+      firstPendingChangeAtRef.current = null
       setSyncStatus('ok')
-    }, PUT_DEBOUNCE)
+    }, delay)
 
     return () => clearTimeout(timer)
   }, [
@@ -382,4 +482,37 @@ export function useSyncStore() {
     mergeStickers,
     replaceStickers,
   ])
+
+  // ============================================================
+  // FLUSH ON UNLOAD: garante envio do último estado mesmo se o user
+  // desloga, fecha aba ou troca de app antes do debounce disparar.
+  // ============================================================
+  useEffect(() => {
+    if (status !== 'authenticated' || !session?.user?.id) return
+
+    const flush = () => {
+      if (isMergingRef.current || isBlockedRef.current) return
+      const current = JSON.stringify(useAlbumStore.getState().stickers)
+      if (current === lastFlushedJsonRef.current) return
+      pushFullStateKeepalive()
+      // Otimismo: marca como enviado pra não disparar de novo no mesmo unload.
+      // Se o keepalive falhar no servidor, próxima sessão vai detectar via
+      // divergência e ajustar (modal de conflict ou debounce normal).
+      lastFlushedJsonRef.current = current
+    }
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') flush()
+    }
+
+    // pagehide cobre fechar aba, navegar pra outro site, redirect do signOut.
+    // visibilitychange cobre minimizar app no mobile (onde pagehide nao dispara).
+    window.addEventListener('pagehide', flush)
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
+    return () => {
+      window.removeEventListener('pagehide', flush)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [status, session?.user?.id])
 }
