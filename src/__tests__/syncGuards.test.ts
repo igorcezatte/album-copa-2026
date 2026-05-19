@@ -1,6 +1,7 @@
 import {
   isCatastrophicShrink,
   isSignificantDivergence,
+  classifyInitialSync,
 } from '@/utils/syncGuards'
 
 describe('isCatastrophicShrink', () => {
@@ -102,6 +103,141 @@ describe('isSignificantDivergence', () => {
     it('dispara quando diff >= 10 E ratio >= 20%', () => {
       expect(isSignificantDivergence(76, 220)).toBe(true) // simétrico do caso real
       expect(isSignificantDivergence(50, 100)).toBe(true)
+    })
+  })
+})
+
+describe('classifyInitialSync', () => {
+  describe('Caso A: primeiro sync, sem dados locais', () => {
+    it('pull-silent quando local vazio e nunca sincronizou', () => {
+      expect(
+        classifyInitialSync({
+          userId: 'user-a',
+          localSize: 0,
+          remoteSize: 0,
+          syncedBefore: false,
+          lastUserId: null,
+        })
+      ).toEqual({ kind: 'pull-silent' })
+    })
+
+    it('pull-silent quando local vazio mesmo se outra conta passou antes', () => {
+      // Após reset_album já limpamos last-user-id, mas garantir comportamento
+      expect(
+        classifyInitialSync({
+          userId: 'user-b',
+          localSize: 0,
+          remoteSize: 100,
+          syncedBefore: false,
+          lastUserId: 'user-a',
+        })
+      ).toEqual({ kind: 'pull-silent' })
+    })
+  })
+
+  describe('Caso B: anônimo logando pela primeira vez', () => {
+    it('welcome-modal quando há dados locais e nunca houve conta antes', () => {
+      expect(
+        classifyInitialSync({
+          userId: 'user-a',
+          localSize: 30,
+          remoteSize: 0,
+          syncedBefore: false,
+          lastUserId: null,
+        })
+      ).toEqual({ kind: 'welcome-modal' })
+    })
+
+    it('welcome-modal mesmo se a conta tem dados na nuvem', () => {
+      expect(
+        classifyInitialSync({
+          userId: 'user-a',
+          localSize: 30,
+          remoteSize: 100,
+          syncedBefore: false,
+          lastUserId: null,
+        })
+      ).toEqual({ kind: 'welcome-modal' })
+    })
+  })
+
+  describe('Caso C: mesma conta voltando', () => {
+    it('same-user-pull quando divergência aceitável', () => {
+      expect(
+        classifyInitialSync({
+          userId: 'user-a',
+          localSize: 100,
+          remoteSize: 99, // perda de 1 — não dispara conflict
+          syncedBefore: true,
+          lastUserId: 'user-a',
+        })
+      ).toEqual({ kind: 'same-user-pull' })
+    })
+
+    it('same-user-pull quando local e remoto iguais', () => {
+      expect(
+        classifyInitialSync({
+          userId: 'user-a',
+          localSize: 50,
+          remoteSize: 50,
+          syncedBefore: true,
+          lastUserId: 'user-a',
+        })
+      ).toEqual({ kind: 'same-user-pull' })
+    })
+
+    it('same-user-conflict quando shrink significativo', () => {
+      expect(
+        classifyInitialSync({
+          userId: 'user-a',
+          localSize: 220,
+          remoteSize: 76,
+          syncedBefore: true,
+          lastUserId: 'user-a',
+        })
+      ).toEqual({ kind: 'same-user-conflict' })
+    })
+  })
+
+  describe('Caso D: regressão do bug — outra conta passou neste browser', () => {
+    it('mismatch-modal quando outra conta sincronizou antes e local tem dados', () => {
+      // Cenário exato reportado pelo usuário
+      expect(
+        classifyInitialSync({
+          userId: 'user-b',
+          localSize: 30,
+          remoteSize: 0,
+          syncedBefore: false,
+          lastUserId: 'user-a',
+        })
+      ).toEqual({ kind: 'mismatch-modal' })
+    })
+
+    it('mismatch-modal mesmo se a conta nova tem dados na nuvem', () => {
+      expect(
+        classifyInitialSync({
+          userId: 'user-b',
+          localSize: 30,
+          remoteSize: 50,
+          syncedBefore: false,
+          lastUserId: 'user-a',
+        })
+      ).toEqual({ kind: 'mismatch-modal' })
+    })
+
+    it('não confunde mismatch com mesma conta (sem syncedBefore)', () => {
+      // Se a flag synced-{userId} foi limpa mas last-user-id ainda aponta
+      // pra ela, ainda assim deve ser tratado como mismatch — usuário deve
+      // confirmar antes de qualquer ação destrutiva.
+      expect(
+        classifyInitialSync({
+          userId: 'user-a',
+          localSize: 30,
+          remoteSize: 0,
+          syncedBefore: false,
+          lastUserId: 'user-a',
+        })
+      ).toEqual({ kind: 'welcome-modal' }) // lastUserId === userId, caso B
     })
   })
 })

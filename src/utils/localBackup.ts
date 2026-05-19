@@ -10,6 +10,7 @@
  */
 
 export const SNAPSHOT_KEY = 'copa26-prev-snapshot'
+export const LAST_USER_ID_KEY = 'copa26-last-user-id'
 
 export type SnapshotReason =
   | 'sync-replace'
@@ -81,6 +82,40 @@ export function clearSnapshot(): void {
   if (typeof window === 'undefined') return
   try {
     localStorage.removeItem(SNAPSHOT_KEY)
+  } catch {
+    // ignora
+  }
+}
+
+// ─── Tracking de qual conta sincronizou por último neste browser ──
+//
+// Usado pra detectar quando uma conta DIFERENTE entra com dados locais
+// que pertencem a outra. Sem isso, o "primeiro sync" da nova conta
+// mergeava os dados da conta antiga e os enviava pra nuvem da nova,
+// contaminando ambas as coleções.
+
+export function getLastUserId(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    return localStorage.getItem(LAST_USER_ID_KEY)
+  } catch {
+    return null
+  }
+}
+
+export function setLastUserId(userId: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(LAST_USER_ID_KEY, userId)
+  } catch {
+    // ignora
+  }
+}
+
+export function clearLastUserId(): void {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.removeItem(LAST_USER_ID_KEY)
   } catch {
     // ignora
   }

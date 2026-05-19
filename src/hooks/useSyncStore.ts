@@ -1,16 +1,25 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { useAlbumStore } from '@/store/albumStore'
-import { useSyncState, type ConflictResolution } from '@/store/syncState'
+import {
+  useSyncState,
+  type ConflictResolution,
+  type AccountChoiceResolution,
+} from '@/store/syncState'
 import {
   buildSyncPayload,
   mergeStickerData,
   type RemoteStickerEntry,
 } from '@/utils/migration'
-import { isSignificantDivergence } from '@/utils/syncGuards'
-import { saveSnapshot, type SnapshotReason } from '@/utils/localBackup'
+import { classifyInitialSync } from '@/utils/syncGuards'
+import {
+  saveSnapshot,
+  type SnapshotReason,
+  getLastUserId,
+  setLastUserId,
+} from '@/utils/localBackup'
 
 function snapshotBeforeReplace(reason: SnapshotReason) {
   saveSnapshot(useAlbumStore.getState().stickers, reason)
@@ -83,6 +92,8 @@ export function useSyncStore() {
   const setSyncStatus = useSyncState((s) => s.setStatus)
   const openConflict = useSyncState((s) => s.openConflict)
   const closeConflict = useSyncState((s) => s.closeConflict)
+  const openAccountChoice = useSyncState((s) => s.openAccountChoice)
+  const closeAccountChoice = useSyncState((s) => s.closeAccountChoice)
 
   // Guard durante merge inicial — bloqueia PUT efêmero
   const isMergingRef = useRef(false)
@@ -102,7 +113,7 @@ export function useSyncStore() {
     isBlockedRef.current = false
     setSyncStatus('syncing')
 
-    const buildResolver =
+    const buildConflictResolver =
       (remoteStickers: RemoteStickerEntry[]) =>
       async (resolution: ConflictResolution) => {
         if (resolution === 'keep-cloud') {
@@ -133,6 +144,54 @@ export function useSyncStore() {
         }
       }
 
+    // Resolver do modal de escolha de conta (welcome ou mismatch).
+    // Diferente do conflict: aqui o sync ainda nao foi marcado como concluido,
+    // entao precisamos setar a flag synced-{userId} + last-user-id manualmente
+    // depois da resolucao.
+    const buildAccountChoiceResolver =
+      (remoteStickers: RemoteStickerEntry[]) =>
+      async (resolution: AccountChoiceResolution) => {
+        if (resolution === 'sign-out') {
+          // Local intacto, sem flags, sem PUT. Devolve usuário ao modo anônimo.
+          isBlockedRef.current = false
+          closeAccountChoice()
+          await signOut({ callbackUrl: '/' })
+          return
+        }
+
+        if (resolution === 'link-local') {
+          // Mantém local, mergeia com remoto, manda pro Supabase desta conta.
+          // ATENÇÃO: no caso mismatch, isso PODE sobrescrever a conta nova com
+          // dados da antiga — é uma escolha consciente do usuário (com aviso
+          // no modal). No caso welcome é o comportamento padrão antes do bug.
+          const currentLocal = useAlbumStore.getState().stickers
+          const merged = mergeStickerData(currentLocal, remoteStickers)
+          mergeStickers(merged)
+          localStorage.setItem(`${SYNCED_KEY}-${userId}`, 'true')
+          setLastUserId(userId)
+          isBlockedRef.current = false
+          closeAccountChoice()
+          // Force pra contornar o guard do servidor se conta atual estiver vazia
+          // e estivermos enviando volume relevante (caso welcome).
+          await pushFullState(true)
+          setSyncStatus('ok')
+          return
+        }
+
+        if (resolution === 'start-fresh') {
+          // Snapshot do estado atual e adopta o remoto. Resolve tanto mismatch
+          // (limpa dados da outra conta) quanto welcome (descarta locais).
+          snapshotBeforeReplace('sync-replace')
+          replaceStickers(remoteToLocal(remoteStickers))
+          localStorage.setItem(`${SYNCED_KEY}-${userId}`, 'true')
+          setLastUserId(userId)
+          isBlockedRef.current = false
+          closeAccountChoice()
+          setSyncStatus('ok')
+          return
+        }
+      }
+
     const run = async () => {
       await waitForHydration()
       const remoteStickers = await fetchRemoteWithRetry()
@@ -149,31 +208,59 @@ export function useSyncStore() {
       const remoteSize = remoteStickers.length
       const syncedBefore =
         localStorage.getItem(`${SYNCED_KEY}-${userId}`) === 'true'
+      const lastUserId = getLastUserId()
 
-      // Em login subsequente, se o remoto divergir muito do local, abre modal
-      // de conflito. (No 1º login, merge-união é seguro porque só cresce.)
-      if (syncedBefore && isSignificantDivergence(localSize, remoteSize)) {
-        isBlockedRef.current = true
-        openConflict(
-          { localSize, remoteSize },
-          buildResolver(remoteStickers)
-        )
-        return
+      const decision = classifyInitialSync({
+        userId,
+        localSize,
+        remoteSize,
+        syncedBefore,
+        lastUserId,
+      })
+
+      switch (decision.kind) {
+        case 'same-user-conflict': {
+          isBlockedRef.current = true
+          openConflict(
+            { localSize, remoteSize },
+            buildConflictResolver(remoteStickers)
+          )
+          return
+        }
+
+        case 'same-user-pull': {
+          // Mesma conta: remoto é fonte de verdade. Snapshot e substitui.
+          snapshotBeforeReplace('sync-replace')
+          replaceStickers(remoteToLocal(remoteStickers))
+          setLastUserId(userId)
+          setSyncStatus('ok')
+          return
+        }
+
+        case 'pull-silent': {
+          // Sem dados locais, primeira vez: adota o remoto direto.
+          replaceStickers(remoteToLocal(remoteStickers))
+          localStorage.setItem(`${SYNCED_KEY}-${userId}`, 'true')
+          setLastUserId(userId)
+          setSyncStatus('ok')
+          return
+        }
+
+        case 'mismatch-modal':
+        case 'welcome-modal': {
+          // Bloqueia PUT até o usuário escolher pra evitar mandar dados
+          // errados pra nuvem da conta nova.
+          isBlockedRef.current = true
+          openAccountChoice(
+            {
+              kind: decision.kind === 'mismatch-modal' ? 'mismatch' : 'welcome',
+              localSize,
+            },
+            buildAccountChoiceResolver(remoteStickers)
+          )
+          return
+        }
       }
-
-      if (!syncedBefore) {
-        const merged = mergeStickerData(currentLocal, remoteStickers)
-        mergeStickers(merged)
-        localStorage.setItem(`${SYNCED_KEY}-${userId}`, 'true')
-      } else {
-        // Estado local sera substituído pelo remoto — salva snapshot pra
-        // recuperar em /config caso o usuário tenha adicionado coisas sem
-        // login antes desse sync.
-        snapshotBeforeReplace('sync-replace')
-        replaceStickers(remoteToLocal(remoteStickers))
-      }
-
-      setSyncStatus('ok')
     }
 
     run().finally(() => {
@@ -188,6 +275,8 @@ export function useSyncStore() {
     setSyncStatus,
     openConflict,
     closeConflict,
+    openAccountChoice,
+    closeAccountChoice,
   ])
 
   // ============================================================

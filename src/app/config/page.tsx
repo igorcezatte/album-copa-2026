@@ -10,7 +10,7 @@ import { pct } from '@/lib/utils'
 import { useHydrated } from '@/hooks/useHydrated'
 import { useShallow } from 'zustand/react/shallow'
 import { BackupSection } from '@/components/BackupSection'
-import { saveSnapshot } from '@/utils/localBackup'
+import { saveSnapshot, clearLastUserId } from '@/utils/localBackup'
 
 const CONFIRM_PHRASE = 'REMOVER TUDO'
 
@@ -46,6 +46,9 @@ export default function ConfigPage() {
 
     // Snapshot antes do wipe local (safety net mesmo em ação deliberada)
     saveSnapshot(stickersSnapshot, 'reset-album')
+    // Limpa marca de "última conta nesse browser" pra que o próximo login
+    // siga o caminho "primeira vez" em vez de "mesma conta voltando".
+    clearLastUserId()
     resetAlbum()
 
     setStep('done')

@@ -3,6 +3,7 @@
 import { SessionProvider } from 'next-auth/react'
 import { useSyncStore } from '@/hooks/useSyncStore'
 import { ConflictModal } from '@/components/ConflictModal'
+import { AccountChoiceModal } from '@/components/AccountChoiceModal'
 
 function SyncManager() {
   useSyncStore()
@@ -15,6 +16,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       <SyncManager />
       {children}
       <ConflictModal />
+      <AccountChoiceModal />
     </SessionProvider>
   )
 }

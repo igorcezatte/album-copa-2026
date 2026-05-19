@@ -69,3 +69,57 @@ export function isSignificantDivergence(
     ratio >= SIGNIFICANT_DIVERGENCE_RATIO
   )
 }
+
+// ─── Decisão do primeiro sync (4 casos) ──────────────────────────
+//
+// Função pura que classifica o cenário do sync inicial dado o estado
+// observável (local size, remote size, flag synced-{userId}, último userId).
+// Extraída do useSyncStore pra ficar testável sem mockar fetch/storage.
+
+export interface InitialSyncInput {
+  /** ID da conta que está logando agora */
+  userId: string
+  localSize: number
+  remoteSize: number
+  /** Há flag copa26-synced-v1-{userId} no localStorage? */
+  syncedBefore: boolean
+  /** copa26-last-user-id, último user que completou um sync neste browser */
+  lastUserId: string | null
+}
+
+export type InitialSyncCase =
+  /** A: primeiro sync, local vazio — pull silencioso */
+  | { kind: 'pull-silent' }
+  /** B: primeiro sync desta conta, local com dados, sem outra conta antes */
+  | { kind: 'welcome-modal' }
+  /** C sem conflito: mesma conta voltando, divergência aceitável */
+  | { kind: 'same-user-pull' }
+  /** C com conflito: mesma conta voltando, divergência significativa */
+  | { kind: 'same-user-conflict' }
+  /** D: outra conta passou neste browser antes — modal de mismatch */
+  | { kind: 'mismatch-modal' }
+
+export function classifyInitialSync(input: InitialSyncInput): InitialSyncCase {
+  const { userId, localSize, remoteSize, syncedBefore, lastUserId } = input
+
+  // Caso C: mesma conta já sincronizou aqui
+  if (syncedBefore) {
+    if (isSignificantDivergence(localSize, remoteSize)) {
+      return { kind: 'same-user-conflict' }
+    }
+    return { kind: 'same-user-pull' }
+  }
+
+  // Caso A: primeira vez, sem dados locais
+  if (localSize === 0) {
+    return { kind: 'pull-silent' }
+  }
+
+  // Caso D: outra conta já passou aqui e local tem dados dela
+  if (lastUserId && lastUserId !== userId) {
+    return { kind: 'mismatch-modal' }
+  }
+
+  // Caso B: anônimo logando pela primeira vez nesta máquina
+  return { kind: 'welcome-modal' }
+}

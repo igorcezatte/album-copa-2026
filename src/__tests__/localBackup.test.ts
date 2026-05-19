@@ -2,7 +2,11 @@ import {
   saveSnapshot,
   readSnapshot,
   clearSnapshot,
+  getLastUserId,
+  setLastUserId,
+  clearLastUserId,
   SNAPSHOT_KEY,
+  LAST_USER_ID_KEY,
 } from '@/utils/localBackup'
 
 describe('localBackup', () => {
@@ -89,6 +93,47 @@ describe('localBackup', () => {
 
     it('não falha se o snapshot já não existir', () => {
       expect(() => clearSnapshot()).not.toThrow()
+    })
+  })
+
+  describe('last user id helpers', () => {
+    it('getLastUserId retorna null antes de qualquer set', () => {
+      expect(getLastUserId()).toBeNull()
+    })
+
+    it('setLastUserId persiste e getLastUserId lê', () => {
+      setLastUserId('user-abc')
+      expect(getLastUserId()).toBe('user-abc')
+      // Verifica usando a chave exposta também
+      expect(localStorage.getItem(LAST_USER_ID_KEY)).toBe('user-abc')
+    })
+
+    it('setLastUserId sobrescreve valor anterior', () => {
+      setLastUserId('user-abc')
+      setLastUserId('user-xyz')
+      expect(getLastUserId()).toBe('user-xyz')
+    })
+
+    it('clearLastUserId remove a marca', () => {
+      setLastUserId('user-abc')
+      clearLastUserId()
+      expect(getLastUserId()).toBeNull()
+    })
+
+    it('clearLastUserId não falha quando não há valor', () => {
+      expect(() => clearLastUserId()).not.toThrow()
+    })
+
+    it('helpers falham silenciosamente se localStorage lançar', () => {
+      const original = Storage.prototype.setItem
+      Storage.prototype.setItem = jest.fn(() => {
+        throw new DOMException('QuotaExceededError')
+      })
+      try {
+        expect(() => setLastUserId('user-abc')).not.toThrow()
+      } finally {
+        Storage.prototype.setItem = original
+      }
     })
   })
 })
