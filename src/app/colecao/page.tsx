@@ -319,19 +319,18 @@ export default function ColecaoPage() {
       />
 
       {/* Card off-screen — só monta durante a captura PNG.
-          Width explícita (1080) garante que html-to-image meça dimensões
-          corretas. opacity:0 + zIndex:-1 mantém invisível mas no fluxo de
-          layout (offset fora da viewport por left:-2000 + width 1080). */}
+          NÃO usar opacity:0 nem visibility:hidden — html-to-image captura
+          o estado pintado, então elemento invisível resulta em PNG vazio.
+          Off-screen via left:-3000 + width:1080 garante que o card está
+          pintado normalmente mas fora da viewport. */}
       {pngCardVisible && (
         <div
           ref={shareCardRef}
           style={{
             position: 'fixed',
-            left: -2000,
+            left: -3000,
             top: 0,
             width: 1080,
-            opacity: 0,
-            zIndex: -1,
             pointerEvents: 'none',
           }}
           aria-hidden
