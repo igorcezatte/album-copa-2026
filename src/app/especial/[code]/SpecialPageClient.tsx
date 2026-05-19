@@ -1,10 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useAlbumStore } from '@/store/albumStore'
 import { FWC_SECTION, CC_SECTION } from '@/data/teams'
 import { StickerCard } from '@/components/StickerCard'
 import { ProgressBar } from '@/components/ProgressBar'
+import { QuickAddSheet } from '@/components/QuickAddSheet'
 import { pct } from '@/lib/utils'
 import { useTeamConfetti } from '@/hooks/useTeamConfetti'
 import { useShallow } from 'zustand/react/shallow'
@@ -34,6 +36,7 @@ export function SpecialPageClient({ sectionCode }: Props) {
   const progress = useAlbumStore(useShallow((s) => s.getSectionProgress(sectionCode)))
   const percentage = pct(progress.collected, progress.total)
   useTeamConfetti(sectionCode)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
 
   return (
     <div className="animate-fade-in">
@@ -80,7 +83,17 @@ export function SpecialPageClient({ sectionCode }: Props) {
       <div className="px-4 mt-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xs font-bold text-white/40 uppercase tracking-widest">Figurinhas</h2>
-          <span className="text-[10px] text-white/20">Toque para marcar</span>
+          <button
+            onClick={() => setQuickAddOpen(true)}
+            className="flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full active:scale-95 transition-transform"
+            style={{ background: `${meta.color}25`, color: meta.color }}
+            aria-label="Adicionar várias figurinhas"
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            várias
+          </button>
         </div>
 
         <div className="grid grid-cols-4 gap-2 pb-4">
@@ -94,6 +107,14 @@ export function SpecialPageClient({ sectionCode }: Props) {
           ))}
         </div>
       </div>
+
+      <QuickAddSheet
+        open={quickAddOpen}
+        onClose={() => setQuickAddOpen(false)}
+        teamCode={sectionCode}
+        teamName={meta.label}
+        accentColor={meta.color}
+      />
     </div>
   )
 }
