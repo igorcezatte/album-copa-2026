@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { isAdminSession } from '@/lib/admin'
+import { isAdminSession, isMissingTableError } from '@/lib/admin'
 import { createSupabaseAdmin } from '@/lib/supabase'
 import type { AdminStats } from '@/types/admin'
 
@@ -33,11 +33,12 @@ export async function GET() {
       .from('user_profiles')
       .select('user_id', { count: 'exact', head: true })
       .gte('last_seen_at', day),
-    // Pega user_id de cada sticker ativo pra computar totals e completos.
-    // É uma full scan da tabela; aceitável até a tabela ficar enorme.
+    // Pega user_id + updated_at de cada sticker ativo pra computar totals,
+    // completos e — quando user_profiles ainda não existe — derivar
+    // contagem de users distintos e atividade aproximada por updated_at.
     supabase
       .from('sticker_entries')
-      .select('user_id, quantity')
+      .select('user_id, quantity, updated_at')
       .is('removed_at', null),
   ])
 
@@ -45,18 +46,40 @@ export async function GET() {
     return Response.json({ error: activeStickersRes.error.message }, { status: 500 })
   }
 
-  const totalUsers = profilesRes.count ?? 0
-  const activeUsersLast7d = activeWeekRes.count ?? 0
-  const activeUsersLast24h = activeDayRes.count ?? 0
+  // Fallback: se user_profiles ainda não existe (migration v3 nao rodada),
+  // derivamos contagem de usuários e "atividade" de sticker_entries.
+  const profilesMissing =
+    isMissingTableError(profilesRes.error) ||
+    isMissingTableError(activeWeekRes.error) ||
+    isMissingTableError(activeDayRes.error)
 
   // Agrega stickers por usuário pra calcular: total coletadas, completos, média
   const byUser = new Map<string, number>()
+  const lastUpdateByUser = new Map<string, string>()
   let totalStickersCollected = 0
   for (const row of activeStickersRes.data ?? []) {
     const userId = row.user_id as string
     byUser.set(userId, (byUser.get(userId) ?? 0) + 1)
     totalStickersCollected += 1
+    const updatedAt = row.updated_at as string | undefined
+    if (updatedAt) {
+      const existing = lastUpdateByUser.get(userId)
+      if (!existing || updatedAt > existing) {
+        lastUpdateByUser.set(userId, updatedAt)
+      }
+    }
   }
+
+  const totalUsers = profilesMissing
+    ? byUser.size
+    : profilesRes.count ?? 0
+  const activeUsersLast7d = profilesMissing
+    ? Array.from(lastUpdateByUser.values()).filter((t) => t >= week).length
+    : activeWeekRes.count ?? 0
+  const activeUsersLast24h = profilesMissing
+    ? Array.from(lastUpdateByUser.values()).filter((t) => t >= day).length
+    : activeDayRes.count ?? 0
+
   const usersCompleted = Array.from(byUser.values()).filter(
     (n) => n >= ALBUM_TOTAL
   ).length

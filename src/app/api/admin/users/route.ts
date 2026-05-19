@@ -1,11 +1,78 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { isAdminSession } from '@/lib/admin'
+import { isAdminSession, isMissingTableError } from '@/lib/admin'
 import { createSupabaseAdmin } from '@/lib/supabase'
 import type { AdminUserSummary, AdminUsersList } from '@/types/admin'
 
 const PAGE_SIZE_DEFAULT = 20
 const PAGE_SIZE_MAX = 100
+
+/**
+ * Fallback quando user_profiles ainda não existe: lista users derivados de
+ * sticker_entries (sem email/nome). Permite que o admin tenha algo útil
+ * antes de rodar a migration v3.
+ */
+async function listFromStickersOnly(
+  supabase: ReturnType<typeof createSupabaseAdmin>,
+  page: number,
+  pageSize: number
+): Promise<Response> {
+  const { data, error } = await supabase
+    .from('sticker_entries')
+    .select('user_id, updated_at, collected_at')
+    .is('removed_at', null)
+
+  if (error) {
+    return Response.json({ error: error.message }, { status: 500 })
+  }
+
+  // Agrega por user_id
+  const map = new Map<
+    string,
+    { count: number; firstSeen: string; lastSeen: string }
+  >()
+  for (const row of data ?? []) {
+    const uid = row.user_id as string
+    const updated = (row.updated_at as string | undefined) ?? ''
+    const collected = (row.collected_at as string | undefined) ?? ''
+    const existing = map.get(uid)
+    if (!existing) {
+      map.set(uid, {
+        count: 1,
+        firstSeen: collected || updated,
+        lastSeen: updated || collected,
+      })
+    } else {
+      existing.count += 1
+      if (collected && collected < existing.firstSeen) {
+        existing.firstSeen = collected
+      }
+      if (updated && updated > existing.lastSeen) {
+        existing.lastSeen = updated
+      }
+    }
+  }
+
+  const sorted = Array.from(map.entries()).sort((a, b) =>
+    b[1].lastSeen.localeCompare(a[1].lastSeen)
+  )
+  const total = sorted.length
+  const from = (page - 1) * pageSize
+  const slice = sorted.slice(from, from + pageSize)
+
+  const users: AdminUserSummary[] = slice.map(([userId, agg]) => ({
+    userId,
+    email: null,
+    name: null,
+    imageUrl: null,
+    firstSeenAt: agg.firstSeen,
+    lastSeenAt: agg.lastSeen,
+    stickerCount: agg.count,
+  }))
+
+  const result: AdminUsersList = { users, total, page, pageSize }
+  return Response.json(result)
+}
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions)
@@ -42,6 +109,10 @@ export async function GET(request: Request) {
 
   const { data, error, count } = await query
   if (error) {
+    if (isMissingTableError(error)) {
+      // user_profiles ainda não existe — fallback degradado
+      return listFromStickersOnly(supabase, page, pageSize)
+    }
     return Response.json({ error: error.message }, { status: 500 })
   }
 

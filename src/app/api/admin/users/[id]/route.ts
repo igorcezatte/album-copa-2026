@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { isAdminSession } from '@/lib/admin'
+import { isAdminSession, isMissingTableError } from '@/lib/admin'
 import { createSupabaseAdmin } from '@/lib/supabase'
 import type { AdminUserDetail } from '@/types/admin'
 
@@ -25,21 +25,14 @@ export async function GET(_request: Request, { params }: RouteContext) {
       .maybeSingle(),
     supabase
       .from('sticker_entries')
-      .select('sticker_id, quantity, collected_at')
+      .select('sticker_id, quantity, collected_at, updated_at')
       .eq('user_id', userId)
       .is('removed_at', null)
       .order('collected_at', { ascending: true }),
   ])
 
-  if (profileRes.error) {
-    return Response.json({ error: profileRes.error.message }, { status: 500 })
-  }
   if (stickersRes.error) {
     return Response.json({ error: stickersRes.error.message }, { status: 500 })
-  }
-
-  if (!profileRes.data) {
-    return Response.json({ error: 'User not found' }, { status: 404 })
   }
 
   const stickers = stickersRes.data ?? []
@@ -48,13 +41,56 @@ export async function GET(_request: Request, { params }: RouteContext) {
     0
   )
 
-  const detail: AdminUserDetail = {
-    userId: profileRes.data.user_id as string,
-    email: (profileRes.data.email as string | null) ?? null,
-    name: (profileRes.data.name as string | null) ?? null,
-    imageUrl: (profileRes.data.image_url as string | null) ?? null,
-    firstSeenAt: profileRes.data.first_seen_at as string,
-    lastSeenAt: profileRes.data.last_seen_at as string,
+  // Erro real (não "tabela não existe") → 500
+  if (profileRes.error && !isMissingTableError(profileRes.error)) {
+    return Response.json({ error: profileRes.error.message }, { status: 500 })
+  }
+
+  // Profile encontrado → usa metadata real
+  const profile = profileRes.data
+  if (profile) {
+    const detail: AdminUserDetail = {
+      userId: profile.user_id as string,
+      email: (profile.email as string | null) ?? null,
+      name: (profile.name as string | null) ?? null,
+      imageUrl: (profile.image_url as string | null) ?? null,
+      firstSeenAt: profile.first_seen_at as string,
+      lastSeenAt: profile.last_seen_at as string,
+      stickerCount: stickers.length,
+      totalCopies,
+      stickers: stickers.map((s) => ({
+        sticker_id: s.sticker_id as string,
+        quantity: s.quantity as number,
+        collected_at: s.collected_at as string,
+      })),
+    }
+    return Response.json(detail)
+  }
+
+  // Sem profile (tabela ausente ou usuário sem perfil) → deriva de stickers
+  if (stickers.length === 0) {
+    return Response.json({ error: 'User not found' }, { status: 404 })
+  }
+
+  const firstSeen = stickers.reduce(
+    (min, s) =>
+      (s.collected_at as string) < min ? (s.collected_at as string) : min,
+    stickers[0].collected_at as string
+  )
+  const lastSeen = stickers.reduce(
+    (max, s) => {
+      const u = (s.updated_at as string | undefined) ?? ''
+      return u > max ? u : max
+    },
+    ''
+  )
+  const fallbackDetail: AdminUserDetail = {
+    userId,
+    email: null,
+    name: null,
+    imageUrl: null,
+    firstSeenAt: firstSeen,
+    lastSeenAt: lastSeen || firstSeen,
     stickerCount: stickers.length,
     totalCopies,
     stickers: stickers.map((s) => ({
@@ -63,8 +99,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
       collected_at: s.collected_at as string,
     })),
   }
-
-  return Response.json(detail)
+  return Response.json(fallbackDetail)
 }
 
 /**

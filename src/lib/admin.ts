@@ -21,3 +21,18 @@ export function isAdminEmail(email: string | null | undefined): boolean {
 export function isAdminSession(session: Session | null | undefined): boolean {
   return isAdminEmail(session?.user?.email)
 }
+
+/**
+ * Detecta erro do Supabase quando a tabela referenciada não existe.
+ * Postgres code 42P01 = undefined_table. Usado pra fallback no admin
+ * panel enquanto a migration v3 (user_profiles) ainda não foi rodada.
+ */
+export function isMissingTableError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false
+  const e = err as { code?: string; message?: string }
+  if (e.code === '42P01') return true
+  if (typeof e.message === 'string' && /does not exist/i.test(e.message)) {
+    return true
+  }
+  return false
+}
