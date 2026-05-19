@@ -102,10 +102,14 @@ export async function PUT(request: Request) {
     image: session.user.image,
   })
 
-  // 1. Lê o estado atual ATIVO (removed_at IS NULL) para diff e sanity guard
+  // 1. Lê o estado atual ATIVO (removed_at IS NULL) para diff e sanity guard.
+  // Trazemos collected_at junto porque o upsert PRECISA fornecer essa coluna
+  // em TODA row do batch — Postgrest unifica colunas, e omitir em rows de
+  // update fazia ele setar NULL, violando o NOT NULL e quebrando o PUT inteiro
+  // com 500. Era o bug real de "f5 mostra divergencia infinita".
   const { data: currentRows, error: readError } = await supabase
     .from('sticker_entries')
-    .select('sticker_id, quantity')
+    .select('sticker_id, quantity, collected_at')
     .eq('user_id', userId)
     .is('removed_at', null)
 
@@ -115,6 +119,12 @@ export async function PUT(request: Request) {
 
   const current = new Map<string, number>(
     (currentRows ?? []).map((r) => [r.sticker_id as string, r.quantity as number])
+  )
+  const currentCollectedAt = new Map<string, string>(
+    (currentRows ?? []).map((r) => [
+      r.sticker_id as string,
+      r.collected_at as string,
+    ])
   )
   const incoming = new Map<string, number>(
     entries.map((e) => [e.sticker_id, e.quantity])
@@ -133,14 +143,18 @@ export async function PUT(request: Request) {
     )
   }
 
-  // 3. Computa diff: upserts (novos/mudados) e removals (ausentes do payload)
+  // 3. Computa diff: upserts (novos/mudados) e removals (ausentes do payload).
+  // ATENCAO: collected_at deve aparecer em TODA row — o Postgrest unifica
+  // colunas do batch e omitir em algumas faz ele inserir NULL, violando o
+  // NOT NULL. Pra updates preservamos o collected_at original; pra inserts
+  // (novos OU re-coleta de soft-deletado) usamos now().
   const upserts: Array<{
     user_id: string
     sticker_id: string
     quantity: number
     updated_at: string
     removed_at: null
-    collected_at?: string
+    collected_at: string
   }> = []
 
   incoming.forEach((quantity, sticker_id) => {
@@ -152,8 +166,7 @@ export async function PUT(request: Request) {
       quantity,
       updated_at: now,
       removed_at: null, // re-coletar reativa figurinha soft-deletada
-      // collected_at só é setado em INSERT (omitido aqui — DEFAULT NOW())
-      ...(currentQty === undefined ? { collected_at: now } : {}),
+      collected_at: currentCollectedAt.get(sticker_id) ?? now,
     })
   })
 
