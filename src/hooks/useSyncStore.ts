@@ -32,7 +32,7 @@ const PUT_DEBOUNCE = 1500
 // um user que coleta sem parar (<PUT_DEBOUNCE entre coletas) nunca dispararia
 // o setTimeout e nada chegaria no Supabase — exatamente o bug catastrófico de
 // perda de dados ao deslogar/recarregar após muita coleta rápida.
-const PUT_MAX_WAIT = 4000
+const PUT_MAX_WAIT = 2000
 
 function waitForHydration(): Promise<void> {
   if (useAlbumStore.persist.hasHydrated()) return Promise.resolve()
@@ -273,8 +273,29 @@ export function useSyncStore() {
       const remoteStickers = await fetchRemoteWithRetry()
 
       if (remoteStickers === null) {
-        // GET falhou após retries → bloqueia PUTs até próximo reload
-        isBlockedRef.current = true
+        // GET falhou apos retries. Decisao depende se ja sincronizou aqui:
+        //
+        // - syncedBefore=true: mesma conta voltando. Confia no local e deixa o
+        //   debounce push tentar normalmente. Se o servidor responder 409
+        //   (catastrophic shrink) o modal de conflito vai abrir naturalmente.
+        //   Bloquear permanentemente causava perda silenciosa: o user coletava,
+        //   UI mostrava ok, mas TODO PUT era cancelado pelo isBlockedRef ate
+        //   o proximo reload — exatamente o sintoma de "perde tudo".
+        //
+        // - syncedBefore=false: nao sabemos se essa conta tem dados na nuvem.
+        //   Bloqueia pra evitar contaminacao cross-account (mandar local de uma
+        //   conta antiga pra nuvem da conta nova).
+        const syncedBefore =
+          localStorage.getItem(`${SYNCED_KEY}-${userId}`) === 'true'
+        if (typeof console !== 'undefined') {
+          console.warn(
+            '[sync] GET inicial falhou apos retries — syncedBefore=' +
+              syncedBefore
+          )
+        }
+        if (!syncedBefore) {
+          isBlockedRef.current = true
+        }
         setSyncStatus('error')
         return
       }
@@ -395,6 +416,9 @@ export function useSyncStore() {
       const snapshot = JSON.stringify(useAlbumStore.getState().stickers)
       const r = await pushFullState(false)
       if (!r) {
+        if (typeof console !== 'undefined') {
+          console.warn('[sync] PUT falhou (rede). Tentando de novo no proximo ciclo.')
+        }
         setSyncStatus('error')
         return
       }
@@ -460,6 +484,11 @@ export function useSyncStore() {
       }
 
       if (!r.ok) {
+        if (typeof console !== 'undefined') {
+          console.warn(
+            '[sync] PUT respondeu ' + r.status + '. Estado nao salvo.'
+          )
+        }
         setSyncStatus('error')
         return
       }
@@ -515,4 +544,37 @@ export function useSyncStore() {
       document.removeEventListener('visibilitychange', onVisibilityChange)
     }
   }, [status, session?.user?.id])
+
+  // ============================================================
+  // RECOVERY: ao voltar o foco do app, se isBlockedRef estiver travado por
+  // erro de init sync (NÃO por conflict modal aberto), retenta o init.
+  // Cobre o caso onde o user perde rede momentaneamente no primeiro carga.
+  // ============================================================
+  useEffect(() => {
+    if (status !== 'authenticated' || !session?.user?.id) return
+
+    const onFocus = () => {
+      if (document.visibilityState !== 'visible') return
+      // Modal aberto? Não interfere — usuário precisa resolver primeiro.
+      const conflictOpen = useSyncState.getState().conflict !== null
+      const accountChoiceOpen =
+        useSyncState.getState().accountChoice !== null
+      if (conflictOpen || accountChoiceOpen) return
+      if (!isBlockedRef.current) return
+
+      // Tenta um GET pra ver se ainda está em erro. Se sucesso, libera PUTs.
+      void fetchRemoteOnce().then((remote) => {
+        if (remote === null) return // ainda em erro, deixa pra próxima
+        isBlockedRef.current = false
+        setSyncStatus('ok')
+      })
+    }
+
+    document.addEventListener('visibilitychange', onFocus)
+    window.addEventListener('focus', onFocus)
+    return () => {
+      document.removeEventListener('visibilitychange', onFocus)
+      window.removeEventListener('focus', onFocus)
+    }
+  }, [status, session?.user?.id, setSyncStatus])
 }

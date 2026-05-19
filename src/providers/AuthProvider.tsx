@@ -5,6 +5,7 @@ import { useSyncStore } from '@/hooks/useSyncStore'
 import { useDailyAutoSave } from '@/hooks/useDailyAutoSave'
 import { ConflictModal } from '@/components/ConflictModal'
 import { AccountChoiceModal } from '@/components/AccountChoiceModal'
+import { SyncStatusIndicator } from '@/components/SyncStatusIndicator'
 
 function SyncManager() {
   useSyncStore()
@@ -19,6 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {children}
       <ConflictModal />
       <AccountChoiceModal />
+      <SyncStatusIndicator />
     </SessionProvider>
   )
 }
