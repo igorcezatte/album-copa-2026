@@ -1,79 +1,78 @@
 /**
- * Gerador de imagem PNG da coleção usando Canvas 2D nativo.
+ * Gerador de PNG da coleção via Canvas 2D nativo.
  *
- * Não depende de DOM/CSS — desenha cada elemento direto no canvas.
- * Isso evita todos os problemas de captura via html-to-image/html2canvas,
- * que sofrem com interferência do CSS global do app.
+ * Layout espelha o PDF (faltantes + repetidas) mas em 2 colunas pra ficar
+ * legível quando o WhatsApp/Instagram reduz a imagem. Bandeiras reais
+ * baixadas de flagcdn.com (mesma fonte do PDF).
  */
 
 export interface ShareableData {
   collected: number
   total: number
-  teamsMissing: Array<{
+  generatedAt: string
+  teams: Array<{
     teamName: string
     flagCode: string
+    primaryColor: string
     missing: string[]
   }>
-  specialsMissing: Array<{
+  specialSections: Array<{
     name: string
-    icon: string
+    color: string
     missing: string[]
   }>
   duplicates: Array<{
-    teamCode: string
     teamName: string
     flagCode: string
-    number: string
-    extras: number
+    primaryColor: string
+    labels: string[]
+    totalExtras: number
   }>
 }
 
 const CARD_W = 1080
 const PADDING = 60
-const SCALE = 2 // pixel ratio pra resolução crisp
+const SCALE = 2
 
-// Cores
 const COLOR_BG_TOP = '#0a1226'
 const COLOR_BG_BOTTOM = '#060a14'
 const COLOR_TEXT = '#f1f5f9'
+const COLOR_MUTED = 'rgba(255,255,255,0.55)'
+const COLOR_MUTED_LIGHT = 'rgba(255,255,255,0.35)'
 const COLOR_GOLD = '#f5c42e'
 const COLOR_GOLD_DARK = '#d4a017'
 const COLOR_RED = '#ef4444'
-const COLOR_MUTED = 'rgba(255,255,255,0.45)'
-const COLOR_MUTED_LIGHT = 'rgba(255,255,255,0.3)'
+const COLOR_GREEN = '#22c55e'
 
 const FONT_STACK =
-  '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Apple Color Emoji, Segoe UI Emoji, sans-serif'
+  '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
 
-function flagEmoji(iso2: string): string {
-  if (!iso2 || iso2.length !== 2) return '🏳️'
-  const cp = (c: string) => 0x1f1e6 + c.charCodeAt(0) - 65
-  return Array.from(iso2.toUpperCase())
-    .map((c) => String.fromCodePoint(cp(c)))
-    .join('')
-}
+// ─── Bandeiras: cache + loading ───────────────────────────────────
 
-// Helper: trim numbers list pra não estourar o card. Quebra em várias linhas.
-function wrapText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number
-): string[] {
-  const words = text.split(', ')
-  const lines: string[] = []
-  let current = ''
-  for (const word of words) {
-    const test = current ? `${current}, ${word}` : word
-    if (ctx.measureText(test).width <= maxWidth) {
-      current = test
-    } else {
-      if (current) lines.push(current)
-      current = word
+const flagCache = new Map<string, HTMLImageElement | null>()
+
+function loadFlag(code: string): Promise<HTMLImageElement | null> {
+  if (flagCache.has(code)) return Promise.resolve(flagCache.get(code) ?? null)
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      flagCache.set(code, img)
+      resolve(img)
     }
-  }
-  if (current) lines.push(current)
-  return lines
+    img.onerror = () => {
+      flagCache.set(code, null)
+      resolve(null)
+    }
+    img.src = `https://flagcdn.com/w160/${code}.png`
+  })
 }
+
+async function preloadFlags(codes: string[]): Promise<void> {
+  await Promise.all(codes.map((c) => loadFlag(c)))
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────
 
 function roundRect(
   ctx: CanvasRenderingContext2D,
@@ -83,7 +82,6 @@ function roundRect(
   h: number,
   r: number
 ) {
-  // r não pode passar de metade do menor lado, senão desenha paths inválidos
   const rr = Math.min(r, w / 2, h / 2)
   ctx.beginPath()
   ctx.moveTo(x + rr, y)
@@ -98,75 +96,110 @@ function roundRect(
   ctx.closePath()
 }
 
-// ─── Layout: calcula a altura total antes de criar canvas ─────────────
-
-interface LayoutMeasure {
-  totalHeight: number
-  faltantesRows: Array<{ height: number; lines: string[] }>
-  duplicateRows: number
-}
-
-function measureLayout(
+function wrapText(
   ctx: CanvasRenderingContext2D,
-  data: ShareableData
-): LayoutMeasure {
-  let h = PADDING // top padding
-  h += 80 // header (logo + title row)
-  h += 30 // spacer below header
-  h += 100 // progress section
-  h += 40 // spacer
-
-  const totalMissing =
-    data.teamsMissing.reduce((acc, t) => acc + t.missing.length, 0) +
-    data.specialsMissing.reduce((acc, s) => acc + s.missing.length, 0)
-
-  const faltantesRows: Array<{ height: number; lines: string[] }> = []
-
-  if (totalMissing > 0) {
-    h += 1 + 30 // divider + spacer
-    h += 50 // section title
-
-    const allRows = [...data.teamsMissing, ...data.specialsMissing].filter(
-      (r) => r.missing.length > 0
-    )
-    ctx.font = `500 22px ${FONT_STACK}`
-    for (const row of allRows) {
-      const text = row.missing.join(', ')
-      const maxWidth = CARD_W - PADDING * 2 - 60 - 24 - 80 // emoji + gap + badge
-      const lines = wrapText(ctx, text, maxWidth)
-      const rowHeight = Math.max(60, 30 + lines.length * 30 + 16)
-      faltantesRows.push({ height: rowHeight, lines })
-      h += rowHeight + 10 // spacing
+  text: string,
+  maxWidth: number,
+  separator = ' · '
+): string[] {
+  const parts = text.split(separator)
+  const lines: string[] = []
+  let current = ''
+  for (const part of parts) {
+    const test = current ? `${current}${separator}${part}` : part
+    if (ctx.measureText(test).width <= maxWidth) {
+      current = test
+    } else {
+      if (current) lines.push(current)
+      current = part
     }
   }
-
-  if (data.duplicates.length > 0) {
-    h += 1 + 30 // divider + spacer
-    h += 50 // section title
-    const rows = Math.ceil(data.duplicates.length / 2)
-    h += rows * 64 + 8
-  }
-
-  h += 30 // spacer
-  h += 1 + 24 // footer divider
-  h += 40 // footer text
-  h += PADDING // bottom padding
-
-  return { totalHeight: h, faltantesRows, duplicateRows: Math.ceil(data.duplicates.length / 2) }
+  if (current) lines.push(current)
+  return lines
 }
 
-// ─── Drawing ──────────────────────────────────────────────────────────
-
-function drawBackground(
+function drawFlag(
   ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number
+  code: string,
+  primaryColor: string,
+  x: number,
+  y: number,
+  w: number,
+  h: number
 ) {
+  const img = flagCache.get(code)
+  ctx.save()
+  roundRect(ctx, x, y, w, h, 6)
+  ctx.clip()
+  if (img) {
+    ctx.drawImage(img, x, y, w, h)
+  } else {
+    // fallback: cor do time
+    ctx.fillStyle = primaryColor
+    ctx.fillRect(x, y, w, h)
+  }
+  ctx.restore()
+  // borda sutil
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)'
+  ctx.lineWidth = 1
+  roundRect(ctx, x, y, w, h, 6)
+  ctx.stroke()
+}
+
+// ─── Layout config ────────────────────────────────────────────────
+
+const COL_GAP = 20
+const COL_W = (CARD_W - PADDING * 2 - COL_GAP) / 2
+const ROW_PAD = 18
+const FLAG_W = 64
+const FLAG_H = 42
+const FLAG_GAP = 16
+const NAME_FONT_SIZE = 28
+const NUM_FONT_SIZE = 24
+const NUM_LINE_H = 30
+const MAX_NUM_LINES = 4
+
+// ─── Pre-compute heights ──────────────────────────────────────────
+
+interface RowMeta {
+  title: string
+  flagCode: string
+  primaryColor: string
+  itemsText: string
+  badgeText: string
+  badgeColor: 'red' | 'gold' | 'green'
+  isComplete?: boolean
+}
+
+function measureRow(
+  ctx: CanvasRenderingContext2D,
+  row: RowMeta
+): { lines: string[]; height: number } {
+  if (row.isComplete || !row.itemsText) {
+    return { lines: [], height: ROW_PAD * 2 + FLAG_H }
+  }
+  ctx.font = `500 ${NUM_FONT_SIZE}px ${FONT_STACK}`
+  const maxW = COL_W - ROW_PAD * 2
+  const lines = wrapText(ctx, row.itemsText, maxW)
+  const visibleLines = Math.min(lines.length, MAX_NUM_LINES)
+  if (lines.length > MAX_NUM_LINES) {
+    lines[MAX_NUM_LINES - 1] = lines[MAX_NUM_LINES - 1].trimEnd() + ' …'
+  }
+  const trimmed = lines.slice(0, MAX_NUM_LINES)
+  // header (bandeira+nome) ~ FLAG_H, depois espaço, depois números
+  const headerH = FLAG_H + 16
+  const numsH = visibleLines * NUM_LINE_H
+  return { lines: trimmed, height: ROW_PAD * 2 + headerH + numsH }
+}
+
+// ─── Drawing primitives ───────────────────────────────────────────
+
+function drawBackground(ctx: CanvasRenderingContext2D, height: number) {
   const grad = ctx.createLinearGradient(0, 0, 0, height)
   grad.addColorStop(0, COLOR_BG_TOP)
   grad.addColorStop(1, COLOR_BG_BOTTOM)
   ctx.fillStyle = grad
-  ctx.fillRect(0, 0, width, height)
+  ctx.fillRect(0, 0, CARD_W, height)
 }
 
 function drawHeader(
@@ -174,324 +207,413 @@ function drawHeader(
   data: ShareableData,
   y: number
 ): number {
-  const pct = data.total > 0 ? Math.round((data.collected / data.total) * 100) : 0
-
   // Logo "26"
-  const logoSize = 60
+  const logoSize = 72
   const logoX = PADDING
-  const logoY = y
   const logoGrad = ctx.createLinearGradient(
     logoX,
-    logoY,
+    y,
     logoX + logoSize,
-    logoY + logoSize
+    y + logoSize
   )
   logoGrad.addColorStop(0, COLOR_GOLD)
   logoGrad.addColorStop(1, COLOR_GOLD_DARK)
   ctx.fillStyle = logoGrad
-  roundRect(ctx, logoX, logoY, logoSize, logoSize, 14)
+  roundRect(ctx, logoX, y, logoSize, logoSize, 18)
   ctx.fill()
 
   ctx.fillStyle = '#000'
-  ctx.font = `900 28px ${FONT_STACK}`
+  ctx.font = `900 36px ${FONT_STACK}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText('26', logoX + logoSize / 2, logoY + logoSize / 2 + 2)
+  ctx.fillText('26', logoX + logoSize / 2, y + logoSize / 2 + 2)
 
   // Título
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
   ctx.fillStyle = COLOR_TEXT
-  ctx.font = `900 32px ${FONT_STACK}`
-  ctx.fillText('Álbum Copa 2026', logoX + logoSize + 14, y + 28)
+  ctx.font = `900 40px ${FONT_STACK}`
+  ctx.fillText('Álbum Copa 2026', logoX + logoSize + 20, y + 34)
 
   ctx.fillStyle = COLOR_MUTED
-  ctx.font = `500 18px ${FONT_STACK}`
-  ctx.fillText('Minha coleção', logoX + logoSize + 14, y + 54)
+  ctx.font = `500 22px ${FONT_STACK}`
+  ctx.fillText(`Minha coleção · ${data.generatedAt}`, logoX + logoSize + 20, y + 64)
 
-  // Percentage à direita
-  ctx.fillStyle = COLOR_GOLD
-  ctx.font = `900 72px ${FONT_STACK}`
-  ctx.textAlign = 'right'
-  ctx.fillText(`${pct}%`, CARD_W - PADDING, y + 60)
-  ctx.textAlign = 'left'
-
-  return y + 80
+  return y + logoSize + 40
 }
 
-function drawProgressBar(
+function drawHero(
   ctx: CanvasRenderingContext2D,
   data: ShareableData,
   y: number
 ): number {
   const pct = data.total > 0 ? data.collected / data.total : 0
-  const x = PADDING
-  const w = CARD_W - PADDING * 2
+  const pctInt = Math.round(pct * 100)
+  const isComplete = pctInt === 100
 
-  // "357/994" + "figurinhas"
+  // Card hero
+  const heroH = 200
+  ctx.fillStyle = 'rgba(255,255,255,0.03)'
+  roundRect(ctx, PADDING, y, CARD_W - PADDING * 2, heroH, 24)
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)'
+  ctx.lineWidth = 1
+  ctx.stroke()
+
+  // % grande à esquerda
+  ctx.fillStyle = isComplete ? COLOR_GREEN : COLOR_GOLD
+  ctx.font = `900 110px ${FONT_STACK}`
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'alphabetic'
+  ctx.fillText(`${pctInt}%`, PADDING + 32, y + 110)
+
+  // collected/total
   ctx.fillStyle = COLOR_TEXT
   ctx.font = `900 40px ${FONT_STACK}`
-  ctx.textBaseline = 'alphabetic'
-  const collectedW = ctx.measureText(String(data.collected)).width
-  ctx.fillText(String(data.collected), x, y + 30)
+  ctx.fillText(String(data.collected), PADDING + 32, y + 160)
+  const cw = ctx.measureText(String(data.collected)).width
   ctx.fillStyle = COLOR_MUTED_LIGHT
   ctx.font = `900 28px ${FONT_STACK}`
-  ctx.fillText(`/${data.total}`, x + collectedW + 4, y + 30)
+  ctx.fillText(`/ ${data.total}`, PADDING + 32 + cw + 8, y + 160)
+  ctx.font = `500 20px ${FONT_STACK}`
+  ctx.fillStyle = COLOR_MUTED
+  ctx.fillText('figurinhas', PADDING + 32 + cw + 8 + ctx.measureText(`/ ${data.total}`).width + 12, y + 160)
 
-  ctx.fillStyle = 'rgba(255,255,255,0.4)'
-  ctx.font = `500 16px ${FONT_STACK}`
+  // Mini stats à direita
+  const totalMissing =
+    data.teams.reduce((acc, t) => acc + t.missing.length, 0) +
+    data.specialSections.reduce((acc, s) => acc + s.missing.length, 0)
+  const totalDupes = data.duplicates.reduce((acc, d) => acc + d.totalExtras, 0)
+
+  const statsX = CARD_W - PADDING - 32
   ctx.textAlign = 'right'
-  ctx.fillText('figurinhas', CARD_W - PADDING, y + 30)
+  ctx.fillStyle = COLOR_RED
+  ctx.font = `900 56px ${FONT_STACK}`
+  ctx.fillText(String(totalMissing), statsX, y + 80)
+  ctx.fillStyle = 'rgba(239,68,68,0.7)'
+  ctx.font = `700 18px ${FONT_STACK}`
+  ctx.fillText('FALTAM', statsX, y + 108)
+
+  ctx.fillStyle = COLOR_GOLD
+  ctx.font = `900 56px ${FONT_STACK}`
+  ctx.fillText(String(totalDupes), statsX, y + 162)
+  ctx.fillStyle = 'rgba(245,196,46,0.7)'
+  ctx.font = `700 18px ${FONT_STACK}`
+  ctx.fillText('REPETIDAS', statsX, y + 190)
+
   ctx.textAlign = 'left'
-
-  // Barra
-  const barY = y + 50
-  const barH = 14
-  ctx.fillStyle = 'rgba(255,255,255,0.06)'
-  roundRect(ctx, x, barY, w, barH, 7)
-  ctx.fill()
-
-  // Fill
-  const fillW = Math.max(barH, w * pct)
-  const fillGrad = ctx.createLinearGradient(x, 0, x + w, 0)
-  if (pct === 1) {
-    fillGrad.addColorStop(0, '#22c55e')
-    fillGrad.addColorStop(1, '#16a34a')
-  } else {
-    fillGrad.addColorStop(0, 'rgba(245,196,46,0.8)')
-    fillGrad.addColorStop(1, COLOR_GOLD)
-  }
-  ctx.fillStyle = fillGrad
-  roundRect(ctx, x, barY, fillW, barH, 7)
-  ctx.fill()
-
-  return y + 90
+  return y + heroH + 30
 }
 
-function drawDivider(ctx: CanvasRenderingContext2D, y: number): number {
-  ctx.fillStyle = 'rgba(255,255,255,0.08)'
-  ctx.fillRect(PADDING, y, CARD_W - PADDING * 2, 1)
-  return y + 1 + 30
-}
-
-function drawFaltantesSection(
+function drawSectionTitle(
   ctx: CanvasRenderingContext2D,
-  data: ShareableData,
-  measure: LayoutMeasure,
+  title: string,
+  subtitle: string,
+  accent: string,
   y: number
 ): number {
-  const totalMissing =
-    data.teamsMissing.reduce((acc, t) => acc + t.missing.length, 0) +
-    data.specialsMissing.reduce((acc, s) => acc + s.missing.length, 0)
-
-  // Título
-  ctx.fillStyle = COLOR_RED
-  ctx.font = `900 22px ${FONT_STACK}`
+  ctx.fillStyle = accent
+  ctx.font = `900 36px ${FONT_STACK}`
+  ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
-  ctx.fillText(`❌ Faltam ${totalMissing}`, PADDING, y + 22)
-  y += 50
+  ctx.fillText(title, PADDING, y + 36)
 
-  const allRows: Array<{
-    teamName: string
-    icon: string
-    missing: string[]
-    isSpecial: boolean
-  }> = [
-    ...data.teamsMissing.map((t) => ({
-      teamName: t.teamName,
-      icon: flagEmoji(t.flagCode),
-      missing: t.missing,
-      isSpecial: false,
-    })),
-    ...data.specialsMissing.map((s) => ({
-      teamName: s.name,
-      icon: s.icon,
-      missing: s.missing,
-      isSpecial: true,
-    })),
-  ].filter((r) => r.missing.length > 0)
+  ctx.fillStyle = COLOR_MUTED
+  ctx.font = `500 22px ${FONT_STACK}`
+  ctx.fillText(subtitle, PADDING, y + 66)
 
-  let rowIdx = 0
-  for (const row of allRows) {
-    const m = measure.faltantesRows[rowIdx++]
-    const rowH = m.height
+  // linha sutil
+  ctx.fillStyle = `${accent}33` // hex alpha
+  ctx.fillRect(PADDING, y + 86, CARD_W - PADDING * 2, 2)
 
-    // Card background
-    ctx.fillStyle = row.isSpecial
-      ? 'rgba(245,196,46,0.05)'
-      : 'rgba(255,255,255,0.03)'
-    roundRect(ctx, PADDING, y, CARD_W - PADDING * 2, rowH, 12)
-    ctx.fill()
-    ctx.strokeStyle = row.isSpecial
-      ? 'rgba(245,196,46,0.15)'
-      : 'rgba(255,255,255,0.05)'
-    ctx.lineWidth = 1
-    ctx.stroke()
+  return y + 110
+}
 
-    // Bandeira/icon
-    ctx.fillStyle = COLOR_TEXT
-    ctx.font = `28px ${FONT_STACK}`
-    ctx.textBaseline = 'middle'
-    ctx.fillText(row.icon, PADDING + 14, y + 20 + 14)
+function drawRow(
+  ctx: CanvasRenderingContext2D,
+  row: RowMeta,
+  measured: { lines: string[]; height: number },
+  x: number,
+  y: number
+) {
+  const w = COL_W
+  const h = measured.height
 
-    // Nome
-    ctx.fillStyle = COLOR_TEXT
-    ctx.font = `700 18px ${FONT_STACK}`
-    ctx.textBaseline = 'alphabetic'
-    ctx.fillText(row.teamName, PADDING + 14 + 36 + 12, y + 30)
+  // Card
+  const accentRgba =
+    row.badgeColor === 'gold' ? 'rgba(245,196,46,0.06)' : 'rgba(255,255,255,0.04)'
+  const borderRgba =
+    row.badgeColor === 'gold' ? 'rgba(245,196,46,0.18)' : 'rgba(255,255,255,0.07)'
+  ctx.fillStyle = accentRgba
+  roundRect(ctx, x, y, w, h, 18)
+  ctx.fill()
+  ctx.strokeStyle = borderRgba
+  ctx.lineWidth = 1
+  ctx.stroke()
 
-    // Números (multi-line se preciso)
-    ctx.fillStyle = 'rgba(255,255,255,0.5)'
-    ctx.font = `500 15px ${FONT_STACK}`
-    let lineY = y + 30 + 22
-    for (const line of m.lines) {
-      ctx.fillText(line, PADDING + 14 + 36 + 12, lineY)
-      lineY += 22
+  // Bandeira + nome
+  drawFlag(ctx, row.flagCode, row.primaryColor, x + ROW_PAD, y + ROW_PAD, FLAG_W, FLAG_H)
+
+  const nameX = x + ROW_PAD + FLAG_W + FLAG_GAP
+  const nameY = y + ROW_PAD + FLAG_H / 2 + 2
+  ctx.fillStyle = COLOR_TEXT
+  ctx.font = `900 ${NAME_FONT_SIZE}px ${FONT_STACK}`
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'middle'
+
+  // Trunca nome se necessário
+  const maxNameW = w - ROW_PAD - FLAG_W - FLAG_GAP - 90 - ROW_PAD // 90 ~ badge
+  let name = row.title
+  if (ctx.measureText(name).width > maxNameW) {
+    while (name.length > 4 && ctx.measureText(name + '…').width > maxNameW) {
+      name = name.slice(0, -1)
     }
+    name += '…'
+  }
+  ctx.fillText(name, nameX, nameY)
 
-    // Badge -N
-    const badgeText = `-${row.missing.length}`
-    ctx.font = `900 14px ${FONT_STACK}`
-    const badgeW = ctx.measureText(badgeText).width + 20
-    const badgeX = CARD_W - PADDING - 14 - badgeW
-    const badgeY = y + 14
-    const badgeH = 26
-    ctx.fillStyle = row.isSpecial
-      ? 'rgba(245,196,46,0.12)'
-      : 'rgba(239,68,68,0.12)'
-    roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 999)
-    ctx.fill()
-    ctx.fillStyle = row.isSpecial ? COLOR_GOLD : COLOR_RED
-    ctx.textBaseline = 'middle'
-    ctx.textAlign = 'center'
-    ctx.fillText(badgeText, badgeX + badgeW / 2, badgeY + badgeH / 2 + 1)
+  // Badge
+  ctx.font = `900 22px ${FONT_STACK}`
+  const badgeTextW = ctx.measureText(row.badgeText).width
+  const badgeW = badgeTextW + 26
+  const badgeH = 38
+  const badgeX = x + w - ROW_PAD - badgeW
+  const badgeY = y + ROW_PAD + (FLAG_H - badgeH) / 2
+  const badgeBg =
+    row.badgeColor === 'red'
+      ? 'rgba(239,68,68,0.18)'
+      : row.badgeColor === 'gold'
+      ? 'rgba(245,196,46,0.2)'
+      : 'rgba(34,197,94,0.2)'
+  const badgeFg =
+    row.badgeColor === 'red'
+      ? COLOR_RED
+      : row.badgeColor === 'gold'
+      ? COLOR_GOLD
+      : COLOR_GREEN
+  ctx.fillStyle = badgeBg
+  roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 999)
+  ctx.fill()
+  ctx.fillStyle = badgeFg
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(row.badgeText, badgeX + badgeW / 2, badgeY + badgeH / 2 + 1)
+
+  // Números
+  if (row.isComplete) {
+    // não renderiza nada extra
+    return
+  }
+  if (measured.lines.length > 0) {
     ctx.textAlign = 'left'
     ctx.textBaseline = 'alphabetic'
-
-    y += rowH + 10
+    ctx.fillStyle = 'rgba(255,255,255,0.55)'
+    ctx.font = `500 ${NUM_FONT_SIZE}px ${FONT_STACK}`
+    let lineY = y + ROW_PAD + FLAG_H + 16 + NUM_FONT_SIZE - 4
+    for (const line of measured.lines) {
+      ctx.fillText(line, x + ROW_PAD, lineY)
+      lineY += NUM_LINE_H
+    }
   }
-
-  return y
 }
 
-function drawRepetidasSection(
+function drawGrid(
   ctx: CanvasRenderingContext2D,
-  data: ShareableData,
+  rows: RowMeta[],
   y: number
 ): number {
-  const total = data.duplicates.reduce((acc, d) => acc + d.extras, 0)
+  if (rows.length === 0) return y
 
-  // Título
-  ctx.fillStyle = COLOR_GOLD
-  ctx.font = `900 22px ${FONT_STACK}`
-  ctx.textBaseline = 'alphabetic'
-  ctx.fillText(`♻️ Repetidas ${total}`, PADDING, y + 22)
-  y += 50
+  // Mede cada linha
+  const measures = rows.map((r) => measureRow(ctx, r))
 
-  // 2 colunas
-  const colW = (CARD_W - PADDING * 2 - 8) / 2
-  const itemH = 56
-
-  data.duplicates.forEach((d, i) => {
-    const col = i % 2
-    const row = Math.floor(i / 2)
-    const itemX = PADDING + col * (colW + 8)
-    const itemY = y + row * (itemH + 8)
-
-    ctx.fillStyle = 'rgba(245,196,46,0.05)'
-    roundRect(ctx, itemX, itemY, colW, itemH, 10)
-    ctx.fill()
-    ctx.strokeStyle = 'rgba(245,196,46,0.15)'
-    ctx.lineWidth = 1
-    ctx.stroke()
-
-    // Bandeira
-    ctx.fillStyle = COLOR_TEXT
-    ctx.font = `22px ${FONT_STACK}`
-    ctx.textBaseline = 'middle'
-    ctx.fillText(flagEmoji(d.flagCode), itemX + 12, itemY + itemH / 2)
-
-    // Nome
-    ctx.fillStyle = COLOR_TEXT
-    ctx.font = `700 14px ${FONT_STACK}`
-    ctx.textBaseline = 'alphabetic'
-    ctx.fillText(d.teamName, itemX + 12 + 28, itemY + 22)
-
-    // #N · ×K
-    const extras = d.extras > 1 ? ` · ×${d.extras}` : ''
-    ctx.fillStyle = 'rgba(255,255,255,0.45)'
-    ctx.font = `500 13px ${FONT_STACK}`
-    ctx.fillText(`#${d.number}${extras}`, itemX + 12 + 28, itemY + 42)
+  // Distribui em 2 colunas equilibrando altura
+  const left: Array<{ row: RowMeta; m: ReturnType<typeof measureRow> }> = []
+  const right: Array<{ row: RowMeta; m: ReturnType<typeof measureRow> }> = []
+  let leftH = 0
+  let rightH = 0
+  rows.forEach((r, i) => {
+    const m = measures[i]
+    if (leftH <= rightH) {
+      left.push({ row: r, m })
+      leftH += m.height + 12
+    } else {
+      right.push({ row: r, m })
+      rightH += m.height + 12
+    }
   })
 
-  const rows = Math.ceil(data.duplicates.length / 2)
-  return y + rows * (itemH + 8)
+  // Renderiza
+  const leftX = PADDING
+  const rightX = PADDING + COL_W + COL_GAP
+  let ly = y
+  let ry = y
+  for (const { row, m } of left) {
+    drawRow(ctx, row, m, leftX, ly)
+    ly += m.height + 12
+  }
+  for (const { row, m } of right) {
+    drawRow(ctx, row, m, rightX, ry)
+    ry += m.height + 12
+  }
+
+  return Math.max(ly, ry)
 }
 
-function drawFooter(ctx: CanvasRenderingContext2D, y: number): number {
-  y += 16
-  ctx.fillStyle = 'rgba(255,255,255,0.05)'
+function drawFooter(ctx: CanvasRenderingContext2D, y: number, height: number) {
+  ctx.fillStyle = 'rgba(255,255,255,0.06)'
   ctx.fillRect(PADDING, y, CARD_W - PADDING * 2, 1)
-  y += 24
+  y += 28
 
   ctx.fillStyle = COLOR_GOLD
-  ctx.font = `700 18px ${FONT_STACK}`
-  ctx.textBaseline = 'alphabetic'
-  ctx.fillText('📲 meualbumcopa26.vercel.app', PADDING, y + 18)
-
-  ctx.fillStyle = 'rgba(255,255,255,0.25)'
-  ctx.font = `500 13px ${FONT_STACK}`
-  ctx.textAlign = 'right'
-  ctx.fillText('FIFA World Cup', CARD_W - PADDING, y + 18)
+  ctx.font = `900 26px ${FONT_STACK}`
   ctx.textAlign = 'left'
+  ctx.textBaseline = 'alphabetic'
+  ctx.fillText('meualbumcopa26.vercel.app', PADDING, y + 22)
 
-  return y + 40
+  ctx.fillStyle = 'rgba(255,255,255,0.3)'
+  ctx.font = `500 18px ${FONT_STACK}`
+  ctx.textAlign = 'right'
+  ctx.fillText('FIFA World Cup 2026™', CARD_W - PADDING, y + 22)
+  void height
 }
 
-// ─── API pública ──────────────────────────────────────────────────────
+// ─── Build rows ───────────────────────────────────────────────────
 
-export async function generateShareCanvas(data: ShareableData): Promise<Blob | null> {
-  // Cria canvas off-screen
-  const tempCanvas = document.createElement('canvas')
-  const tempCtx = tempCanvas.getContext('2d')!
+function buildFaltanteRows(data: ShareableData): RowMeta[] {
+  const teamRows: RowMeta[] = data.teams
+    .filter((t) => t.missing.length > 0)
+    .map((t) => ({
+      title: t.teamName,
+      flagCode: t.flagCode,
+      primaryColor: t.primaryColor,
+      itemsText: t.missing.join(' · '),
+      badgeText: `-${t.missing.length}`,
+      badgeColor: 'red',
+    }))
 
-  // Mede primeiro pra saber a altura
-  const measure = measureLayout(tempCtx, data)
+  const specialRows: RowMeta[] = data.specialSections
+    .filter((s) => s.missing.length > 0)
+    .map((s) => ({
+      title: s.name,
+      flagCode: '',
+      primaryColor: s.color,
+      itemsText: s.missing.join(' · '),
+      badgeText: `-${s.missing.length}`,
+      badgeColor: 'gold',
+    }))
 
-  // Cria canvas com tamanho real (já com pixel ratio)
+  return [...teamRows, ...specialRows]
+}
+
+function buildRepetidasRows(data: ShareableData): RowMeta[] {
+  return data.duplicates.map((d) => ({
+    title: d.teamName,
+    flagCode: d.flagCode,
+    primaryColor: d.primaryColor,
+    itemsText: d.labels.join(' · '),
+    badgeText: `+${d.totalExtras}`,
+    badgeColor: 'gold',
+  }))
+}
+
+// ─── Public API ───────────────────────────────────────────────────
+
+export async function generateShareCanvas(
+  data: ShareableData
+): Promise<Blob | null> {
+  // Pré-carrega bandeiras (paralelo)
+  const codes = new Set<string>()
+  for (const t of data.teams) if (t.flagCode) codes.add(t.flagCode)
+  for (const d of data.duplicates) if (d.flagCode) codes.add(d.flagCode)
+  await preloadFlags(Array.from(codes))
+
+  // Canvas temporário só pra medir (usamos fontes/textos)
+  const measureCanvas = document.createElement('canvas')
+  measureCanvas.width = 100
+  measureCanvas.height = 100
+  const measureCtx = measureCanvas.getContext('2d')
+  if (!measureCtx) return null
+
+  const faltanteRows = buildFaltanteRows(data)
+  const repetidasRows = buildRepetidasRows(data)
+
+  // Calcula altura total iterando o layout (sem desenhar)
+  let totalH = PADDING
+  totalH += 72 + 40 // header
+  totalH += 200 + 30 // hero
+
+  if (faltanteRows.length > 0) {
+    totalH += 110 // section title
+
+    // simula 2 colunas pra altura
+    const measures = faltanteRows.map((r) => measureRow(measureCtx, r))
+    let leftH = 0
+    let rightH = 0
+    measures.forEach((m) => {
+      if (leftH <= rightH) leftH += m.height + 12
+      else rightH += m.height + 12
+    })
+    totalH += Math.max(leftH, rightH)
+    totalH += 30
+  }
+
+  if (repetidasRows.length > 0) {
+    totalH += 110 // section title
+
+    const measures = repetidasRows.map((r) => measureRow(measureCtx, r))
+    let leftH = 0
+    let rightH = 0
+    measures.forEach((m) => {
+      if (leftH <= rightH) leftH += m.height + 12
+      else rightH += m.height + 12
+    })
+    totalH += Math.max(leftH, rightH)
+    totalH += 30
+  }
+
+  totalH += 80 // footer
+  totalH += PADDING
+
+  // Renderiza
   const canvas = document.createElement('canvas')
   canvas.width = CARD_W * SCALE
-  canvas.height = measure.totalHeight * SCALE
+  canvas.height = totalH * SCALE
   const ctx = canvas.getContext('2d')
   if (!ctx) return null
   ctx.scale(SCALE, SCALE)
 
-  // Desenha
-  drawBackground(ctx, CARD_W, measure.totalHeight)
-
+  drawBackground(ctx, totalH)
   let y = PADDING
   y = drawHeader(ctx, data, y)
-  y += 30
-  y = drawProgressBar(ctx, data, y)
-  y += 40
+  y = drawHero(ctx, data, y)
 
-  const hasMissing =
-    data.teamsMissing.some((t) => t.missing.length > 0) ||
-    data.specialsMissing.some((s) => s.missing.length > 0)
-
-  if (hasMissing) {
-    y = drawDivider(ctx, y)
-    y = drawFaltantesSection(ctx, data, measure, y)
+  if (faltanteRows.length > 0) {
+    y = drawSectionTitle(
+      ctx,
+      'Faltantes',
+      `${faltanteRows.reduce((acc, r) => acc + (r.itemsText.split(' · ').length), 0)} figurinhas pra completar`,
+      COLOR_RED,
+      y
+    )
+    y = drawGrid(ctx, faltanteRows, y)
+    y += 30
   }
 
-  if (data.duplicates.length > 0) {
-    y = drawDivider(ctx, y)
-    y = drawRepetidasSection(ctx, data, y)
+  if (repetidasRows.length > 0) {
+    y = drawSectionTitle(
+      ctx,
+      'Repetidas pra trocar',
+      `${data.duplicates.reduce((acc, d) => acc + d.totalExtras, 0)} cópias disponíveis`,
+      COLOR_GOLD,
+      y
+    )
+    y = drawGrid(ctx, repetidasRows, y)
+    y += 30
   }
 
-  drawFooter(ctx, y)
+  drawFooter(ctx, totalH - PADDING - 80, totalH)
 
-  // Exporta
   return new Promise((resolve) => {
     canvas.toBlob((blob) => resolve(blob), 'image/png')
   })

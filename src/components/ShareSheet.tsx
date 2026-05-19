@@ -19,11 +19,17 @@ const OPTIONS: Array<{
   highlight?: boolean
 }> = [
   {
+    format: 'png',
+    icon: '🖼️',
+    label: 'Imagem',
+    subtitle: 'Card de progresso pra status e stories',
+    highlight: true,
+  },
+  {
     format: 'pdf',
     icon: '📄',
     label: 'PDF',
     subtitle: 'Lista completa com bandeiras',
-    highlight: true,
   },
   {
     format: 'text',
