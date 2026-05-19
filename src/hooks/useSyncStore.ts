@@ -84,6 +84,22 @@ async function pushFullState(force: boolean): Promise<Response | null> {
   }
 }
 
+/**
+ * PUT com retry+backoff. Usado depois que o user resolveu o modal de conflito
+ * pra evitar que uma falha transitória de rede deixe o modal travado ou os
+ * dados sem subir. NÃO retenta em 409 (servidor rejeitou conscientemente).
+ */
+async function pushWithRetry(force: boolean): Promise<Response | null> {
+  for (let attempt = 0; attempt < RETRY_DELAYS.length; attempt++) {
+    if (attempt > 0) {
+      await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]))
+    }
+    const r = await pushFullState(force)
+    if (r && (r.ok || r.status === 409)) return r
+  }
+  return null
+}
+
 export function useSyncStore() {
   const { data: session, status } = useSession()
   const stickers = useAlbumStore((s) => s.stickers)
@@ -116,6 +132,10 @@ export function useSyncStore() {
     const buildConflictResolver =
       (remoteStickers: RemoteStickerEntry[]) =>
       async (resolution: ConflictResolution) => {
+        // Princípio: o modal SEMPRE fecha assim que o user escolhe. PUTs vao
+        // como fire-and-forget com retry. Se falhar, o status fica 'error' e
+        // o debounce normal tenta de novo na próxima mudança de stickers — o
+        // user nao fica preso no modal.
         if (resolution === 'keep-cloud') {
           snapshotBeforeReplace('sync-conflict-keep-cloud')
           replaceStickers(remoteToLocal(remoteStickers))
@@ -129,17 +149,19 @@ export function useSyncStore() {
           const merged = mergeStickerData(currentLocal, remoteStickers)
           mergeStickers(merged)
           isBlockedRef.current = false
-          const r = await pushFullState(false)
-          if (r && r.ok) closeConflict()
-          else setSyncStatus('error')
+          closeConflict()
+          // force:true — user escolheu deliberadamente, não faz sentido o
+          // sanity guard do servidor barrar a operação dele
+          const r = await pushWithRetry(true)
+          setSyncStatus(r && r.ok ? 'ok' : 'error')
           return
         }
 
         if (resolution === 'keep-local') {
           isBlockedRef.current = false
-          const r = await pushFullState(true)
-          if (r && r.ok) closeConflict()
-          else setSyncStatus('error')
+          closeConflict()
+          const r = await pushWithRetry(true)
+          setSyncStatus(r && r.ok ? 'ok' : 'error')
           return
         }
       }
@@ -172,9 +194,10 @@ export function useSyncStore() {
           isBlockedRef.current = false
           closeAccountChoice()
           // Force pra contornar o guard do servidor se conta atual estiver vazia
-          // e estivermos enviando volume relevante (caso welcome).
-          await pushFullState(true)
-          setSyncStatus('ok')
+          // e estivermos enviando volume relevante (caso welcome). Retry pra
+          // sobreviver a falhas transitórias e nao deixar o modal travado.
+          const r = await pushWithRetry(true)
+          setSyncStatus(r && r.ok ? 'ok' : 'error')
           return
         }
 
@@ -323,16 +346,16 @@ export function useSyncStore() {
               const merged = mergeStickerData(currentLocal, remote)
               mergeStickers(merged)
               isBlockedRef.current = false
-              const r2 = await pushFullState(false)
-              if (r2 && r2.ok) closeConflict()
-              else setSyncStatus('error')
+              closeConflict()
+              const r2 = await pushWithRetry(true)
+              setSyncStatus(r2 && r2.ok ? 'ok' : 'error')
               return
             }
             if (resolution === 'keep-local') {
               isBlockedRef.current = false
-              const r2 = await pushFullState(true)
-              if (r2 && r2.ok) closeConflict()
-              else setSyncStatus('error')
+              closeConflict()
+              const r2 = await pushWithRetry(true)
+              setSyncStatus(r2 && r2.ok ? 'ok' : 'error')
               return
             }
           }
