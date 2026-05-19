@@ -32,7 +32,9 @@ export interface ShareableData {
 
 const CARD_W = 1080
 const PADDING = 60
-const SCALE = 2
+// SCALE alto pra garantir nitidez em telas retina (3x DPR) e sobreviver
+// à recompressão JPEG do WhatsApp/Instagram.
+const SCALE = 3
 
 const COLOR_BG_TOP = '#0a1226'
 const COLOR_BG_BOTTOM = '#060a14'
@@ -64,7 +66,8 @@ function loadFlag(code: string): Promise<HTMLImageElement | null> {
       flagCache.set(code, null)
       resolve(null)
     }
-    img.src = `https://flagcdn.com/w160/${code}.png`
+    // w640 dá margem pra desenhar a bandeira em ate ~10x sem pixelar.
+    img.src = `https://flagcdn.com/w640/${code}.png`
   })
 }
 
@@ -582,6 +585,10 @@ export async function generateShareCanvas(
   const ctx = canvas.getContext('2d')
   if (!ctx) return null
   ctx.scale(SCALE, SCALE)
+  // Bandeiras vêm em 640px e sao desenhadas em ~64px — sem isso o downscale
+  // sai borrado.
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
 
   drawBackground(ctx, totalH)
   let y = PADDING
