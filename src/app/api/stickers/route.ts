@@ -11,16 +11,21 @@ const MAX_PAYLOAD = 1100
 type IncomingEntry = { sticker_id: string; quantity: number }
 
 /**
- * Upsert do perfil — popula user_profiles a cada interação. Falha silenciosa:
- * é metadata pro admin panel, não pode quebrar o sync se a tabela não existir
- * ainda (a migration v3 precisa ser rodada manualmente no Supabase).
+ * Upsert do perfil — popula user_profiles a cada interação. Falha sem
+ * quebrar o sync (tabela pode nao existir antes da migration v3), mas
+ * loga em console pra dar visibilidade quando algo da errado.
+ *
+ * IMPORTANTE: precisa ser awaitado pelo handler. Em serverless (Vercel),
+ * promises soltas via `void touchProfile(...)` podem ser cortadas quando
+ * o response e enviado — usuarios apareciam com 571 figurinhas e
+ * `(sem nome) (sem email)` no admin porque o upsert nunca completou.
  */
 async function touchProfile(
   supabase: SupabaseClient,
   user: { id: string; email?: string | null; name?: string | null; image?: string | null }
 ): Promise<void> {
   try {
-    await supabase.from('user_profiles').upsert(
+    const { error } = await supabase.from('user_profiles').upsert(
       {
         user_id: user.id,
         email: user.email ?? null,
@@ -30,9 +35,13 @@ async function touchProfile(
       },
       { onConflict: 'user_id' }
     )
-  } catch {
-    // ignora — tabela pode nao existir antes da migration, e queremos que
-    // o sync continue funcionando independente disso
+    if (error && typeof console !== 'undefined') {
+      console.warn('[touchProfile] upsert falhou:', error.message)
+    }
+  } catch (err) {
+    if (typeof console !== 'undefined') {
+      console.warn('[touchProfile] excecao:', err)
+    }
   }
 }
 
@@ -43,23 +52,27 @@ export async function GET() {
   }
 
   const supabase = createSupabaseAdmin()
-  // Toca o perfil em paralelo — não esperamos pra responder o GET
-  void touchProfile(supabase, {
-    id: session.user.id,
-    email: session.user.email,
-    name: session.user.name,
-    image: session.user.image,
-  })
+  // touchProfile em paralelo com o read — Promise.all garante que ambos
+  // completam antes do response (serverless poderia cortar promise solta).
+  const [, stickersRes] = await Promise.all([
+    touchProfile(supabase, {
+      id: session.user.id,
+      email: session.user.email,
+      name: session.user.name,
+      image: session.user.image,
+    }),
+    supabase
+      .from('sticker_entries')
+      .select('sticker_id, quantity, collected_at')
+      .eq('user_id', session.user.id)
+      .is('removed_at', null),
+  ])
 
-  const { data, error } = await supabase
-    .from('sticker_entries')
-    .select('sticker_id, quantity, collected_at')
-    .eq('user_id', session.user.id)
-    .is('removed_at', null)
+  if (stickersRes.error) {
+    return Response.json({ error: stickersRes.error.message }, { status: 500 })
+  }
 
-  if (error) return Response.json({ error: error.message }, { status: 500 })
-
-  return Response.json({ stickers: data ?? [] })
+  return Response.json({ stickers: stickersRes.data ?? [] })
 }
 
 export async function PUT(request: Request) {
@@ -95,8 +108,11 @@ export async function PUT(request: Request) {
   const userId = session.user.id
   const now = new Date().toISOString()
 
-  // Toca o perfil — atualiza last_seen_at e dados de display
-  void touchProfile(supabase, {
+  // Toca o perfil em paralelo com o read. Awaitamos no Promise.all abaixo
+  // pra garantir que o upsert completa antes do response — em serverless
+  // promise solta via `void` pode ser cortada e o user aparece sem nome/email
+  // no admin mesmo tendo sincronizado com sucesso.
+  const profilePromise = touchProfile(supabase, {
     id: session.user.id,
     email: session.user.email,
     name: session.user.name,
@@ -176,6 +192,10 @@ export async function PUT(request: Request) {
       return Response.json({ error: removeError.message }, { status: 500 })
     }
   }
+
+  // Garante que o touchProfile completou antes do response — sem isso o
+  // serverless pode cortar a promise e o admin mostra users sem nome/email
+  await profilePromise
 
   return Response.json({
     ok: true,
