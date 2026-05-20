@@ -1,18 +1,16 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { useAlbumStore, stickerId } from '@/store/albumStore'
 import { TEAMS, FWC_SECTION, CC_SECTION, GROUP_COLORS } from '@/data/teams'
 import { Flag } from '@/components/Flag'
-import type { ShareableData } from '@/utils/shareCanvas'
 import { ShareSheet, type ShareFormat } from '@/components/ShareSheet'
 import {
   buildFullPdfData,
   generatePdfBlob,
 } from '@/utils/pdf'
 import { buildShareText, buildTextDuplicates } from '@/utils/shareText'
-import { generateShareCanvas } from '@/utils/shareCanvas'
 import { cn } from '@/lib/utils'
 
 type View = 'faltantes' | 'repetidas'
@@ -85,100 +83,6 @@ export default function ColecaoPage() {
 
   const totalProgress = getTotalProgress()
 
-  // Dados compartilháveis (PNG + texto). Espelha buildFullPdfData
-  // pra que o PNG entregue exatamente a mesma info do PDF.
-  const shareableData = useMemo<ShareableData>(() => {
-    const teams = TEAMS.map((team) => ({
-      teamName: team.name,
-      flagCode: team.flagCode,
-      primaryColor: team.primaryColor,
-      missing: getMissing(team.code),
-    }))
-
-    const specialSections = [
-      {
-        name: 'Copa History (FWC)',
-        color: '#f5c42e',
-        missing: FWC_SECTION.stickers
-          .filter((s) => !isCollected(stickerId('FWC', s.number)))
-          .map((s) => s.number),
-      },
-      {
-        name: 'Coca-Cola (CC)',
-        color: '#e8222a',
-        missing: CC_SECTION.stickers
-          .filter((s) => !isCollected(stickerId('CC', s.number)))
-          .map((s) => s.number),
-      },
-    ]
-
-    // Agrupa repetidas por time (mesma lógica do buildFullPdfData)
-    const dupMap = new Map<string, {
-      teamName: string
-      flagCode: string
-      primaryColor: string
-      stickers: Map<string, { label: string; extras: number }>
-    }>()
-    for (const d of duplicates) {
-      if (d.quantity < 1) continue
-      const [teamCode, number] = d.id.split('_')
-      const team = TEAMS.find((t) => t.code === teamCode)
-      const teamName = team?.name ?? (teamCode === 'FWC' ? 'Copa History' : teamCode === 'CC' ? 'Coca-Cola' : teamCode)
-      const flagCode = team?.flagCode ?? ''
-      const primaryColor = team?.primaryColor ?? (teamCode === 'FWC' ? '#f5c42e' : '#e8222a')
-
-      let label: string
-      if (teamCode === 'FWC') {
-        label = FWC_SECTION.stickers.find((s) => s.number === number)?.label ?? `FWC${number}`
-      } else if (teamCode === 'CC') {
-        label = CC_SECTION.stickers.find((s) => s.number === number)?.label ?? `CC${number}`
-      } else {
-        label = number
-      }
-
-      if (!dupMap.has(teamCode)) {
-        dupMap.set(teamCode, { teamName, flagCode, primaryColor, stickers: new Map() })
-      }
-      const entry = dupMap.get(teamCode)!
-      if (!entry.stickers.has(number)) {
-        entry.stickers.set(number, { label, extras: 0 })
-      }
-      entry.stickers.get(number)!.extras += d.quantity
-    }
-
-    const dupes: ShareableData['duplicates'] = Array.from(dupMap.values())
-      .map(({ teamName, flagCode, primaryColor, stickers }) => {
-        const labels = Array.from(stickers.values()).map(({ label, extras }) =>
-          extras > 1 ? `${label} ×${extras}` : label
-        )
-        const totalExtras = Array.from(stickers.values()).reduce(
-          (s, e) => s + e.extras,
-          0
-        )
-        return { teamName, flagCode, primaryColor, labels, totalExtras }
-      })
-      .sort((a, b) => b.totalExtras - a.totalExtras)
-
-    return {
-      collected: totalProgress.collected,
-      total: totalProgress.total,
-      generatedAt: new Date().toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      }),
-      teams,
-      specialSections,
-      duplicates: dupes,
-    }
-  }, [
-    duplicates,
-    getMissing,
-    totalProgress.collected,
-    totalProgress.total,
-    isCollected,
-  ])
-
   const buildPdfDataInputs = () => {
     const allTeams = TEAMS.map((team) => ({
       teamName: team.name,
@@ -208,14 +112,6 @@ export default function ColecaoPage() {
 
   const handleShare = async (format: ShareFormat): Promise<void> => {
     try {
-      if (format === 'png') {
-        const blob = await generateShareCanvas(shareableData)
-        if (!blob) return
-        const file = new File([blob], 'colecao-copa2026.png', { type: 'image/png' })
-        await shareFileOrDownload(file, 'Álbum Copa 2026 — Minha coleção')
-        return
-      }
-
       if (format === 'text') {
         // Resolve teamName/label preservando FWC/CC (bug: antes esses caiam no
         // filtro `if (!info.team)` e somiam do total)
@@ -227,15 +123,29 @@ export default function ColecaoPage() {
           return null
         })
 
+        const teamsMissing = TEAMS
+          .map((t) => ({ teamName: t.name, missing: getMissing(t.code) }))
+          .filter((t) => t.missing.length > 0)
+        const specialsMissing = [
+          {
+            name: 'Copa History (FWC)',
+            missing: FWC_SECTION.stickers
+              .filter((s) => !isCollected(stickerId('FWC', s.number)))
+              .map((s) => s.number),
+          },
+          {
+            name: 'Coca-Cola (CC)',
+            missing: CC_SECTION.stickers
+              .filter((s) => !isCollected(stickerId('CC', s.number)))
+              .map((s) => s.number),
+          },
+        ].filter((s) => s.missing.length > 0)
+
         const text = buildShareText({
-          collected: shareableData.collected,
-          total: shareableData.total,
-          teamsMissing: shareableData.teams
-            .filter((t) => t.missing.length > 0)
-            .map((t) => ({ teamName: t.teamName, missing: t.missing })),
-          specialsMissing: shareableData.specialSections
-            .filter((s) => s.missing.length > 0)
-            .map((s) => ({ name: s.name, missing: s.missing })),
+          collected: totalProgress.collected,
+          total: totalProgress.total,
+          teamsMissing,
+          specialsMissing,
           duplicates: textDupes,
         })
         await shareTextOrCopy(text, 'Álbum Copa 2026 — Minha coleção')

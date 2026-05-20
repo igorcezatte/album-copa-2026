@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
-export type ShareFormat = 'png' | 'text' | 'pdf'
+export type ShareFormat = 'text' | 'pdf'
 
 interface Props {
   open: boolean
@@ -18,10 +18,6 @@ const OPTIONS: Array<{
   subtitle: string
   highlight?: boolean
 }> = [
-  // PNG temporariamente removido — quando o canvas fica muito alto pra
-  // caber todas as figurinhas, iOS Safari estoura o limite e toBlob falha
-  // silenciosamente; e mesmo quando funciona o WhatsApp recomprime e o
-  // texto fica ilegivel. Retomar com outra abordagem.
   {
     format: 'pdf',
     icon: '📄',
