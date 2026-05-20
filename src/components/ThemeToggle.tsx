@@ -22,7 +22,7 @@ export function ThemeToggle({ className }: { className?: string }) {
     <button
       onClick={handleToggle}
       className={cn(
-        'flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition-all duration-150 active:scale-90',
+        'flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-mono font-bold tracking-widest uppercase transition-all duration-150 active:scale-90',
         isLight
           ? 'bg-slate-200 text-slate-600'
           : 'bg-white/5 text-white/40 hover:text-white/60',

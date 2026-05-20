@@ -54,7 +54,7 @@ export function AuthButton({ className }: { className?: string }) {
       onClick={() => signIn('google', { callbackUrl: '/' })}
       className={cn(
         'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl',
-        'bg-white/5 border border-white/10 text-white/50 text-[10px] font-bold',
+        'bg-white/5 border border-white/10 text-white/50 text-[10px] font-display font-bold tracking-widest uppercase',
         'hover:bg-white/10 active:scale-95 transition-all duration-150',
         className,
       )}
