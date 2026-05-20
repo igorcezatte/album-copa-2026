@@ -29,14 +29,17 @@ export default function HomePage() {
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm"
-              style={{ background: 'linear-gradient(135deg, #f5c42e, #d4a017)' }}
+              className="w-8 h-8 flex items-center justify-center font-display font-black text-base corner-cut corner-cut-sm"
+              style={{
+                background: 'linear-gradient(135deg, #f5c42e, #d4a017)',
+                ['--cut-accent' as string]: 'rgba(0,0,0,0.4)',
+              } as React.CSSProperties}
             >
-              <span className="text-black">26</span>
+              <span className="text-black tracking-tight">26</span>
             </div>
             <div>
-              <h1 className="text-lg font-black text-white leading-none">Álbum Copa 2026</h1>
-              <p className="text-[10px] text-white/40 font-medium">FIFA World Cup</p>
+              <h1 className="text-lg font-display font-black text-white leading-none tracking-wide uppercase">Álbum Copa 2026</h1>
+              <p className="text-[10px] text-white/40 font-mono tracking-[0.18em] uppercase">FIFA World Cup</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -53,19 +56,35 @@ export default function HomePage() {
         </div>
 
         {/* Total progress */}
-        <div className="mt-4 rounded-2xl border border-white/5 p-4"
-          style={{ background: 'linear-gradient(145deg, #f5c42e18 0%, var(--copa-card) 100%)' }}
+        <div
+          className="mt-4 rounded-2xl border border-white/5 p-4 relative overflow-hidden corner-cut corner-cut-lg"
+          style={{
+            background: 'linear-gradient(145deg, #f5c42e18 0%, var(--copa-card) 100%)',
+            ['--cut-accent' as string]: 'rgba(245, 196, 46, 0.55)',
+          } as React.CSSProperties}
         >
-          <div className="flex items-end justify-between mb-2">
+          {/* Marca d'água sutil "2026" como motif tipográfico */}
+          <span
+            aria-hidden
+            className="absolute -right-2 -bottom-6 font-display font-black text-[120px] leading-none text-white/[0.025] select-none pointer-events-none"
+          >
+            26
+          </span>
+
+          <div className="flex items-end justify-between mb-2 relative">
             <div>
-              <p className="text-3xl font-black text-white leading-none">
+              <p className="text-4xl font-display font-black text-white leading-none tracking-tight animate-count-up">
                 {hydrated ? total.collected : '—'}
-                <span className="text-white/30 text-lg">/{total.total}</span>
+                <span className="text-white/30 text-xl font-mono font-normal ml-0.5">/{total.total}</span>
               </p>
-              <p className="text-xs text-white/40 mt-0.5">figurinhas coletadas</p>
+              <p className="text-[10px] text-white/40 mt-1 font-mono tracking-[0.2em] uppercase">figurinhas coletadas</p>
             </div>
-            <p className="text-4xl font-black text-copa-gold leading-none">
-              {hydrated ? `${percentage}%` : '—'}
+            <p
+              className="text-5xl font-display font-black text-copa-gold leading-none tracking-tight animate-count-up"
+              style={{ animationDelay: '0.05s' }}
+            >
+              {hydrated ? `${percentage}` : '—'}
+              <span className="text-2xl text-copa-gold/60 ml-0.5">%</span>
             </p>
           </div>
           <ProgressBar
@@ -76,10 +95,12 @@ export default function HomePage() {
             height="md"
           />
 
-          {/* Mini stats */}
-          <div className="flex gap-4 mt-3">
+          {/* Mini stats com separadores tipográficos */}
+          <div className="flex items-center gap-1 mt-3 relative">
             <StatPill label="Faltam" value={hydrated ? total.total - total.collected : '—'} />
+            <span className="font-mono text-white/15 text-xs pb-2" aria-hidden>·</span>
             <StatPill label="Grupos" value="12" />
+            <span className="font-mono text-white/15 text-xs pb-2" aria-hidden>·</span>
             <StatPill label="Seleções" value="48" />
           </div>
         </div>
@@ -88,12 +109,13 @@ export default function HomePage() {
       {/* Entrada rápida global — várias figurinhas de uma vez */}
       <button
         onClick={() => setPackOpen(true)}
-        className="w-full mb-5 rounded-2xl border border-copa-gold/30 bg-copa-gold/10 px-4 py-3 flex items-center gap-3 active:scale-[0.98] transition-transform"
+        className="w-full mb-5 rounded-2xl border border-copa-gold/30 bg-copa-gold/10 px-4 py-3 flex items-center gap-3 active:scale-[0.98] hover:bg-copa-gold/15 transition-all corner-cut"
+        style={{ ['--cut-accent' as string]: 'rgba(245, 196, 46, 0.7)' } as React.CSSProperties}
         aria-label="Adicionar várias figurinhas rapidamente"
       >
         <span className="text-xl">⚡</span>
         <div className="flex-1 min-w-0 text-left">
-          <p className="text-[13px] font-black text-white leading-tight">
+          <p className="text-[13px] font-display font-bold text-white leading-tight tracking-wide uppercase">
             Adicionar rapidamente
           </p>
           <p className="text-[10px] text-white/50 leading-tight mt-0.5">
@@ -118,9 +140,7 @@ export default function HomePage() {
 
       {/* Groups grid */}
       <div className="mb-4">
-        <h2 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3">
-          Grupos
-        </h2>
+        <SectionTitle title="Grupos" count="12" />
         <div className="grid grid-cols-2 gap-3">
           {GROUPS.map((group) => (
             <GroupCard key={group} group={group} />
@@ -130,9 +150,7 @@ export default function HomePage() {
 
       {/* Special sections */}
       <div className="mb-4">
-        <h2 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3">
-          Especiais
-        </h2>
+        <SectionTitle title="Especiais" count="02" />
         <div className="grid grid-cols-2 gap-3">
           <SpecialCard code="FWC" label="Copa History" total={19} />
           <SpecialCard code="CC" label="Coca-Cola" total={14} />
@@ -147,8 +165,24 @@ export default function HomePage() {
 function StatPill({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="flex-1 text-center">
-      <p className="text-sm font-black text-white">{value}</p>
-      <p className="text-[9px] text-white/30 font-medium">{label}</p>
+      <p className="text-base font-display font-black text-white leading-none tracking-tight">{value}</p>
+      <p className="text-[9px] text-white/30 font-mono tracking-widest uppercase mt-0.5">{label}</p>
+    </div>
+  )
+}
+
+function SectionTitle({ title, count }: { title: string; count: string }) {
+  return (
+    <div className="flex items-end justify-between mb-3 pl-0.5">
+      <div className="flex items-baseline gap-2">
+        <span className="font-mono text-[10px] text-white/25 tracking-widest" aria-hidden>—</span>
+        <h2 className="text-sm font-display font-bold text-white/70 uppercase tracking-[0.2em]">
+          {title}
+        </h2>
+      </div>
+      <span className="font-mono text-[10px] text-white/25 tracking-widest">
+        {count} <span className="text-white/15">/ {count}</span>
+      </span>
     </div>
   )
 }
@@ -166,23 +200,24 @@ function SpecialCard({ code, label, total }: { code: string; label: string; tota
   const meta = SPECIAL_META[code] ?? { icon: '⭐', color: '#94a3b8' }
 
   return (
-    <Link href={`/especial/${code.toLowerCase()}`} className="block">
+    <Link href={`/especial/${code.toLowerCase()}`} className="block group">
       <div
-        className="rounded-2xl p-3.5 border active:scale-95 transition-transform duration-150"
+        className="rounded-2xl p-3.5 border active:scale-95 group-hover:-translate-y-0.5 transition-all duration-200 corner-cut"
         style={{
           background: `linear-gradient(145deg, ${meta.color}15 0%, var(--copa-card) 100%)`,
           borderColor: percentage === 100 ? `${meta.color}60` : 'rgba(255,255,255,0.05)',
-        }}
+          ['--cut-accent' as string]: `${meta.color}aa`,
+        } as React.CSSProperties}
       >
         <div className="flex items-center gap-2 mb-2">
           <span className="text-base leading-none">{meta.icon}</span>
-          <span className="text-xs font-bold text-white/70 flex-1 truncate">{label}</span>
-          <span className="text-xs font-black" style={{ color: meta.color }}>
+          <span className="text-xs font-display font-bold text-white/70 flex-1 truncate uppercase tracking-wide">{label}</span>
+          <span className="text-sm font-display font-black tracking-tight" style={{ color: meta.color }}>
             {hydrated ? `${percentage}%` : '—'}
           </span>
         </div>
         <ProgressBar key={hydrated ? 1 : 0} value={progress.collected} total={progress.total} color={meta.color} height="xs" />
-        <p className="text-right text-[10px] text-white/20 mt-1 font-mono">
+        <p className="text-right text-[10px] text-white/20 mt-1 font-mono tracking-wider">
           {hydrated ? `${progress.collected}/${total}` : '—'}
         </p>
       </div>
