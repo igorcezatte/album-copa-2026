@@ -38,17 +38,18 @@ export function ProgressBar({
             boxShadow: pct > 0 ? `0 0 8px ${color}60` : 'none',
           }}
         >
-          {/* Faixa de luz que atravessa lentamente — só quando a barra é parcial */}
-          {pct > 4 && pct < 100 && (
-            <span
-              className="absolute inset-y-0 w-1/3 animate-shimmer-slow pointer-events-none motion-reduce:hidden"
-              style={{
-                background:
-                  'linear-gradient(90deg, transparent, rgba(255,255,255,0.35) 50%, transparent)',
-              }}
-              aria-hidden
-            />
-          )}
+          {/* Faixa de luz que atravessa lentamente — sempre presente no DOM (evita
+              hydration mismatch quando o Zustand persist popula valores no client);
+              opacity controla a visibilidade quando a barra é parcial. */}
+          <span
+            className="absolute inset-y-0 w-1/3 animate-shimmer-slow pointer-events-none motion-reduce:hidden transition-opacity duration-300"
+            style={{
+              background:
+                'linear-gradient(90deg, transparent, rgba(255,255,255,0.35) 50%, transparent)',
+              opacity: pct > 4 && pct < 100 ? 1 : 0,
+            }}
+            aria-hidden
+          />
         </div>
       </div>
       {showLabel && (

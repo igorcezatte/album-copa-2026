@@ -109,7 +109,7 @@ export default function HomePage() {
       {/* Entrada rápida global — várias figurinhas de uma vez */}
       <button
         onClick={() => setPackOpen(true)}
-        className="w-full mb-5 rounded-2xl border border-copa-gold/30 bg-copa-gold/10 px-4 py-3 flex items-center gap-3 active:scale-[0.98] hover:bg-copa-gold/15 transition-all corner-cut"
+        className="w-full mb-5 rounded-2xl border border-copa-gold/30 bg-copa-gold/10 px-4 py-3 flex items-center gap-3 active:scale-[0.98] hover:bg-copa-gold/15 transition-all corner-cut corner-cut-md"
         style={{ ['--cut-accent' as string]: 'rgba(245, 196, 46, 0.7)' } as React.CSSProperties}
         aria-label="Adicionar várias figurinhas rapidamente"
       >
@@ -202,7 +202,7 @@ function SpecialCard({ code, label, total }: { code: string; label: string; tota
   return (
     <Link href={`/especial/${code.toLowerCase()}`} className="block group">
       <div
-        className="rounded-2xl p-3.5 border active:scale-95 group-hover:-translate-y-0.5 transition-all duration-200 corner-cut"
+        className="rounded-2xl p-3.5 border active:scale-95 group-hover:-translate-y-0.5 transition-all duration-200 corner-cut corner-cut-md"
         style={{
           background: `linear-gradient(145deg, ${meta.color}15 0%, var(--copa-card) 100%)`,
           borderColor: percentage === 100 ? `${meta.color}60` : 'rgba(255,255,255,0.05)',

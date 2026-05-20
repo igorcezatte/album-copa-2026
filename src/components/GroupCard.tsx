@@ -25,7 +25,7 @@ export function GroupCard({ group }: GroupCardProps) {
   return (
     <Link href={`/grupo/${group.toLowerCase()}`} className="block group">
       <div
-        className="rounded-2xl p-3.5 border border-white/5 active:scale-95 group-hover:-translate-y-0.5 transition-all duration-200 corner-cut"
+        className="rounded-2xl p-3.5 border border-white/5 active:scale-95 group-hover:-translate-y-0.5 transition-all duration-200 corner-cut corner-cut-md"
         style={{
           background: `linear-gradient(145deg, ${color}18 0%, var(--copa-card) 100%)`,
           boxShadow: percentage === 100 ? `0 0 20px ${color}40` : undefined,

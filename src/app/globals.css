@@ -170,6 +170,9 @@ body::before {
 .corner-cut-sm {
   --cut-size: 8px;
 }
+.corner-cut-md {
+  --cut-size: 10px;
+}
 .corner-cut-lg {
   --cut-size: 22px;
 }
