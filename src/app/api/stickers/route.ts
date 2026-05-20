@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createSupabaseAdmin } from '@/lib/supabase'
 import { isCatastrophicShrink } from '@/utils/syncGuards'
+import { buildUpsertsAndRemovals } from '@/utils/syncDiff'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 // O álbum tem 994 figurinhas. Qualquer payload acima disso é absurdo.
@@ -143,36 +144,13 @@ export async function PUT(request: Request) {
     )
   }
 
-  // 3. Computa diff: upserts (novos/mudados) e removals (ausentes do payload).
-  // ATENCAO: collected_at deve aparecer em TODA row — o Postgrest unifica
-  // colunas do batch e omitir em algumas faz ele inserir NULL, violando o
-  // NOT NULL. Pra updates preservamos o collected_at original; pra inserts
-  // (novos OU re-coleta de soft-deletado) usamos now().
-  const upserts: Array<{
-    user_id: string
-    sticker_id: string
-    quantity: number
-    updated_at: string
-    removed_at: null
-    collected_at: string
-  }> = []
-
-  incoming.forEach((quantity, sticker_id) => {
-    const currentQty = current.get(sticker_id)
-    if (currentQty === quantity) return // sem mudança
-    upserts.push({
-      user_id: userId,
-      sticker_id,
-      quantity,
-      updated_at: now,
-      removed_at: null, // re-coletar reativa figurinha soft-deletada
-      collected_at: currentCollectedAt.get(sticker_id) ?? now,
-    })
-  })
-
-  const removals: string[] = []
-  current.forEach((_, sticker_id) => {
-    if (!incoming.has(sticker_id)) removals.push(sticker_id)
+  // 3. Computa diff via util pura (testada em syncDiff.test.ts)
+  const { upserts, removals } = buildUpsertsAndRemovals({
+    current,
+    currentCollectedAt,
+    incoming,
+    userId,
+    now,
   })
 
   // 4. Aplica upserts
