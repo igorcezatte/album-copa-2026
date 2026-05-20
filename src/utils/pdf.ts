@@ -603,11 +603,6 @@ async function renderPdfDoc(data: FullPdfData): Promise<import('jspdf').jsPDF> {
   return doc
 }
 
-export async function generateAndDownloadPdf(data: FullPdfData): Promise<void> {
-  const doc = await renderPdfDoc(data)
-  doc.save('colecao-copa2026.pdf')
-}
-
 export async function generatePdfBlob(data: FullPdfData): Promise<Blob> {
   const doc = await renderPdfDoc(data)
   return doc.output('blob') as Blob
