@@ -81,7 +81,7 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
   return (
     <div
       className={cn(
-        'relative select-none rounded-xl overflow-hidden cursor-pointer',
+        'relative select-none rounded-xl overflow-hidden cursor-pointer corner-cut corner-cut-sm',
         'transition-all duration-200 ease-out border',
         collected ? 'border-white/10 shadow-lg' : 'border-white/5',
         animating && 'animate-pop',
@@ -91,7 +91,8 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
         background: collected
           ? `linear-gradient(145deg, ${primaryColor}22 0%, var(--copa-card) 60%)`
           : 'var(--copa-card)',
-      }}
+        ['--cut-accent' as string]: collected ? `${primaryColor}99` : 'rgba(255,255,255,0.12)',
+      } as React.CSSProperties}
       onClick={handleCardTap}
     >
       {/* Brilho ao ser coletada */}
@@ -102,27 +103,32 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
         />
       )}
 
-      {/* Watermark "26" */}
-      {collected && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" aria-hidden>
-          <span className="text-7xl font-black opacity-[0.04] select-none" style={{ color: primaryColor }}>
-            26
-          </span>
-        </div>
-      )}
+      {/* Watermark "26" — sempre presente, varia opacity */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" aria-hidden>
+        <span
+          className="font-display font-black select-none leading-none tracking-tight"
+          style={{
+            color: primaryColor,
+            opacity: collected ? 0.045 : 0.015,
+            fontSize: '88px',
+          }}
+        >
+          26
+        </span>
+      </div>
 
       {/* Conteúdo principal */}
       <div className="relative z-10 h-full flex flex-col p-2">
         {/* Linha superior: número + badge de repetidas */}
         <div className="flex items-start justify-between">
-          <div className={cn('text-xs font-bold leading-none', collected ? 'text-white/60' : 'text-white/20')}>
-            {sticker.number}
+          <div className={cn('text-[10px] font-mono font-bold tracking-wider leading-none', collected ? 'text-white/60' : 'text-white/20')}>
+            {sticker.number.padStart(2, '0')}
           </div>
 
           {collected && !showCounter && (
             <button
               className={cn(
-                'flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-black leading-none',
+                'flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-display font-black tracking-wider leading-none',
                 'active:scale-90 transition-transform',
               )}
               style={{
@@ -139,18 +145,18 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
 
         {/* Número grande central */}
         <div className="flex-1 flex items-center justify-center">
-          <span className={cn('text-3xl font-black transition-all duration-200', collected ? 'text-white' : 'text-white/10')}>
+          <span className={cn('text-4xl font-display font-black tracking-tight transition-all duration-200', collected ? 'text-white' : 'text-white/10')}>
             {sticker.type === 'badge' ? '①' : sticker.number}
           </span>
         </div>
 
         {/* Rodapé: tipo + nome + bandeira */}
         <div>
-          <p className={cn('text-[9px] font-semibold uppercase tracking-wide truncate mb-0.5', collected ? 'text-white/40' : 'text-white/15')}>
+          <p className={cn('text-[9px] font-mono font-semibold uppercase tracking-widest truncate mb-0.5', collected ? 'text-white/40' : 'text-white/15')}>
             {typeLabel}
           </p>
           <div className="flex items-end justify-between gap-1">
-            <p className={cn('text-[10px] font-bold truncate flex-1 leading-tight', collected ? 'text-white/90' : 'text-white/20')}>
+            <p className={cn('text-[10px] font-display font-bold tracking-wide uppercase truncate flex-1 leading-tight', collected ? 'text-white/90' : 'text-white/20')}>
               {sticker.label}
             </p>
             {flagCode && <Flag code={flagCode} size="xs" grayscale={!collected} />}
