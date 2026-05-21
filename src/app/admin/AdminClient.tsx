@@ -85,59 +85,67 @@ export function AdminClient() {
 
   return (
     <div className="px-4 pt-6 pb-8 animate-fade-in max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-black text-white">Admin</h1>
-        <Link
-          href="/"
-          className="text-[12px] font-bold text-white/50 active:scale-95"
-        >
-          ← Voltar
-        </Link>
-      </div>
+      <Link
+        href="/"
+        className="inline-flex items-center gap-1 text-white/40 text-[11px] font-mono font-bold tracking-widest uppercase mb-4 -ml-1 hover:text-white/60 transition-colors"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Voltar
+      </Link>
+      <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Painel interno</p>
+      <h1 className="text-2xl font-display font-black text-white tracking-tight uppercase leading-none mt-0.5">Admin</h1>
+      <p className="text-[11px] text-white/40 font-mono tracking-wider mt-1 mb-7">Métricas · usuários · soft-delete</p>
 
       {/* Stats grid */}
+      <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
+        <span className="font-mono text-white/25" aria-hidden>—</span>
+        Métricas
+      </h2>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-        <StatCard label="Usuários" value={stats?.totalUsers} />
-        <StatCard label="Ativos 7d" value={stats?.activeUsersLast7d} />
-        <StatCard label="Ativos 24h" value={stats?.activeUsersLast24h} />
-        <StatCard
-          label="Figurinhas coletadas"
-          value={stats?.totalStickersCollected}
-        />
-        <StatCard
-          label="Média/usuário ativo"
-          value={stats?.avgStickersPerActiveUser}
-        />
-        <StatCard label="Álbuns completos" value={stats?.usersCompleted} />
+        <StatCard label="Usuários" value={stats?.totalUsers} accent="#f5c42e" />
+        <StatCard label="Ativos 7d" value={stats?.activeUsersLast7d} accent="#6366f1" />
+        <StatCard label="Ativos 24h" value={stats?.activeUsersLast24h} accent="#15a065" />
+        <StatCard label="Figurinhas" value={stats?.totalStickersCollected} accent="#f5c42e" />
+        <StatCard label="Média/ativo" value={stats?.avgStickersPerActiveUser} accent="#6366f1" />
+        <StatCard label="Álbuns 100%" value={stats?.usersCompleted} accent="#15a065" />
       </div>
       {statsError && (
-        <p className="text-[11px] text-red-400 mb-4">Stats: {statsError}</p>
+        <p className="text-[11px] font-mono uppercase tracking-wider text-red-400 mb-4">Stats: {statsError}</p>
       )}
 
       {/* Search */}
+      <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
+        <span className="font-mono text-white/25" aria-hidden>—</span>
+        Usuários
+      </h2>
       <div className="mb-4">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por email ou nome…"
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-white/30"
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-mono text-white placeholder-white/30 outline-none focus:border-white/30"
         />
       </div>
 
       {/* Users table */}
       <div
-        className="rounded-2xl border border-white/5 overflow-hidden"
-        style={{ background: 'var(--copa-card)' }}
+        className="rounded-2xl border border-white/5 overflow-hidden corner-cut corner-cut-sm"
+        style={{
+          background: 'var(--copa-card)',
+          ['--cut-accent' as string]: 'rgba(255, 255, 255, 0.22)',
+        } as React.CSSProperties}
       >
         {usersError && (
-          <p className="p-4 text-[12px] text-red-400">Users: {usersError}</p>
+          <p className="p-4 text-[11px] font-mono uppercase tracking-wider text-red-400">Users: {usersError}</p>
         )}
         {usersLoading && users.length === 0 && (
-          <p className="p-4 text-[12px] text-white/40">Carregando…</p>
+          <p className="p-4 text-[11px] font-mono uppercase tracking-widest text-white/40">Carregando…</p>
         )}
         {!usersLoading && users.length === 0 && (
-          <p className="p-4 text-[12px] text-white/40">
-            Nenhum usuário encontrado.
+          <p className="p-4 text-[11px] font-mono uppercase tracking-widest text-white/40">
+            Nenhum usuário encontrado
           </p>
         )}
 
@@ -158,24 +166,24 @@ export function AdminClient() {
                   />
                 ) : (
                   <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-                    <span className="text-[11px] font-black text-white/60">
+                    <span className="text-[11px] font-display font-black text-white/60">
                       {(u.name ?? u.email ?? '?')[0]?.toUpperCase()}
                     </span>
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-bold text-white truncate">
+                  <p className="text-[13px] font-display font-bold tracking-wide uppercase text-white truncate">
                     {u.name ?? '(sem nome)'}
                   </p>
-                  <p className="text-[11px] text-white/40 truncate">
+                  <p className="text-[11px] font-mono text-white/40 truncate mt-0.5">
                     {u.email ?? '(sem email)'}
                   </p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="text-[12px] font-bold text-copa-gold">
+                  <p className="text-base font-display font-black tracking-tight leading-none text-copa-gold">
                     {u.stickerCount}
                   </p>
-                  <p className="text-[10px] text-white/30">
+                  <p className="text-[10px] font-mono tracking-widest uppercase text-white/30 mt-1">
                     {relativeTime(u.lastSeenAt)}
                   </p>
                 </div>
@@ -189,17 +197,17 @@ export function AdminClient() {
             <button
               onClick={() => setUsersPage((p) => Math.max(1, p - 1))}
               disabled={usersPage === 1}
-              className="px-3 py-1.5 rounded-lg bg-white/5 text-white/70 font-bold disabled:opacity-30"
+              className="px-3 py-1.5 rounded-lg bg-white/5 text-white/70 text-[10px] font-mono font-bold tracking-widest uppercase disabled:opacity-30"
             >
               Anterior
             </button>
-            <span className="text-white/40">
-              Página {usersPage} de {totalPages} · {usersTotal} usuários
+            <span className="text-[10px] font-mono tracking-widest uppercase text-white/40">
+              Pág {usersPage} · {totalPages} · {usersTotal} users
             </span>
             <button
               onClick={() => setUsersPage((p) => Math.min(totalPages, p + 1))}
               disabled={usersPage >= totalPages}
-              className="px-3 py-1.5 rounded-lg bg-white/5 text-white/70 font-bold disabled:opacity-30"
+              className="px-3 py-1.5 rounded-lg bg-white/5 text-white/70 text-[10px] font-mono font-bold tracking-widest uppercase disabled:opacity-30"
             >
               Próxima
             </button>
@@ -221,16 +229,19 @@ export function AdminClient() {
   )
 }
 
-function StatCard({ label, value }: { label: string; value?: number }) {
+function StatCard({ label, value, accent }: { label: string; value?: number; accent: string }) {
   return (
     <div
-      className="rounded-2xl p-3 border border-white/5"
-      style={{ background: 'var(--copa-card)' }}
+      className="rounded-2xl p-3 border border-white/5 corner-cut corner-cut-sm"
+      style={{
+        background: `linear-gradient(145deg, ${accent}10 0%, var(--copa-card) 100%)`,
+        ['--cut-accent' as string]: `${accent}aa`,
+      } as React.CSSProperties}
     >
-      <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+      <p className="text-[9px] font-mono tracking-widest uppercase text-white/40">
         {label}
       </p>
-      <p className="text-2xl font-black text-white mt-1">
+      <p className="text-2xl font-display font-black tracking-tight leading-none mt-1.5" style={{ color: accent }}>
         {value === undefined ? '—' : value.toLocaleString('pt-BR')}
       </p>
     </div>
@@ -324,19 +335,20 @@ function UserDetailDrawer({
             />
           ) : (
             <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-              <span className="text-base font-black text-white/60">
+              <span className="text-base font-display font-black text-white/60">
                 {(detail?.name ?? detail?.email ?? '?')[0]?.toUpperCase()}
               </span>
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h2 className="text-base font-black text-white truncate">
+            <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Usuário</p>
+            <h2 className="text-base font-display font-black tracking-tight uppercase text-white truncate mt-0.5 leading-none">
               {detail?.name ?? '(sem nome)'}
             </h2>
-            <p className="text-[12px] text-white/50 truncate">
+            <p className="text-[11px] font-mono text-white/50 truncate mt-1.5">
               {detail?.email ?? '(sem email)'}
             </p>
-            <p className="text-[10px] text-white/30 font-mono mt-0.5 truncate">
+            <p className="text-[9px] text-white/30 font-mono tracking-wider mt-0.5 truncate">
               {userId}
             </p>
           </div>
@@ -360,41 +372,44 @@ function UserDetailDrawer({
 
         <div className="overflow-y-auto flex-1 p-5 space-y-4">
           {error && (
-            <p className="text-[12px] text-red-400">{error}</p>
+            <p className="text-[11px] font-mono uppercase tracking-wider text-red-400">{error}</p>
           )}
 
           {detail && (
             <>
               <div className="grid grid-cols-3 gap-2">
-                <MiniStat label="Figurinhas" value={detail.stickerCount} />
-                <MiniStat label="Cópias totais" value={detail.totalCopies} />
+                <MiniStat label="Figurinhas" value={detail.stickerCount} accent="#f5c42e" />
+                <MiniStat label="Cópias" value={detail.totalCopies} accent="#6366f1" />
                 <MiniStat
                   label="Repetidas"
                   value={detail.totalCopies - detail.stickerCount}
+                  accent="#15a065"
                 />
               </div>
 
               <div>
-                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-2">
+                <h3 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-2 flex items-baseline gap-2">
+                  <span className="font-mono text-white/25" aria-hidden>—</span>
                   Atividade
-                </p>
-                <div className="rounded-xl border border-white/5 p-3 space-y-1 text-[11px]">
-                  <div className="flex justify-between text-white/70">
-                    <span className="text-white/40">Primeira vez visto</span>
-                    <span>{formatDate(detail.firstSeenAt)}</span>
+                </h3>
+                <div className="rounded-xl border border-white/5 p-3 space-y-1.5 text-[11px]">
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-[10px] font-mono tracking-widest uppercase text-white/40">Primeira vez</span>
+                    <span className="font-mono text-white/70">{formatDate(detail.firstSeenAt)}</span>
                   </div>
-                  <div className="flex justify-between text-white/70">
-                    <span className="text-white/40">Última atividade</span>
-                    <span>{formatDate(detail.lastSeenAt)}</span>
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-[10px] font-mono tracking-widest uppercase text-white/40">Última atividade</span>
+                    <span className="font-mono text-white/70">{formatDate(detail.lastSeenAt)}</span>
                   </div>
                 </div>
               </div>
 
               {groupedStickers.size > 0 && (
                 <div>
-                  <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-2">
+                  <h3 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-2 flex items-baseline gap-2">
+                    <span className="font-mono text-white/25" aria-hidden>—</span>
                     Por seleção/seção
-                  </p>
+                  </h3>
                   <div className="grid grid-cols-3 gap-1.5 text-[11px]">
                     {Array.from(groupedStickers.entries())
                       .sort(([, a], [, b]) => b - a)
@@ -403,10 +418,10 @@ function UserDetailDrawer({
                           key={team}
                           className="rounded-lg bg-white/5 px-2 py-1.5 flex items-center justify-between"
                         >
-                          <span className="font-mono text-white/60">
+                          <span className="font-mono tracking-wider text-white/60">
                             {team}
                           </span>
-                          <span className="font-bold text-white">{count}</span>
+                          <span className="font-display font-black tracking-tight text-white">{count}</span>
                         </div>
                       ))}
                   </div>
@@ -414,20 +429,21 @@ function UserDetailDrawer({
               )}
 
               <div>
-                <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">
+                <h3 className="text-xs font-display font-bold text-red-400/70 uppercase tracking-[0.2em] mb-2 flex items-baseline gap-2">
+                  <span className="font-mono text-red-400/50" aria-hidden>—</span>
                   Zona perigosa
-                </p>
+                </h3>
                 {!confirmWipe ? (
                   <button
                     onClick={() => setConfirmWipe(true)}
-                    className="w-full p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-bold active:scale-[0.98]"
+                    className="w-full p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] font-mono font-bold tracking-widest uppercase active:scale-[0.98]"
                   >
                     Apagar figurinhas deste usuário…
                   </button>
                 ) : (
                   <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 space-y-2">
                     <p className="text-[12px] text-white/70 leading-relaxed">
-                      Vai marcar as {detail.stickerCount} figurinhas como
+                      Vai marcar as <span className="font-display font-black tracking-tight text-white">{detail.stickerCount}</span> figurinhas como
                       removidas (soft-delete). Histórico fica preservado mas
                       o usuário perde acesso até recoletar.
                     </p>
@@ -435,14 +451,14 @@ function UserDetailDrawer({
                       <button
                         onClick={() => setConfirmWipe(false)}
                         disabled={wiping}
-                        className="flex-1 py-2 rounded-lg bg-white/5 text-white/60 text-[12px] font-bold disabled:opacity-50"
+                        className="flex-1 py-2 rounded-lg bg-white/5 text-white/60 text-[10px] font-mono font-bold tracking-widest uppercase disabled:opacity-50"
                       >
                         Cancelar
                       </button>
                       <button
                         onClick={handleWipe}
                         disabled={wiping}
-                        className="flex-1 py-2 rounded-lg bg-red-500 text-white text-[12px] font-black disabled:opacity-50"
+                        className="flex-1 py-2 rounded-lg bg-red-500 text-white text-[10px] font-mono font-black tracking-widest uppercase disabled:opacity-50"
                       >
                         {wiping ? 'Apagando…' : 'Confirmar'}
                       </button>
@@ -458,13 +474,19 @@ function UserDetailDrawer({
   )
 }
 
-function MiniStat({ label, value }: { label: string; value: number }) {
+function MiniStat({ label, value, accent }: { label: string; value: number; accent: string }) {
   return (
-    <div className="rounded-xl bg-white/5 border border-white/5 p-2 text-center">
-      <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+    <div
+      className="rounded-xl border border-white/5 p-2.5 text-center corner-cut corner-cut-sm"
+      style={{
+        background: `linear-gradient(145deg, ${accent}10 0%, var(--copa-card) 100%)`,
+        ['--cut-accent' as string]: `${accent}88`,
+      } as React.CSSProperties}
+    >
+      <p className="text-[9px] font-mono tracking-widest uppercase text-white/40">
         {label}
       </p>
-      <p className="text-lg font-black text-white mt-0.5">
+      <p className="text-lg font-display font-black tracking-tight leading-none mt-1" style={{ color: accent }}>
         {value.toLocaleString('pt-BR')}
       </p>
     </div>
