@@ -108,7 +108,7 @@ export function AccountChoiceModal() {
                     <span className="font-display font-black tracking-tight text-white">
                       {localSize} figurinha{localSize === 1 ? '' : 's'}
                     </span>{' '}
-                    neste dispositivo de outra conta Google. Pra evitar misturar
+                    neste dispositivo de outra conta. Pra evitar misturar
                     coleções, escolha como continuar:
                   </>
                 ) : (

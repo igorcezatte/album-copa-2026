@@ -11,6 +11,7 @@ import { useHydrated } from '@/hooks/useHydrated'
 import { useShallow } from 'zustand/react/shallow'
 import { BackupSection } from '@/components/BackupSection'
 import { HistorySection } from '@/components/HistorySection'
+import { LocalAuthForm } from '@/components/LocalAuthForm'
 import { saveSnapshot, clearLastUserId } from '@/utils/localBackup'
 import { clearVersions } from '@/utils/versions'
 
@@ -27,6 +28,7 @@ export default function ConfigPage() {
   const [confirmText, setConfirmText] = useState('')
   const [step, setStep] = useState<'idle' | 'confirm' | 'done'>('idle')
   const [resetting, setResetting] = useState(false)
+  const [showLocalAuth, setShowLocalAuth] = useState(false)
 
   const canConfirm = confirmText === CONFIRM_PHRASE
 
@@ -115,23 +117,64 @@ export default function ConfigPage() {
               </button>
             </>
           ) : (
-            <button
-              onClick={() => signIn('google', { callbackUrl: '/config' })}
-              className="w-full flex items-center gap-3 p-4 active:bg-white/5 transition-colors"
-            >
-              <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center">
-                <svg className="w-4 h-4 text-white/40" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.908 8.908 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z"/>
-                </svg>
-              </div>
-              <div className="flex-1 text-left">
-                <p className="text-sm font-display font-bold tracking-wide uppercase text-white">Entrar com Google</p>
-                <p className="text-[10px] font-mono tracking-wider text-white/40 mt-0.5">Sincronize em qualquer dispositivo</p>
-              </div>
-              <svg className="w-4 h-4 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+            <>
+              <button
+                onClick={() => signIn('google', { callbackUrl: '/config' })}
+                className="w-full flex items-center gap-3 p-4 active:bg-white/5 transition-colors border-b border-white/5"
+              >
+                <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white/40" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.908 8.908 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z"/>
+                  </svg>
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-display font-bold tracking-wide uppercase text-white">Entrar com Google</p>
+                  <p className="text-[10px] font-mono tracking-wider text-white/40 mt-0.5">Sincronize em qualquer dispositivo</p>
+                </div>
+                <span className="text-[9px] font-mono font-black tracking-widest uppercase bg-copa-gold/15 text-copa-gold px-2 py-1 rounded-full whitespace-nowrap">
+                  Recom.
+                </span>
+              </button>
+
+              {!showLocalAuth ? (
+                <button
+                  onClick={() => setShowLocalAuth(true)}
+                  className="w-full flex items-center gap-3 p-4 active:bg-white/5 transition-colors"
+                >
+                  <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-display font-bold tracking-wide uppercase text-white">Apelido e senha</p>
+                    <p className="text-[10px] font-mono tracking-wider text-white/40 mt-0.5">Sem email · sem recuperação</p>
+                  </div>
+                  <svg className="w-4 h-4 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              ) : (
+                <div className="p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-mono font-black tracking-widest uppercase text-white/40">
+                      Apelido e senha
+                    </p>
+                    <button
+                      onClick={() => setShowLocalAuth(false)}
+                      className="text-[10px] font-mono font-bold tracking-widest uppercase text-white/40 hover:text-white/70"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                  <LocalAuthForm
+                    variant="inline"
+                    initialTab="signup"
+                    onSuccess={() => setShowLocalAuth(false)}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

@@ -40,7 +40,7 @@ Isso demonstra como ferramentas de IA generativa podem acelerar significativamen
 | 🎴 **Confete + fanfarra** | Celebração ao completar uma seleção |
 | 🔊 **Sons** | Pop ao coletar, fanfarra ao completar (toggle on/off) |
 | 📱 **PWA** | Instalável no celular como app nativo (manifest + ícones) |
-| ☁️ **Sync na nuvem** | Login Google opcional — dados sincronizados entre dispositivos |
+| ☁️ **Sync na nuvem** | Login Google ou apelido+senha (opcional) — dados sincronizados entre dispositivos |
 | 🌗 **Temas** | Pro (escuro) e Light (claro) com persistência local |
 
 ---
@@ -56,7 +56,7 @@ Isso demonstra como ferramentas de IA generativa podem acelerar significativamen
 
 ### Backend & Infraestrutura
 - **[Next.js API Routes](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)** — endpoints serverless para sync do álbum
-- **[NextAuth.js](https://next-auth.js.org/)** — autenticação com Google OAuth (JWT strategy)
+- **[NextAuth.js](https://next-auth.js.org/)** — autenticação com Google OAuth + Credentials (apelido+senha via `bcryptjs`), JWT strategy
 - **[Supabase](https://supabase.com/)** — PostgreSQL com API REST auto-gerada
 - **[Vercel](https://vercel.com/)** — deploy contínuo a partir do GitHub
 
@@ -89,7 +89,11 @@ Fonte: [CNN Brasil — lista completa do álbum](https://www.cnnbrasil.com.br/es
 O Zustand com `persist` mantém o estado no `localStorage` sob a chave `copa26-album-v1`. A estrutura é um simples `Record<stickerId, { quantity: number }>`, onde `stickerId` segue o formato `{TEAM_CODE}_{NUMBER}` (ex: `BRA_3`, `FWC_1`, `CC_14`).
 
 ### Autenticação e sync (opcional)
-Login é **estritamente opcional** — a aplicação funciona 100% sem conta. Ao fazer login com Google:
+Login é **estritamente opcional** — a aplicação funciona 100% sem conta. Dois métodos disponíveis:
+- **Google OAuth** (recomendado) — vincula a uma identidade real; recuperável.
+- **Apelido + senha** — pra quem não tem ou não lembra conta Google. Sem confirmação de email e sem recuperação (perdeu a senha, perdeu o álbum daquela conta). Senha hasheada com `bcryptjs` (10 rounds). Tabela `local_accounts` no Supabase.
+
+Ao fazer login (qualquer método):
 
 1. O hook `useSyncStore` aguarda a hidratação do Zustand (via `persist.onFinishHydration`)
 2. Carrega os dados do Supabase e mescla com o localStorage

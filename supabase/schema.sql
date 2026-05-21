@@ -59,3 +59,27 @@ CREATE INDEX IF NOT EXISTS idx_user_profiles_last_seen
 
 CREATE INDEX IF NOT EXISTS idx_user_profiles_email
   ON user_profiles (email);
+
+-- ─── Contas locais (apelido + senha) ────────────────────────────────
+--
+-- Método de login alternativo ao Google: apelido escolhido pelo usuário +
+-- senha hasheada com bcryptjs. Pensado pra quem não tem ou não lembra a
+-- conta Google. Sem confirmação de email, sem recuperação — "perdeu, perdeu".
+--
+-- O user_id é UUID gerado no banco (não colide com Google sub IDs, que
+-- são numéricos como strings). sticker_entries.user_id é TEXT e aceita
+-- ambos sem alteração.
+--
+-- v4: adiciona local_accounts (idempotente)
+
+CREATE TABLE IF NOT EXISTS local_accounts (
+  user_id        UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  username_lower TEXT        NOT NULL UNIQUE,
+  username       TEXT        NOT NULL,
+  password_hash  TEXT        NOT NULL,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_login_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_local_accounts_username_lower
+  ON local_accounts (username_lower);
