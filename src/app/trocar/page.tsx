@@ -256,7 +256,7 @@ function TrocarContent() {
             </button>
             <div>
               <p className="text-[11px] font-display font-bold tracking-wide uppercase text-white">Regras de categoria</p>
-              <p className="text-[9px] font-mono tracking-wider text-white/40 mt-0.5">Escudo · Seleção · Jogador respeitam a categoria</p>
+              <p className="text-[9px] font-mono tracking-wider text-white/40 mt-0.5">Escudo · Perfilada · Jogador respeitam a categoria</p>
             </div>
           </div>
 

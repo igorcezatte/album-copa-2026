@@ -30,7 +30,7 @@ function players(names: string[]): StickerDef[] {
       label: name,
       type: 'player' as const,
     })),
-    { number: '13', label: 'Seleção', type: 'photo' },
+    { number: '13', label: 'Perfilada', type: 'photo' },
     ...names.slice(11).map((name, i) => ({
       number: String(i + 14),
       label: name,

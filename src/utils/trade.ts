@@ -155,7 +155,7 @@ export function calculateTrades(
 
 export const CATEGORY_META: Record<TradeCategory, { label: string; icon: string; rule: string }> = {
   badge:   { label: 'Escudos',  icon: '🏅', rule: 'Escudo por escudo (brilhante)' },
-  photo:   { label: 'Seleção',  icon: '📸', rule: 'Seleção por seleção (rara)'    },
+  photo:   { label: 'Perfilada', icon: '📸', rule: 'Perfilada por perfilada (rara)' },
   player:  { label: 'Jogadores', icon: '👥', rule: 'Jogador por jogador'            },
   special: { label: 'Especiais', icon: '⭐', rule: 'Especial por especial'          },
 }
