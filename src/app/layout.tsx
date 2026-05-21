@@ -4,6 +4,7 @@ import './globals.css'
 import { NavBar } from '@/components/NavBar'
 import { DesktopHeader } from '@/components/DesktopHeader'
 import { WelcomeModal } from '@/components/WelcomeModal'
+import { InAppBrowserBanner } from '@/components/InAppBrowserBanner'
 import { AuthProvider } from '@/providers/AuthProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
 
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               min-h causa "espaço fantasma" no fim da página em mobile. */}
           <DesktopHeader />
           <div className="max-w-lg md:max-w-6xl mx-auto relative md:pt-16">
+            <InAppBrowserBanner />
             <main className="pb-20 md:pb-12">{children}</main>
             <NavBar />
           </div>
