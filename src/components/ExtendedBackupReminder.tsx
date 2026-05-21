@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useSession, signIn } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useAlbumStore } from '@/store/albumStore'
 import { useShallow } from 'zustand/react/shallow'
 import {
@@ -11,6 +11,7 @@ import {
   getExtendedReminderDismissed,
   dismissExtendedReminder,
 } from '@/utils/syncBanner'
+import { SignInSheet } from './SignInSheet'
 
 /**
  * Lembrete mais visível pro usuário anônimo que já dispensou o banner
@@ -24,6 +25,7 @@ export function ExtendedBackupReminder() {
   const [mounted, setMounted] = useState(false)
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const [reminderDismissed, setReminderDismissed] = useState(true)
+  const [signInOpen, setSignInOpen] = useState(false)
 
   useEffect(() => {
     setBannerDismissed(getBannerDismissed())
@@ -86,10 +88,10 @@ export function ExtendedBackupReminder() {
 
       <div className="space-y-2">
         <button
-          onClick={() => signIn('google', { callbackUrl: '/' })}
+          onClick={() => setSignInOpen(true)}
           className="w-full py-2.5 rounded-xl bg-copa-gold text-black text-[11px] font-mono font-black tracking-widest uppercase active:scale-[0.98] transition-transform"
         >
-          Criar conta grátis com Google
+          Criar conta grátis
         </button>
         <Link
           href="/config"
@@ -105,6 +107,12 @@ export function ExtendedBackupReminder() {
       >
         Não mostrar de novo
       </button>
+
+      <SignInSheet
+        open={signInOpen}
+        onClose={() => setSignInOpen(false)}
+        callbackUrl="/"
+      />
     </div>
   )
 }

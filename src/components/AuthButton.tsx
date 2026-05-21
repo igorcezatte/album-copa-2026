@@ -3,13 +3,15 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
-import { useSession, signIn, signOut } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { SignInSheet } from './SignInSheet'
 
 export function AuthButton({ className }: { className?: string }) {
   const { data: session, status } = useSession()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [signInOpen, setSignInOpen] = useState(false)
 
   if (status === 'loading') {
     return (
@@ -50,20 +52,27 @@ export function AuthButton({ className }: { className?: string }) {
   }
 
   return (
-    <button
-      onClick={() => signIn('google', { callbackUrl: '/' })}
-      className={cn(
-        'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl',
-        'bg-white/5 border border-white/10 text-white/50 text-[10px] font-display font-bold tracking-widest uppercase',
-        'hover:bg-white/10 active:scale-95 transition-all duration-150',
-        className,
-      )}
-    >
-      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none">
-        <path d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.908 8.908 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z" fill="currentColor"/>
-      </svg>
-      Entrar
-    </button>
+    <>
+      <button
+        onClick={() => setSignInOpen(true)}
+        className={cn(
+          'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl',
+          'bg-white/5 border border-white/10 text-white/60 text-[10px] font-display font-bold tracking-widest uppercase',
+          'hover:bg-white/10 active:scale-95 transition-all duration-150',
+          className,
+        )}
+      >
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        Entrar
+      </button>
+      <SignInSheet
+        open={signInOpen}
+        onClose={() => setSignInOpen(false)}
+        callbackUrl="/"
+      />
+    </>
   )
 }
 
