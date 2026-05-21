@@ -56,22 +56,26 @@ export function HistorySection() {
 
   return (
     <section className="mb-6">
-      <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3">
+      <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
+        <span className="font-mono text-white/25" aria-hidden>—</span>
         Histórico
-      </p>
+      </h2>
       <div
-        className="rounded-2xl border border-white/5 overflow-hidden"
-        style={{ background: 'var(--copa-card)' }}
+        className="rounded-2xl border border-white/5 overflow-hidden corner-cut corner-cut-sm"
+        style={{
+          background: 'var(--copa-card)',
+          ['--cut-accent' as string]: 'rgba(255, 255, 255, 0.22)',
+        } as React.CSSProperties}
       >
         {/* Toggle */}
         <button
           onClick={handleToggle}
           disabled={!hydrated}
-          className="w-full p-4 text-sm font-bold text-white text-left active:bg-white/5 transition-colors flex items-center justify-between disabled:opacity-40"
+          className="w-full p-4 text-left active:bg-white/5 transition-colors flex items-center justify-between disabled:opacity-40"
         >
           <span className="flex-1 min-w-0">
-            <span className="block">Versões automáticas</span>
-            <span className="block text-[11px] font-normal text-white/40 mt-0.5 leading-relaxed">
+            <span className="block text-[11px] font-mono font-bold tracking-widest uppercase text-white">Versões automáticas</span>
+            <span className="block text-[11px] font-normal text-white/40 mt-1 leading-relaxed">
               O app salva uma versão da sua coleção a cada 12h ou antes de
               ações que mexem com seus dados. Útil pra voltar atrás.
             </span>
@@ -109,14 +113,14 @@ export function HistorySection() {
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-white">Versão restaurada</p>
-                  <p className="text-[11px] text-white/40">
-                    Suas figurinhas voltaram pro estado escolhido.
+                  <p className="text-sm font-display font-bold tracking-wide uppercase text-white">Versão restaurada</p>
+                  <p className="text-[10px] font-mono tracking-wider text-white/40 mt-0.5">
+                    Suas figurinhas voltaram pro estado escolhido
                   </p>
                 </div>
                 <button
                   onClick={() => setDone(false)}
-                  className="text-[11px] font-bold text-white/40 px-2 py-1"
+                  className="text-[10px] font-mono font-bold tracking-widest uppercase text-white/40 px-2 py-1"
                 >
                   OK
                 </button>
@@ -124,7 +128,7 @@ export function HistorySection() {
             )}
 
             {versions.length === 0 ? (
-              <div className="p-4 text-[11px] text-white/40">
+              <div className="p-4 text-[11px] text-white/40 leading-relaxed">
                 Sem versões salvas ainda. Quando você usar o app por alguns
                 dias ou fizer trocas, elas vão aparecer aqui.
               </div>
@@ -139,10 +143,10 @@ export function HistorySection() {
                       className="w-full text-left flex items-center gap-3 active:opacity-70 transition-opacity"
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-bold text-white truncate">
+                        <p className="text-[12px] font-display font-bold tracking-wide uppercase text-white truncate">
                           {reasonLabel(v.reason)}
                         </p>
-                        <p className="text-[11px] text-white/40 mt-0.5">
+                        <p className="text-[10px] font-mono tracking-wider text-white/40 mt-1">
                           {formatDateTime(v.savedAt)} ·{' '}
                           <span className="font-bold text-white/60">
                             {v.size} figurinha{v.size === 1 ? '' : 's'}
@@ -168,13 +172,13 @@ export function HistorySection() {
 
                     {previewId === v.id && preview && diff && (
                       <div className="mt-3 rounded-xl bg-amber-500/5 border border-amber-500/15 p-3 space-y-2">
-                        <p className="text-[11px] font-bold text-amber-300">
-                          Se restaurar agora:
+                        <p className="text-[10px] font-mono font-black tracking-widest uppercase text-amber-300">
+                          Se restaurar agora
                         </p>
                         <div className="text-[11px] text-white/70 leading-relaxed space-y-0.5">
                           {diff.added.length > 0 && (
                             <p>
-                              <span className="text-red-400 font-bold">
+                              <span className="text-red-400 font-display font-black tracking-tight">
                                 −{diff.added.length}
                               </span>{' '}
                               figurinha{diff.added.length === 1 ? '' : 's'} que
@@ -183,7 +187,7 @@ export function HistorySection() {
                           )}
                           {diff.removed.length > 0 && (
                             <p>
-                              <span className="text-copa-green font-bold">
+                              <span className="font-display font-black tracking-tight" style={{ color: 'var(--copa-field)' }}>
                                 +{diff.removed.length}
                               </span>{' '}
                               figurinha{diff.removed.length === 1 ? '' : 's'}{' '}
@@ -192,7 +196,7 @@ export function HistorySection() {
                           )}
                           {diff.changed.length > 0 && (
                             <p>
-                              <span className="text-amber-300 font-bold">
+                              <span className="text-amber-300 font-display font-black tracking-tight">
                                 {diff.changed.length}
                               </span>{' '}
                               repetida
@@ -203,18 +207,18 @@ export function HistorySection() {
                           {diff.added.length === 0 &&
                             diff.removed.length === 0 &&
                             diff.changed.length === 0 && (
-                              <p className="text-white/40">
-                                Idêntica ao estado atual.
+                              <p className="text-white/40 font-mono tracking-wider uppercase text-[10px]">
+                                Idêntica ao estado atual
                               </p>
                             )}
                         </div>
-                        <p className="text-[10px] text-white/40 leading-relaxed">
+                        <p className="text-[10px] font-mono tracking-wider text-white/40 leading-relaxed">
                           Antes de aplicar, o estado atual será salvo como nova
-                          versão (você pode voltar depois).
+                          versão · você pode voltar depois
                         </p>
                         <button
                           onClick={() => handleRestore(preview)}
-                          className="w-full py-2 rounded-lg bg-copa-gold text-black text-[12px] font-black active:scale-[0.98] transition-transform"
+                          className="w-full py-2 rounded-lg bg-copa-gold text-black text-[10px] font-mono font-black tracking-widest uppercase active:scale-[0.98] transition-transform"
                         >
                           Restaurar
                         </button>
