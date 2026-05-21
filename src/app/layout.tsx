@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Big_Shoulders_Display, Sora, Space_Mono } from 'next/font/google'
 import './globals.css'
 import { NavBar } from '@/components/NavBar'
+import { WelcomeModal } from '@/components/WelcomeModal'
 import { AuthProvider } from '@/providers/AuthProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
 
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="pb-20">{children}</main>
             <NavBar />
           </div>
+          <WelcomeModal />
         </AuthProvider>
         </ThemeProvider>
       </body>
