@@ -127,10 +127,11 @@ export function QuickAddSheet({
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <h2 id="quickadd-title" className="text-base font-black text-white">
+            <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Entrada rápida</p>
+            <h2 id="quickadd-title" className="text-base font-display font-black text-white tracking-tight uppercase leading-none mt-0.5">
               Adicionar várias
             </h2>
-            <p className="text-[11px] text-white/40">{teamName}</p>
+            <p className="text-[10px] font-mono tracking-wider text-white/40 mt-1 truncate">{teamName}</p>
           </div>
           <button
             onClick={onClose}
@@ -180,15 +181,19 @@ export function QuickAddSheet({
           {/* Preview */}
           {total > 0 && (
             <div
-              className="rounded-xl p-3"
-              style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}30` }}
+              className="rounded-xl p-3 corner-cut corner-cut-sm"
+              style={{
+                background: `${accentColor}10`,
+                border: `1px solid ${accentColor}30`,
+                ['--cut-accent' as string]: `${accentColor}88`,
+              } as React.CSSProperties}
             >
-              <p className="text-[13px] font-bold text-white">
-                {total} figurinha{total === 1 ? '' : 's'}
+              <p className="text-xl font-display font-black tracking-tight text-white leading-none">
+                {total} <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-white/40">figurinha{total === 1 ? '' : 's'}</span>
               </p>
-              <p className="text-[11px] text-white/50 mt-0.5">
+              <p className="text-[10px] font-mono tracking-widest uppercase text-white/50 mt-1.5">
                 {novas} nova{novas === 1 ? '' : 's'}
-                {' • '}
+                {' · '}
                 {repetidas} repetida{repetidas === 1 ? '' : 's'}
               </p>
             </div>
@@ -197,7 +202,7 @@ export function QuickAddSheet({
           {/* Erros */}
           {result.errors.length > 0 && (
             <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3">
-              <p className="text-[11px] font-bold text-amber-300 mb-1">
+              <p className="text-[11px] font-mono font-black tracking-widest uppercase text-amber-300 mb-1.5">
                 {result.errors.length === 1
                   ? '1 número ignorado'
                   : `${result.errors.length} números ignorados`}
@@ -220,14 +225,14 @@ export function QuickAddSheet({
         <div className="p-4 flex gap-2 border-t border-white/5">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl bg-white/5 text-white/60 text-sm font-bold active:scale-95 transition-transform"
+            className="flex-1 py-3 rounded-xl bg-white/5 text-white/60 text-[11px] font-mono font-bold tracking-widest uppercase active:scale-95 transition-transform"
           >
             Cancelar
           </button>
           <button
             onClick={handleConfirm}
             disabled={!canConfirm}
-            className="flex-1 py-3 rounded-xl text-sm font-black active:scale-95 transition-all disabled:opacity-30"
+            className="flex-1 py-3 rounded-xl text-[11px] font-mono font-black tracking-widest uppercase active:scale-95 transition-all disabled:opacity-30"
             style={{
               background: canConfirm ? accentColor : 'rgba(255,255,255,0.05)',
               color: canConfirm ? '#000' : 'rgba(255,255,255,0.3)',

@@ -9,6 +9,11 @@
   color-scheme: dark;
   --copa-bg: #060a14;
   --copa-card: #0d1424;
+  --copa-field: #15a065;
+  --copa-grain-opacity: 0.06;
+  /* Linha do corner-cut para cards "neutros" (sem cor do time/grupo).
+     Trocada por uma cor escura no tema light pra continuar visível. */
+  --cut-accent-neutral: rgba(255, 255, 255, 0.22);
 }
 
 /* ── Tema Kids (light) ───────────────────────────────────────── */
@@ -16,6 +21,9 @@
   color-scheme: light;
   --copa-bg: #f5f0e8;
   --copa-card: #ffffff;
+  --copa-field: #0d8466;
+  --copa-grain-opacity: 0.05;
+  --cut-accent-neutral: rgba(26, 26, 46, 0.28);
 }
 
 /* Texto */
@@ -61,10 +69,30 @@
 body {
   background-color: var(--copa-bg);
   color: #f1f5f9;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.25s ease;
+  position: relative;
+}
+
+/* Grain sutil — textura de filme/papel impresso por trás de tudo.
+   SVG inline pra não precisar de asset externo. Pointer-events none
+   pra não atrapalhar nenhuma interação. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: var(--copa-grain-opacity);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 160px 160px;
+  mix-blend-mode: overlay;
+}
+
+[data-theme="light"] body::before {
+  mix-blend-mode: multiply;
 }
 
 [data-theme="light"] body { color: #1a1a2e; }
@@ -106,3 +134,49 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in { animation: fade-in 0.3s ease-out both; }
+
+/* ── Corner-cut: motif geométrico esportivo ──────────────────
+   Recorta o canto top-right em diagonal e renderiza uma linha
+   fina na cor de acento via ::before. A utility lê duas CSS
+   custom properties pra calibrar por card:
+     --cut-size:   tamanho do recorte (default 16px)
+     --cut-accent: cor da linha (default branco translúcido)
+   ────────────────────────────────────────────────────────── */
+.corner-cut {
+  --cut-size: 16px;
+  --cut-border: 1.5px;
+  --cut-accent: var(--cut-accent-neutral);
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--cut-size)) 0,
+    100% var(--cut-size),
+    100% 100%,
+    0 100%
+  );
+  position: relative;
+}
+.corner-cut::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: calc(var(--cut-size) * 1.5);
+  height: calc(var(--cut-size) * 1.5);
+  background: linear-gradient(
+    135deg,
+    transparent calc(50% - var(--cut-border) / 2),
+    var(--cut-accent) calc(50% - var(--cut-border) / 2),
+    var(--cut-accent) calc(50% + var(--cut-border) / 2),
+    transparent calc(50% + var(--cut-border) / 2)
+  );
+  pointer-events: none;
+}
+.corner-cut-sm {
+  --cut-size: 8px;
+}
+.corner-cut-md {
+  --cut-size: 10px;
+}
+.corner-cut-lg {
+  --cut-size: 22px;
+}

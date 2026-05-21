@@ -86,12 +86,16 @@ export function BackupSection() {
 
   return (
     <section className="mb-6">
-      <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3">
+      <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
+        <span className="font-mono text-white/25" aria-hidden>—</span>
         Backup
-      </p>
+      </h2>
       <div
-        className="rounded-2xl border border-white/5 overflow-hidden"
-        style={{ background: 'var(--copa-card)' }}
+        className="rounded-2xl border border-white/5 overflow-hidden corner-cut corner-cut-sm"
+        style={{
+          background: 'var(--copa-card)',
+          ['--cut-accent' as string]: 'var(--cut-accent-neutral)',
+        } as React.CSSProperties}
       >
         {/* Descrição curta */}
         <div className="p-4 border-b border-white/5">
@@ -105,13 +109,13 @@ export function BackupSection() {
         <button
           onClick={handleDownload}
           disabled={downloading || !hydrated || currentCount === 0}
-          className="w-full p-4 text-sm font-bold text-white text-left active:bg-white/5 transition-colors flex items-center justify-between disabled:opacity-40"
+          className="w-full p-4 text-[11px] font-mono font-bold tracking-widest uppercase text-white text-left active:bg-white/5 transition-colors flex items-center justify-between disabled:opacity-40"
         >
           <span>
             {downloading ? 'Gerando arquivo…' : 'Baixar backup'}
             {hydrated && currentCount > 0 && !downloading && (
-              <span className="text-[11px] font-normal text-white/40 ml-2">
-                ({currentCount} figurinha{currentCount === 1 ? '' : 's'})
+              <span className="text-[10px] font-mono font-normal tracking-wider text-white/40 ml-2 normal-case">
+                · {currentCount} figurinha{currentCount === 1 ? '' : 's'}
               </span>
             )}
           </span>
@@ -141,7 +145,7 @@ export function BackupSection() {
         />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-full p-4 text-sm font-bold text-white text-left active:bg-white/5 transition-colors flex items-center justify-between border-t border-white/5"
+          className="w-full p-4 text-[11px] font-mono font-bold tracking-widest uppercase text-white text-left active:bg-white/5 transition-colors flex items-center justify-between border-t border-white/5"
         >
           <span>Restaurar backup…</span>
           <svg
@@ -163,7 +167,7 @@ export function BackupSection() {
         {importState.kind === 'confirm' && (
           <div className="p-4 border-t border-white/5 space-y-3">
             <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3">
-              <p className="text-sm font-bold text-amber-300 mb-1">
+              <p className="text-[11px] font-mono font-black tracking-widest uppercase text-amber-300 mb-1.5">
                 Confirmar restauração
               </p>
               <p className="text-[11px] text-white/60 leading-relaxed">
@@ -179,20 +183,20 @@ export function BackupSection() {
                 </span>
                 .
               </p>
-              <p className="text-[11px] text-white/50 mt-1">
+              <p className="text-[10px] font-mono tracking-wider text-white/50 mt-1.5">
                 Esta ação não pode ser desfeita.
               </p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={handleCancelImport}
-                className="flex-1 py-2.5 rounded-xl bg-white/5 text-white/60 text-sm font-bold active:scale-95 transition-transform"
+                className="flex-1 py-2.5 rounded-xl bg-white/5 text-white/60 text-[10px] font-mono font-bold tracking-widest uppercase active:scale-95 transition-transform"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleConfirmRestore}
-                className="flex-1 py-2.5 rounded-xl bg-copa-gold text-black text-sm font-black active:scale-95 transition-transform"
+                className="flex-1 py-2.5 rounded-xl bg-copa-gold text-black text-[10px] font-mono font-black tracking-widest uppercase active:scale-95 transition-transform"
               >
                 Restaurar
               </button>
@@ -218,7 +222,7 @@ export function BackupSection() {
                 />
               </svg>
               <div className="flex-1 min-w-0">
-                <p className="text-[12px] font-bold text-red-400">
+                <p className="text-[11px] font-mono font-black tracking-widest uppercase text-red-400">
                   Não foi possível restaurar
                 </p>
                 <p className="text-[11px] text-white/50 mt-0.5">
@@ -253,14 +257,14 @@ export function BackupSection() {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white">Backup restaurado</p>
-              <p className="text-[11px] text-white/40">
-                Suas figurinhas foram atualizadas.
+              <p className="text-sm font-display font-bold tracking-wide uppercase text-white">Backup restaurado</p>
+              <p className="text-[10px] font-mono tracking-wider text-white/40 mt-0.5">
+                Suas figurinhas foram atualizadas
               </p>
             </div>
             <button
               onClick={handleCancelImport}
-              className="text-[11px] font-bold text-white/40 px-2 py-1"
+              className="text-[10px] font-mono font-bold tracking-widest uppercase text-white/40 px-2 py-1"
             >
               OK
             </button>

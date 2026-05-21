@@ -90,19 +90,22 @@ export function AccountChoiceModal() {
               )}
             </div>
             <div className="flex-1 min-w-0">
+              <p className={`text-[10px] font-mono tracking-[0.22em] uppercase ${isMismatch ? 'text-red-400/70' : 'text-white/30'}`}>
+                {isMismatch ? 'Atenção' : 'Bem-vindo'}
+              </p>
               <h2
                 id="account-choice-title"
-                className="text-base font-black text-white"
+                className="text-base font-display font-black text-white tracking-tight uppercase leading-none mt-0.5"
               >
                 {isMismatch
                   ? 'Conta diferente detectada'
-                  : 'Bem-vindo à sua conta'}
+                  : 'Sua conta está aqui'}
               </h2>
-              <p className="text-[12px] text-white/50 leading-relaxed mt-1">
+              <p className="text-[12px] text-white/50 leading-relaxed mt-2">
                 {isMismatch ? (
                   <>
                     Encontramos{' '}
-                    <span className="font-bold text-white">
+                    <span className="font-display font-black tracking-tight text-white">
                       {localSize} figurinha{localSize === 1 ? '' : 's'}
                     </span>{' '}
                     neste dispositivo de outra conta Google. Pra evitar misturar
@@ -111,7 +114,7 @@ export function AccountChoiceModal() {
                 ) : (
                   <>
                     Você já tinha{' '}
-                    <span className="font-bold text-white">
+                    <span className="font-display font-black tracking-tight text-white">
                       {localSize} figurinha{localSize === 1 ? '' : 's'}
                     </span>{' '}
                     coletadas neste dispositivo. O que deseja fazer com elas?
@@ -128,21 +131,21 @@ export function AccountChoiceModal() {
           <button
             onClick={() => handle('link-local')}
             disabled={!!busy}
-            className={`w-full p-4 rounded-2xl font-black text-sm active:scale-[0.98] transition-transform disabled:opacity-50 flex items-center justify-between ${
+            className={`w-full p-4 rounded-2xl active:scale-[0.98] transition-transform disabled:opacity-50 flex items-center justify-between ${
               isMismatch
-                ? 'bg-white/5 border border-white/10 text-white text-left'
+                ? 'bg-white/5 border border-white/10 text-left'
                 : 'bg-copa-green text-white'
             }`}
           >
             <span className="flex flex-col items-start text-left">
-              <span>
+              <span className="text-sm font-display font-black tracking-tight uppercase text-white">
                 {isMismatch
                   ? 'Mover essas figurinhas pra esta conta'
                   : 'Vincular figurinhas a esta conta'}
               </span>
               <span
-                className={`text-[10px] font-bold mt-0.5 ${
-                  isMismatch ? 'text-amber-300' : 'text-white/70'
+                className={`text-[10px] font-mono font-bold tracking-wider mt-1 ${
+                  isMismatch ? 'text-amber-300' : 'text-white/80'
                 }`}
               >
                 {isMismatch
@@ -151,8 +154,8 @@ export function AccountChoiceModal() {
               </span>
             </span>
             {!isMismatch && (
-              <span className="text-[10px] bg-white/20 px-2 py-1 rounded-full font-black">
-                {busy === 'link-local' ? '…' : 'RECOMENDADO'}
+              <span className="text-[9px] font-mono font-black tracking-widest uppercase bg-white/20 px-2 py-1 rounded-full">
+                {busy === 'link-local' ? '…' : 'Recom.'}
               </span>
             )}
           </button>
@@ -161,20 +164,20 @@ export function AccountChoiceModal() {
           <button
             onClick={() => handle('start-fresh')}
             disabled={!!busy}
-            className={`w-full p-4 rounded-2xl font-black text-sm active:scale-[0.98] transition-transform disabled:opacity-50 text-left ${
+            className={`w-full p-4 rounded-2xl active:scale-[0.98] transition-transform disabled:opacity-50 text-left ${
               isMismatch
                 ? 'bg-copa-green text-white'
-                : 'bg-white/5 border border-white/10 text-white'
+                : 'bg-white/5 border border-white/10'
             }`}
           >
-            <span className="block">
+            <span className="block text-sm font-display font-black tracking-tight uppercase text-white">
               {isMismatch
                 ? 'Carregar o álbum desta conta'
                 : 'Começar do zero nesta conta'}
             </span>
             <span
-              className={`block text-[11px] font-normal mt-0.5 ${
-                isMismatch ? 'text-white/70' : 'text-white/40'
+              className={`block text-[10px] font-mono tracking-wider mt-1 ${
+                isMismatch ? 'text-white/80' : 'text-white/40'
               }`}
             >
               {isMismatch
@@ -183,8 +186,8 @@ export function AccountChoiceModal() {
               {busy === 'start-fresh' ? ' …' : ''}
             </span>
             {isMismatch && (
-              <span className="inline-block mt-2 text-[10px] bg-white/20 px-2 py-1 rounded-full font-black">
-                {busy === 'start-fresh' ? '…' : 'RECOMENDADO'}
+              <span className="inline-block mt-2 text-[9px] font-mono font-black tracking-widest uppercase bg-white/20 px-2 py-1 rounded-full">
+                {busy === 'start-fresh' ? '…' : 'Recom.'}
               </span>
             )}
           </button>
@@ -194,11 +197,11 @@ export function AccountChoiceModal() {
             <button
               onClick={() => handle('sign-out')}
               disabled={!!busy}
-              className="w-full p-3 rounded-2xl bg-white/5 border border-white/10 text-white/70 font-bold text-sm active:scale-[0.98] transition-transform disabled:opacity-50 text-left"
+              className="w-full p-3 rounded-2xl bg-white/5 border border-white/10 text-left active:scale-[0.98] transition-transform disabled:opacity-50"
             >
-              <span className="block">Sair desta conta</span>
-              <span className="block text-[11px] font-normal text-white/40 mt-0.5">
-                Volta ao modo anônimo, mantém o local intacto
+              <span className="block text-[12px] font-display font-bold tracking-wide uppercase text-white/70">Sair desta conta</span>
+              <span className="block text-[10px] font-mono tracking-wider text-white/40 mt-1">
+                Volta ao modo anônimo · mantém o local intacto
                 {busy === 'sign-out' ? ' …' : ''}
               </span>
             </button>

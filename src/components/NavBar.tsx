@@ -53,7 +53,7 @@ export function NavBar() {
     <>
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-copa-bg/90 backdrop-blur-xl pb-safe">
-        <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
+        <div className="flex justify-around items-center h-16 max-w-lg mx-auto relative">
           {tabs.map((tab) => {
             const active = tab.href === '/' ? path === '/' : path.startsWith(tab.href)
             return (
@@ -61,12 +61,19 @@ export function NavBar() {
                 key={tab.href}
                 href={tab.href}
                 className={cn(
-                  'flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-150',
-                  active ? 'text-copa-gold' : 'text-white/30',
+                  'flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-150 relative',
+                  active ? 'text-copa-gold' : 'text-white/30 hover:text-white/50',
                 )}
               >
+                {/* Marker fino no topo da tab ativa — motif do corner-cut linha */}
+                {active && (
+                  <span
+                    aria-hidden
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-[2px] bg-copa-gold"
+                  />
+                )}
                 {tab.icon(active)}
-                <span className="text-[10px] font-semibold">{tab.label}</span>
+                <span className="text-[10px] font-display font-bold tracking-[0.18em] uppercase">{tab.label}</span>
               </Link>
             )
           })}
@@ -74,16 +81,22 @@ export function NavBar() {
           {/* Search button */}
           <button
             className={cn(
-              'flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-150',
-              searchOpen ? 'text-copa-gold' : 'text-white/30',
+              'flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-150 relative',
+              searchOpen ? 'text-copa-gold' : 'text-white/30 hover:text-white/50',
             )}
             onClick={() => setSearchOpen(true)}
             aria-label="Buscar figurinha"
           >
+            {searchOpen && (
+              <span
+                aria-hidden
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-[2px] bg-copa-gold"
+              />
+            )}
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <span className="text-[10px] font-semibold">Buscar</span>
+            <span className="text-[10px] font-display font-bold tracking-[0.18em] uppercase">Buscar</span>
           </button>
         </div>
       </nav>

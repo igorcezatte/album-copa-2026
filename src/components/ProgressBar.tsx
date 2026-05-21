@@ -25,11 +25,11 @@ export function ProgressBar({
   return (
     <div className={cn('w-full', className)}>
       <div
-        className="w-full rounded-full bg-white/5 overflow-hidden"
+        className="w-full rounded-full bg-white/5 overflow-hidden relative"
         style={{ height: h }}
       >
         <div
-          className="h-full rounded-full transition-all duration-500 ease-out"
+          className="h-full rounded-full transition-all duration-500 ease-out relative overflow-hidden"
           style={{
             width: `${pct}%`,
             background: pct === 100
@@ -37,12 +37,25 @@ export function ProgressBar({
               : `linear-gradient(90deg, ${color}cc, ${color})`,
             boxShadow: pct > 0 ? `0 0 8px ${color}60` : 'none',
           }}
-        />
+        >
+          {/* Faixa de luz que atravessa lentamente — sempre presente no DOM (evita
+              hydration mismatch quando o Zustand persist popula valores no client);
+              opacity controla a visibilidade quando a barra é parcial. */}
+          <span
+            className="absolute inset-y-0 w-1/3 animate-shimmer-slow pointer-events-none motion-reduce:hidden transition-opacity duration-300"
+            style={{
+              background:
+                'linear-gradient(90deg, transparent, rgba(255,255,255,0.35) 50%, transparent)',
+              opacity: pct > 4 && pct < 100 ? 1 : 0,
+            }}
+            aria-hidden
+          />
+        </div>
       </div>
       {showLabel && (
         <div className="flex justify-between mt-1 text-xs text-copa-muted">
-          <span>{value}/{total}</span>
-          <span>{pct}%</span>
+          <span className="font-mono">{value}/{total}</span>
+          <span className="font-mono">{pct}%</span>
         </div>
       )}
     </div>

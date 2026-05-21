@@ -64,22 +64,32 @@ export default function ConfigPage() {
   return (
     <div className="px-4 pt-6 pb-8 animate-fade-in max-w-lg mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
-        <button
-          onClick={() => router.back()}
-          className="text-white/40 active:scale-90 transition-transform"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className="text-xl font-black text-white">Configurações</h1>
-      </div>
+      <button
+        onClick={() => router.back()}
+        className="inline-flex items-center gap-1 text-white/40 text-[11px] font-mono font-bold tracking-widest uppercase mb-4 -ml-1 hover:text-white/60 transition-colors"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Voltar
+      </button>
+      <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Ajustes</p>
+      <h1 className="text-2xl font-display font-black text-white tracking-tight uppercase leading-none mt-0.5">Configurações</h1>
+      <p className="text-[11px] text-white/40 font-mono tracking-wider mt-1 mb-7">Conta · álbum · backup · histórico</p>
 
       {/* Conta */}
       <section className="mb-6">
-        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3">Conta</p>
-        <div className="rounded-2xl border border-white/5 overflow-hidden" style={{ background: 'var(--copa-card)' }}>
+        <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
+          <span className="font-mono text-white/25" aria-hidden>—</span>
+          Conta
+        </h2>
+        <div
+          className="rounded-2xl border border-white/5 overflow-hidden corner-cut corner-cut-sm"
+          style={{
+            background: 'var(--copa-card)',
+            ['--cut-accent' as string]: 'var(--cut-accent-neutral)',
+          } as React.CSSProperties}
+        >
           {session?.user ? (
             <>
               <div className="flex items-center gap-3 p-4 border-b border-white/5">
@@ -87,14 +97,19 @@ export default function ConfigPage() {
                   <Image src={session.user.image} alt="Avatar" width={36} height={36} className="rounded-full" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-white truncate">{session.user.name}</p>
-                  <p className="text-[11px] text-white/40 truncate">{session.user.email}</p>
+                  <p className="text-sm font-display font-bold tracking-wide uppercase text-white truncate">{session.user.name}</p>
+                  <p className="text-[11px] font-mono text-white/40 truncate mt-0.5">{session.user.email}</p>
                 </div>
-                <span className="text-[10px] font-bold text-copa-green bg-copa-green/10 px-2 py-1 rounded-full">Sincronizado</span>
+                <span
+                  className="text-[9px] font-mono font-black tracking-widest uppercase px-2 py-1 rounded-full"
+                  style={{ background: 'rgba(21, 160, 101, 0.12)', color: 'var(--copa-field)' }}
+                >
+                  Sync
+                </span>
               </div>
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
-                className="w-full p-4 text-sm font-bold text-red-400 text-left active:bg-white/5 transition-colors"
+                className="w-full p-4 text-[11px] font-mono font-bold tracking-widest uppercase text-red-400 text-left active:bg-white/5 transition-colors"
               >
                 Sair da conta
               </button>
@@ -110,8 +125,8 @@ export default function ConfigPage() {
                 </svg>
               </div>
               <div className="flex-1 text-left">
-                <p className="text-sm font-bold text-white">Entrar com Google</p>
-                <p className="text-[11px] text-white/40">Sincronize em qualquer dispositivo</p>
+                <p className="text-sm font-display font-bold tracking-wide uppercase text-white">Entrar com Google</p>
+                <p className="text-[10px] font-mono tracking-wider text-white/40 mt-0.5">Sincronize em qualquer dispositivo</p>
               </div>
               <svg className="w-4 h-4 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -123,21 +138,30 @@ export default function ConfigPage() {
 
       {/* Álbum */}
       <section className="mb-6">
-        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3">Álbum</p>
-        <div className="rounded-2xl border border-white/5 overflow-hidden" style={{ background: 'var(--copa-card)' }}>
-          <div className="p-4 border-b border-white/5 flex items-center justify-between">
+        <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
+          <span className="font-mono text-white/25" aria-hidden>—</span>
+          Álbum
+        </h2>
+        <div
+          className="rounded-2xl border border-white/5 overflow-hidden corner-cut corner-cut-md"
+          style={{
+            background: 'var(--copa-card)',
+            ['--cut-accent' as string]: 'rgba(245, 196, 46, 0.45)',
+          } as React.CSSProperties}
+        >
+          <div className="p-4 border-b border-white/5 flex items-end justify-between">
             <div>
-              <p className="text-sm font-bold text-white">Progresso atual</p>
-              <p className="text-[11px] text-white/40">
+              <p className="text-[10px] font-mono tracking-widest uppercase text-white/40">Progresso atual</p>
+              <p className="text-[11px] font-mono tracking-wider text-white/50 mt-1">
                 {hydrated ? `${total.collected} de ${total.total} figurinhas` : '—'}
               </p>
             </div>
-            <span className="text-xl font-black text-copa-gold">
+            <span className="text-3xl font-display font-black tracking-tight leading-none text-copa-gold">
               {hydrated ? `${pct(total.collected, total.total)}%` : '—'}
             </span>
           </div>
           <Link href="/stats" className="flex items-center justify-between p-4 border-b border-white/5 active:bg-white/5 transition-colors">
-            <p className="text-sm font-bold text-white">Ver estatísticas</p>
+            <p className="text-[11px] font-mono font-bold tracking-widest uppercase text-white">Ver estatísticas</p>
             <svg className="w-4 h-4 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
@@ -147,7 +171,7 @@ export default function ConfigPage() {
           {step === 'idle' && (
             <button
               onClick={() => setStep('confirm')}
-              className="w-full p-4 text-sm font-bold text-red-400 text-left active:bg-white/5 transition-colors"
+              className="w-full p-4 text-[11px] font-mono font-bold tracking-widest uppercase text-red-400 text-left active:bg-white/5 transition-colors"
             >
               Remover todas as figurinhas…
             </button>
@@ -156,31 +180,31 @@ export default function ConfigPage() {
           {step === 'confirm' && (
             <div className="p-4 space-y-3">
               <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3">
-                <p className="text-sm font-bold text-red-400 mb-1">Tem certeza absoluta?</p>
+                <p className="text-[11px] font-mono font-black tracking-widest uppercase text-red-400 mb-1">Tem certeza absoluta?</p>
                 <p className="text-[11px] text-white/50 leading-relaxed">
                   Esta ação apaga <span className="font-bold text-white/70">todas</span> as figurinhas do seu álbum e não pode ser desfeita. Para confirmar, digite exatamente:
                 </p>
-                <p className="text-[11px] font-black text-red-400 mt-1 font-mono">{CONFIRM_PHRASE}</p>
+                <p className="text-[12px] font-mono font-black text-red-400 mt-1.5 tracking-widest">{CONFIRM_PHRASE}</p>
               </div>
               <input
                 type="text"
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
                 placeholder="Digite para confirmar…"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/25 outline-none focus:border-red-400/50 font-mono uppercase"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/25 outline-none focus:border-red-400/50 font-mono uppercase tracking-wider"
                 autoFocus
               />
               <div className="flex gap-2">
                 <button
                   onClick={() => { setStep('idle'); setConfirmText('') }}
-                  className="flex-1 py-2.5 rounded-xl bg-white/5 text-white/60 text-sm font-bold active:scale-95 transition-transform"
+                  className="flex-1 py-2.5 rounded-xl bg-white/5 text-white/60 text-[10px] font-mono font-bold tracking-widest uppercase active:scale-95 transition-transform"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleReset}
                   disabled={!canConfirm || resetting}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-bold active:scale-95 transition-all disabled:opacity-30"
+                  className="flex-1 py-2.5 rounded-xl text-[10px] font-mono font-black tracking-widest uppercase active:scale-95 transition-all disabled:opacity-30"
                   style={{ background: canConfirm ? '#ef4444' : undefined, color: canConfirm ? '#fff' : undefined, border: !canConfirm ? '1px solid rgba(239,68,68,0.3)' : undefined }}
                 >
                   {resetting ? 'Removendo…' : 'Remover tudo'}
@@ -197,8 +221,8 @@ export default function ConfigPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-bold text-white">Álbum zerado</p>
-                <p className="text-[11px] text-white/40">Pronto para começar do zero!</p>
+                <p className="text-sm font-display font-bold tracking-wide uppercase text-white">Álbum zerado</p>
+                <p className="text-[10px] font-mono tracking-wider text-white/40 mt-0.5">Pronto para começar do zero</p>
               </div>
             </div>
           )}
@@ -211,12 +235,21 @@ export default function ConfigPage() {
 
       {/* Sobre */}
       <section>
-        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3">Sobre</p>
-        <div className="rounded-2xl border border-white/5 overflow-hidden" style={{ background: 'var(--copa-card)' }}>
+        <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
+          <span className="font-mono text-white/25" aria-hidden>—</span>
+          Sobre
+        </h2>
+        <div
+          className="rounded-2xl border border-white/5 overflow-hidden corner-cut corner-cut-sm"
+          style={{
+            background: 'var(--copa-card)',
+            ['--cut-accent' as string]: 'var(--cut-accent-neutral)',
+          } as React.CSSProperties}
+        >
           <Link href="/sobre" className="flex items-center justify-between p-4 active:bg-white/5 transition-colors">
             <div className="flex items-center gap-3">
               <span className="text-base">☕</span>
-              <p className="text-sm font-bold text-white">Sobre o app e o desenvolvedor</p>
+              <p className="text-[11px] font-mono font-bold tracking-widest uppercase text-white">Sobre o app e o dev</p>
             </div>
             <svg className="w-4 h-4 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

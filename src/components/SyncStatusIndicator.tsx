@@ -44,7 +44,7 @@ export function SyncStatusIndicator() {
         aria-live="polite"
       >
         <span className="w-2 h-2 rounded-full bg-copa-gold animate-pulse" />
-        <span className="text-[11px] font-bold text-white/70">
+        <span className="text-[11px] font-display font-bold tracking-wider uppercase text-white/70">
           Salvando…
         </span>
       </div>
@@ -60,7 +60,7 @@ export function SyncStatusIndicator() {
       aria-label="Erro ao sincronizar. Toque para recarregar."
     >
       <span className="w-2 h-2 rounded-full bg-red-400" />
-      <span className="text-[11px] font-black text-red-300">
+      <span className="text-[11px] font-display font-black tracking-wider uppercase text-red-300">
         Erro ao salvar · recarregar
       </span>
     </button>

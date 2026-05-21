@@ -170,8 +170,8 @@ export default function ColecaoPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-2 gap-2">
         <div className="min-w-0">
-          <h1 className="text-xl font-black text-white">Minha coleção</h1>
-          <p className="text-[11px] text-white/40 mt-0.5">
+          <h1 className="text-xl font-display font-black text-white tracking-wide uppercase">Minha coleção</h1>
+          <p className="text-[11px] text-white/40 mt-1 font-mono tracking-wider">
             {totalMissing} faltando · {totalDuplicates} repetida
             {totalDuplicates !== 1 ? 's' : ''}
           </p>
@@ -180,7 +180,7 @@ export default function ColecaoPage() {
         {hasContent && (
           <button
             onClick={() => setShareOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-copa-gold/10 text-copa-gold text-xs font-bold active:scale-95 transition-transform flex-shrink-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-copa-gold/10 text-copa-gold text-[11px] font-display font-bold tracking-widest uppercase active:scale-95 transition-transform flex-shrink-0"
             aria-label="Compartilhar coleção"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -196,16 +196,16 @@ export default function ColecaoPage() {
         <button
           onClick={() => setView('faltantes')}
           className={cn(
-            'flex-1 py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-all flex items-center justify-center gap-1.5',
+            'flex-1 py-2.5 rounded-xl text-xs font-display font-bold tracking-widest uppercase active:scale-95 transition-all flex items-center justify-center gap-1.5',
             view === 'faltantes'
               ? 'bg-white text-black'
-              : 'bg-white/5 text-white/50'
+              : 'bg-white/5 text-white/50 hover:text-white/70'
           )}
         >
           Faltantes
           <span
             className={cn(
-              'text-[10px] font-black rounded-full px-1.5 py-0.5',
+              'text-[10px] font-display font-black tracking-tight rounded-full px-1.5 py-0.5',
               view === 'faltantes'
                 ? 'bg-black/10 text-black'
                 : 'bg-white/10 text-white/60'
@@ -217,16 +217,16 @@ export default function ColecaoPage() {
         <button
           onClick={() => setView('repetidas')}
           className={cn(
-            'flex-1 py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-all flex items-center justify-center gap-1.5',
+            'flex-1 py-2.5 rounded-xl text-xs font-display font-bold tracking-widest uppercase active:scale-95 transition-all flex items-center justify-center gap-1.5',
             view === 'repetidas'
               ? 'bg-white text-black'
-              : 'bg-white/5 text-white/50'
+              : 'bg-white/5 text-white/50 hover:text-white/70'
           )}
         >
           Repetidas
           <span
             className={cn(
-              'text-[10px] font-black rounded-full px-1.5 py-0.5',
+              'text-[10px] font-display font-black tracking-tight rounded-full px-1.5 py-0.5',
               view === 'repetidas'
                 ? 'bg-black/10 text-black'
                 : 'bg-white/10 text-white/60'
@@ -273,7 +273,7 @@ function FaltantesView({ teamsWithMissing, totalMissing }: FaltantesViewProps) {
     return (
       <div className="text-center py-16">
         <div className="text-6xl mb-4">🏆</div>
-        <p className="text-white/60 font-bold">Álbum completo!</p>
+        <p className="text-white/60 font-display font-black tracking-wide uppercase">Álbum completo!</p>
       </div>
     )
   }
@@ -281,37 +281,38 @@ function FaltantesView({ teamsWithMissing, totalMissing }: FaltantesViewProps) {
   return (
     <div className="space-y-3">
       {teamsWithMissing.map(({ team, missing }) => (
-        <Link key={team.code} href={`/selecao/${team.code.toLowerCase()}`}>
+        <Link key={team.code} href={`/selecao/${team.code.toLowerCase()}`} className="block group">
           <div
-            className="rounded-2xl p-4 border border-white/5 active:scale-95 transition-transform"
+            className="rounded-2xl p-4 border border-white/5 active:scale-95 group-hover:-translate-y-0.5 transition-all duration-200 corner-cut corner-cut-md"
             style={{
               background: `linear-gradient(145deg, ${team.primaryColor}15 0%, var(--copa-card) 100%)`,
-            }}
+              ['--cut-accent' as string]: `${GROUP_COLORS[team.group]}a0`,
+            } as React.CSSProperties}
           >
             <div className="flex items-center gap-3 mb-2">
               <Flag code={team.flagCode} size="sm" />
               <div className="flex-1">
-                <p className="font-bold text-sm text-white">{team.name}</p>
-                <p className="text-[10px] text-white/40">
+                <p className="font-display font-bold text-sm text-white tracking-wide uppercase">{team.name}</p>
+                <p className="text-[10px] text-white/40 mt-0.5">
                   <span
-                    className="font-bold"
+                    className="font-mono tracking-widest uppercase"
                     style={{ color: GROUP_COLORS[team.group] }}
                   >
                     Grupo {team.group}
                   </span>
                 </p>
               </div>
-              <span className="text-xs font-black text-red-400 bg-red-400/10 px-2 py-1 rounded-full">
-                -{missing.length}
+              <span className="text-xs font-display font-black tracking-tight text-red-400 bg-red-400/10 px-2 py-1 rounded-full">
+                −{missing.length}
               </span>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {missing.map((num) => (
                 <span
                   key={num}
-                  className="text-[10px] font-bold text-white/50 bg-white/5 rounded px-1.5 py-0.5 font-mono"
+                  className="text-[10px] font-mono font-bold tracking-wider text-white/50 bg-white/5 rounded px-1.5 py-0.5"
                 >
-                  {num}
+                  {num.padStart(2, '0')}
                 </span>
               ))}
             </div>
@@ -337,8 +338,8 @@ function RepetidasView({
     return (
       <div className="text-center py-16">
         <div className="text-6xl mb-4">✨</div>
-        <p className="text-white/60 font-bold">Sem repetidas</p>
-        <p className="text-white/30 text-sm mt-1">
+        <p className="text-white/60 font-display font-black tracking-wide uppercase">Sem repetidas</p>
+        <p className="text-white/30 text-xs mt-2 font-mono tracking-wider">
           Suas repetidas aparecerão aqui
         </p>
       </div>
@@ -350,7 +351,7 @@ function RepetidasView({
       <div className="flex justify-end mb-3">
         <Link
           href="/trocar"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-copa-gold/10 text-copa-gold text-[11px] font-bold active:scale-95 transition-transform"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-copa-gold/10 text-copa-gold text-[11px] font-display font-bold tracking-widest uppercase active:scale-95 transition-transform"
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path
@@ -370,33 +371,36 @@ function RepetidasView({
           return (
             <div
               key={id}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 border border-white/5"
+              className="flex items-center gap-3 rounded-xl px-4 py-3 border border-white/5 corner-cut corner-cut-md"
               style={{
                 background: `linear-gradient(145deg, ${team.primaryColor}10 0%, var(--copa-card) 100%)`,
-              }}
+                ['--cut-accent' as string]: `${team.primaryColor}90`,
+              } as React.CSSProperties}
             >
               <Flag code={team.flagCode} size="xs" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-white truncate">
+                <p className="text-sm font-display font-bold text-white truncate tracking-wide uppercase">
                   {sticker.label}
                 </p>
-                <p className="text-[10px] text-white/40">
-                  {team.name} · #{number}
+                <p className="text-[10px] text-white/40 font-mono tracking-wider mt-0.5">
+                  {team.name} · #{number.padStart(2, '0')}
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  className="w-7 h-7 rounded-full bg-white/10 text-white font-bold text-sm flex items-center justify-center active:scale-90 transition-transform"
+                  className="w-7 h-7 rounded-full bg-white/10 text-white font-display font-black text-base flex items-center justify-center active:scale-90 transition-transform"
                   onClick={() => removeDuplicate(id)}
+                  aria-label="Remover uma repetida"
                 >
                   −
                 </button>
-                <span className="text-copa-gold font-black text-sm w-4 text-center">
+                <span className="text-copa-gold font-display font-black text-base tracking-tight w-5 text-center">
                   {quantity}
                 </span>
                 <button
-                  className="w-7 h-7 rounded-full bg-copa-gold/20 text-copa-gold font-bold text-sm flex items-center justify-center active:scale-90 transition-transform"
+                  className="w-7 h-7 rounded-full bg-copa-gold/20 text-copa-gold font-display font-black text-base flex items-center justify-center active:scale-90 transition-transform"
                   onClick={() => addDuplicate(id)}
+                  aria-label="Adicionar uma repetida"
                 >
                   +
                 </button>

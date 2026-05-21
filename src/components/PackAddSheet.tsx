@@ -110,12 +110,11 @@ export function PackAddSheet({ open, onClose }: Props) {
             ⚡
           </div>
           <div className="flex-1 min-w-0">
-            <h2 id="packadd-title" className="text-base font-black text-white">
+            <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Pacotinho</p>
+            <h2 id="packadd-title" className="text-base font-display font-black text-white tracking-tight uppercase leading-none mt-0.5">
               Adicionar rapidamente
             </h2>
-            <p className="text-[11px] text-white/40">
-              Várias figurinhas de uma vez
-            </p>
+            <p className="text-[10px] font-mono tracking-wider text-white/40 mt-1">Várias figurinhas de uma vez</p>
           </div>
           <button
             onClick={onClose}
@@ -159,13 +158,16 @@ export function PackAddSheet({ open, onClose }: Props) {
 
           {/* Preview agrupado por time */}
           {total > 0 && (
-            <div className="rounded-xl bg-copa-gold/5 border border-copa-gold/20 p-3 space-y-2">
+            <div
+              className="rounded-xl bg-copa-gold/5 border border-copa-gold/20 p-3 space-y-2 corner-cut corner-cut-sm"
+              style={{ ['--cut-accent' as string]: 'rgba(245, 196, 46, 0.5)' } as React.CSSProperties}
+            >
               <div className="flex items-baseline justify-between">
-                <p className="text-[13px] font-bold text-white">
-                  {total} figurinha{total === 1 ? '' : 's'}
+                <p className="text-xl font-display font-black tracking-tight text-white leading-none">
+                  {total} <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-white/40">figurinha{total === 1 ? '' : 's'}</span>
                 </p>
-                <p className="text-[11px] text-white/50">
-                  {novas} nova{novas === 1 ? '' : 's'} · {repetidas} rep.
+                <p className="text-[10px] font-mono tracking-widest uppercase text-white/50">
+                  {novas} nova{novas === 1 ? '' : 's'} · {repetidas} rep
                 </p>
               </div>
               <div className="space-y-1 max-h-32 overflow-y-auto">
@@ -174,19 +176,19 @@ export function PackAddSheet({ open, onClose }: Props) {
                     key={code}
                     className="text-[11px] flex items-baseline gap-2"
                   >
-                    <span className="font-mono font-bold text-copa-gold w-10 flex-shrink-0">
+                    <span className="font-mono font-black tracking-wider text-copa-gold w-10 flex-shrink-0">
                       {code}
                     </span>
-                    <span className="text-white/60 truncate flex-1">
+                    <span className="text-white/60 truncate flex-1 font-mono">
                       #{nums.join(', #')}
                     </span>
-                    <span className="text-white/30 font-mono">
+                    <span className="text-white/30 font-mono tracking-wider">
                       ({nums.length})
                     </span>
                   </div>
                 ))}
               </div>
-              <p className="text-[10px] text-white/30 mt-1 truncate">
+              <p className="text-[10px] font-mono tracking-wider text-white/30 mt-1 truncate uppercase">
                 {Array.from(byTeam.keys())
                   .map((c) => NAME_BY_CODE[c] ?? c)
                   .join(' · ')}
@@ -197,7 +199,7 @@ export function PackAddSheet({ open, onClose }: Props) {
           {/* Erros */}
           {result.errors.length > 0 && (
             <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3">
-              <p className="text-[11px] font-bold text-amber-300 mb-1">
+              <p className="text-[11px] font-mono font-black tracking-widest uppercase text-amber-300 mb-1.5">
                 {result.errors.length === 1
                   ? '1 entrada ignorada'
                   : `${result.errors.length} entradas ignoradas`}
@@ -217,7 +219,7 @@ export function PackAddSheet({ open, onClose }: Props) {
 
           {total === 0 && result.errors.length === 0 && input.trim() === '' && (
             <div className="rounded-xl bg-white/3 border border-white/5 p-3">
-              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">
+              <p className="text-[10px] font-mono font-bold tracking-widest uppercase text-white/40 mb-2">
                 Exemplos que funcionam
               </p>
               <ul className="text-[11px] text-white/50 space-y-1 font-mono">
@@ -234,14 +236,14 @@ export function PackAddSheet({ open, onClose }: Props) {
         <div className="p-4 flex gap-2 border-t border-white/5 flex-shrink-0">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl bg-white/5 text-white/60 text-sm font-bold active:scale-95 transition-transform"
+            className="flex-1 py-3 rounded-xl bg-white/5 text-white/60 text-[11px] font-mono font-bold tracking-widest uppercase active:scale-95 transition-transform"
           >
             Cancelar
           </button>
           <button
             onClick={handleConfirm}
             disabled={!canConfirm}
-            className="flex-1 py-3 rounded-xl bg-copa-gold text-black text-sm font-black active:scale-95 transition-all disabled:opacity-30 disabled:bg-white/5 disabled:text-white/30"
+            className="flex-1 py-3 rounded-xl bg-copa-gold text-black text-[11px] font-mono font-black tracking-widest uppercase active:scale-95 transition-all disabled:opacity-30 disabled:bg-white/5 disabled:text-white/30"
           >
             {canConfirm ? `Adicionar ${total}` : 'Adicionar'}
           </button>
