@@ -27,45 +27,61 @@ export default function SobrePage() {
   return (
     <div className="px-4 pt-6 pb-10 animate-fade-in max-w-lg mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
-        <button
-          onClick={() => router.back()}
-          className="text-white/40 active:scale-90 transition-transform"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className="text-xl font-black text-white">Sobre</h1>
-      </div>
+      <button
+        onClick={() => router.back()}
+        className="inline-flex items-center gap-1 text-white/40 text-[11px] font-mono font-bold tracking-widest uppercase mb-4 -ml-1 hover:text-white/60 transition-colors"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Voltar
+      </button>
+      <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Institucional</p>
+      <h1 className="text-2xl font-display font-black text-white tracking-tight uppercase leading-none mt-0.5">Sobre</h1>
+      <p className="text-[11px] text-white/40 font-mono tracking-wider mt-1 mb-7">Quem fez · por que existe · como apoiar</p>
 
       {/* Sobre o app */}
-      <section className="mb-8">
-        <div className="rounded-2xl border border-white/5 p-5 space-y-3" style={{ background: 'var(--copa-card)' }}>
-          <div className="flex items-center gap-2">
+      <section className="mb-7">
+        <div
+          className="rounded-2xl border border-white/5 p-5 space-y-3 corner-cut corner-cut-md"
+          style={{
+            background: 'var(--copa-card)',
+            ['--cut-accent' as string]: 'rgba(245, 196, 46, 0.45)',
+          } as React.CSSProperties}
+        >
+          <div className="flex items-center gap-3">
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm"
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
               style={{ background: 'linear-gradient(135deg, #f5c42e, #d4a017)' }}
             >
-              <span className="text-black">26</span>
+              <span className="text-black font-display font-black text-sm tracking-tight">26</span>
             </div>
             <div>
-              <p className="text-sm font-black text-white leading-none">Álbum Copa 2026</p>
-              <p className="text-[10px] text-white/40">FIFA World Cup</p>
+              <p className="text-base font-display font-black text-white tracking-tight uppercase leading-none">Álbum Copa 2026</p>
+              <p className="text-[10px] font-mono tracking-widest uppercase text-white/40 mt-1">FIFA World Cup</p>
             </div>
           </div>
           <p className="text-[13px] text-white/60 leading-relaxed">
             Controle suas figurinhas da Copa do Mundo 2026 de forma simples e divertida.
             Marque as que você tem, gerencie repetidas, veja o progresso por grupo e compartilhe sua lista atualizada com amigos.
           </p>
-          <p className="text-[11px] text-white/30">994 figurinhas · 48 seleções · 12 grupos</p>
+          <p className="text-[10px] font-mono tracking-widest uppercase text-white/30">994 figurinhas · 48 seleções · 12 grupos</p>
         </div>
       </section>
 
       {/* Sobre o dev */}
-      <section className="mb-8">
-        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3">Desenvolvedor</p>
-        <div className="rounded-2xl border border-white/5 p-5" style={{ background: 'var(--copa-card)' }}>
+      <section className="mb-7">
+        <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
+          <span className="font-mono text-white/25" aria-hidden>—</span>
+          Desenvolvedor
+        </h2>
+        <div
+          className="rounded-2xl border border-white/5 p-5 corner-cut corner-cut-sm"
+          style={{
+            background: 'var(--copa-card)',
+            ['--cut-accent' as string]: 'rgba(255, 255, 255, 0.22)',
+          } as React.CSSProperties}
+        >
           <div className="flex items-center gap-4 mb-4">
             <Image
               src="https://github.com/igorcezatte.png"
@@ -75,13 +91,13 @@ export default function SobrePage() {
               className="rounded-full ring-2 ring-white/10"
             />
             <div>
-              <p className="text-sm font-black text-white">Igor Cezatte</p>
-              <p className="text-[11px] text-white/50">Engenheiro de Computação</p>
+              <p className="text-base font-display font-black text-white tracking-tight uppercase leading-none">Igor Cezatte</p>
+              <p className="text-[10px] font-mono tracking-widest uppercase text-white/50 mt-1.5">Eng. de Computação</p>
               <a
                 href="https://github.com/igorcezatte"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[11px] text-copa-gold mt-0.5 inline-flex items-center gap-1"
+                className="text-[11px] font-mono tracking-wider text-copa-gold mt-1.5 inline-flex items-center gap-1 hover:text-copa-gold/80 transition-colors"
               >
                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
@@ -100,8 +116,17 @@ export default function SobrePage() {
 
       {/* PIX */}
       <section>
-        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3">🎴 Me pague um pacotinho</p>
-        <div className="rounded-2xl border border-white/5 p-5 space-y-4" style={{ background: 'var(--copa-card)' }}>
+        <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
+          <span className="font-mono text-white/25" aria-hidden>—</span>
+          Me pague um pacotinho
+        </h2>
+        <div
+          className="rounded-2xl border border-white/5 p-5 space-y-4 corner-cut corner-cut-md"
+          style={{
+            background: 'var(--copa-card)',
+            ['--cut-accent' as string]: 'rgba(245, 196, 46, 0.55)',
+          } as React.CSSProperties}
+        >
           <div className="text-[13px] text-white/60 leading-relaxed space-y-2.5">
             <p>Essa aplicação é totalmente gratuita, use o quanto quiser. 💙</p>
             <p>
@@ -115,7 +140,7 @@ export default function SobrePage() {
           </div>
 
           {/* QR Code — clicável: copia o código PIX (Copia e Cola) */}
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-2.5">
             <button
               type="button"
               onClick={handleCopyBrCode}
@@ -135,24 +160,24 @@ export default function SobrePage() {
                   <svg className="w-12 h-12 text-white mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
-                  <p className="text-white font-black text-sm">Código copiado!</p>
+                  <p className="text-white font-display font-black text-sm tracking-tight uppercase">Código copiado!</p>
                 </div>
               )}
             </button>
-            <p className="text-[11px] text-white/50 text-center max-w-[220px] leading-tight">
-              Toque no QR pra copiar o código PIX <span className="text-copa-gold font-bold">(R$ {PIX_SUGGESTED_AMOUNT.toFixed(2).replace('.', ',')} sugerido</span>, você pode editar no app do banco)
+            <p className="text-[10px] font-mono tracking-wider text-white/50 text-center max-w-[260px] leading-snug">
+              Toque no QR pra copiar o código PIX · <span className="text-copa-gold font-bold">R$ {PIX_SUGGESTED_AMOUNT.toFixed(2).replace('.', ',')} sugerido</span>, editável no banco
             </p>
           </div>
 
           {/* Chave PIX */}
           <div className="rounded-xl bg-white/5 border border-white/10 flex items-center gap-3 px-4 py-3">
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-white/40 font-medium mb-0.5">Chave PIX</p>
+              <p className="text-[9px] font-mono tracking-widest uppercase text-white/40 mb-0.5">Chave PIX</p>
               <p className="text-sm font-bold text-white truncate font-mono">{PIX_KEY}</p>
             </div>
             <button
               onClick={handleCopyPix}
-              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-copa-gold/10 text-copa-gold text-[11px] font-bold active:scale-95 transition-transform"
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-copa-gold/10 text-copa-gold text-[10px] font-mono font-bold tracking-widest uppercase active:scale-95 transition-transform"
             >
               {copied ? (
                 <>
