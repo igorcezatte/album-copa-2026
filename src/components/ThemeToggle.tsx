@@ -29,7 +29,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         className,
       )}
       aria-label={isLight ? 'Mudar para tema escuro' : 'Mudar para tema claro'}
-      title={isLight ? 'Tema Light ativo' : 'Tema Pro ativo'}
+      title={isLight ? 'Tema Light ativo' : 'Tema Dark ativo'}
     >
       {isLight ? (
         <>
@@ -43,7 +43,7 @@ export function ThemeToggle({ className }: { className?: string }) {
           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
           </svg>
-          Pro
+          Dark
         </>
       )}
     </button>
