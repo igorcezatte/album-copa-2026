@@ -115,7 +115,7 @@ function TrocarContent() {
   const totalMyNeed  = myProfile ? Object.values(myProfile.need).flat().length : 0
 
   return (
-    <div className="px-4 pt-6 pb-10 animate-fade-in">
+    <div className="px-4 md:px-6 pt-6 pb-10 animate-fade-in md:max-w-4xl md:mx-auto">
       {/* Header */}
       <Link
         href="/colecao"

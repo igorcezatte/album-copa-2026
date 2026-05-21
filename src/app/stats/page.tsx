@@ -33,19 +33,17 @@ export default function StatsPage() {
   const groupStats = computeGroupStats(groupProgressMap)
 
   return (
-    <div className="px-4 pt-6 pb-4 animate-fade-in">
+    <div className="px-4 md:px-6 pt-6 pb-4 animate-fade-in">
       <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Dashboard</p>
       <h1 className="text-2xl font-display font-black text-white tracking-tight uppercase mb-5 mt-0.5">Estatísticas</h1>
 
-      {/* Resumo geral */}
-      <div className="grid grid-cols-3 gap-2 mb-2.5">
-        <StatCard value={total.collected} label="Coletadas" color="#f5c42e" />
-        <StatCard value={total.total - total.collected} label="Faltantes" color="#ef4444" />
-        <StatCard value={totalDuplicates} label="Repetidas" color="#6366f1" />
-      </div>
-      <div className="grid grid-cols-2 gap-2 mb-6">
-        <StatCard value={`${pct(total.collected, total.total)}%`} label="Completo" color="#15a065" />
-        <StatCard value={`${completedCount}/48`} label="Seleções 100%" color="#f5c42e" />
+      {/* Resumo geral — 3+2 em mobile, 5 numa linha em desktop */}
+      <div className="grid grid-cols-6 md:grid-cols-5 gap-2 md:gap-3 mb-6">
+        <StatCard className="col-span-2 md:col-span-1" value={total.collected} label="Coletadas" color="#f5c42e" />
+        <StatCard className="col-span-2 md:col-span-1" value={total.total - total.collected} label="Faltantes" color="#ef4444" />
+        <StatCard className="col-span-2 md:col-span-1" value={totalDuplicates} label="Repetidas" color="#6366f1" />
+        <StatCard className="col-span-3 md:col-span-1" value={`${pct(total.collected, total.total)}%`} label="Completo" color="#15a065" />
+        <StatCard className="col-span-3 md:col-span-1" value={`${completedCount}/48`} label="Seleções 100%" color="#f5c42e" />
       </div>
 
       {/* Progresso por grupo */}
@@ -53,7 +51,7 @@ export default function StatsPage() {
         <span className="font-mono text-white/25" aria-hidden>—</span>
         Por grupo
       </h2>
-      <div className="space-y-2 mb-6">
+      <div className="space-y-2 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-2 md:space-y-0 mb-6">
         {groupStats.map((g) => (
           <div key={g.group} className="flex items-center gap-3">
             <span
@@ -77,7 +75,7 @@ export default function StatsPage() {
         <span className="font-mono text-white/25" aria-hidden>—</span>
         Ranking de seleções
       </h2>
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 md:grid md:grid-cols-2 md:gap-x-4 md:gap-y-1.5 md:space-y-0">
         {sorted.map((team, i) => {
           const percentage = pct(team.collected, team.total)
           const color = GROUP_COLORS[team.group]
@@ -109,10 +107,10 @@ export default function StatsPage() {
   )
 }
 
-function StatCard({ value, label, color }: { value: number | string; label: string; color: string }) {
+function StatCard({ value, label, color, className }: { value: number | string; label: string; color: string; className?: string }) {
   return (
     <div
-      className="rounded-2xl p-3 border border-white/5 text-center corner-cut corner-cut-sm"
+      className={`rounded-2xl p-3 border border-white/5 text-center corner-cut corner-cut-sm ${className ?? ''}`}
       style={{
         background: `linear-gradient(145deg, ${color}15 0%, var(--copa-card) 100%)`,
         ['--cut-accent' as string]: `${color}aa`,

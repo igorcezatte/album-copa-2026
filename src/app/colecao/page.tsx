@@ -166,7 +166,7 @@ export default function ColecaoPage() {
   }
 
   return (
-    <div className="px-4 pt-6 animate-fade-in">
+    <div className="px-4 md:px-6 pt-6 animate-fade-in">
       {/* Header */}
       <div className="flex items-start justify-between mb-2 gap-2">
         <div className="min-w-0">
@@ -192,7 +192,7 @@ export default function ColecaoPage() {
       </div>
 
       {/* Pill switcher */}
-      <div className="flex gap-2 mt-4 mb-5">
+      <div className="flex gap-2 mt-4 mb-5 md:max-w-md">
         <button
           onClick={() => setView('faltantes')}
           className={cn(
@@ -279,7 +279,7 @@ function FaltantesView({ teamsWithMissing, totalMissing }: FaltantesViewProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
       {teamsWithMissing.map(({ team, missing }) => (
         <Link key={team.code} href={`/selecao/${team.code.toLowerCase()}`} className="block group">
           <div
@@ -363,7 +363,7 @@ function RepetidasView({
           Trocar
         </Link>
       </div>
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {duplicates.map(({ id, quantity }) => {
           const { team, sticker, number } = getStickerInfo(id)
           if (!team || !sticker) return null
