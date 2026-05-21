@@ -52,7 +52,7 @@ export function NavBar() {
   return (
     <>
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-copa-bg/90 backdrop-blur-xl pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-copa-bg/90 backdrop-blur-xl pb-safe">
         <div className="flex justify-around items-center h-16 max-w-lg mx-auto relative">
           {tabs.map((tab) => {
             const active = tab.href === '/' ? path === '/' : path.startsWith(tab.href)

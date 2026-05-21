@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Big_Shoulders_Display, Sora, Space_Mono } from 'next/font/google'
 import './globals.css'
 import { NavBar } from '@/components/NavBar'
+import { DesktopHeader } from '@/components/DesktopHeader'
 import { WelcomeModal } from '@/components/WelcomeModal'
 import { AuthProvider } from '@/providers/AuthProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
@@ -49,8 +50,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           {/* Sem min-h aqui: o body já garante altura mínima e empilhar dois
               min-h causa "espaço fantasma" no fim da página em mobile. */}
-          <div className="max-w-lg mx-auto relative">
-            <main className="pb-20">{children}</main>
+          <DesktopHeader />
+          <div className="max-w-lg md:max-w-6xl mx-auto relative md:pt-16">
+            <main className="pb-20 md:pb-12">{children}</main>
             <NavBar />
           </div>
           <WelcomeModal />

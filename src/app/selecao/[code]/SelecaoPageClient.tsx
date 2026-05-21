@@ -100,7 +100,7 @@ export function SelecaoPageClient({ teamCode }: Props) {
             Várias
           </button>
         </div>
-        <div className="grid grid-cols-4 gap-2 pb-4">
+        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-3 pb-4">
           {team.stickers.map((sticker) => (
             <StickerCard
               key={sticker.number}

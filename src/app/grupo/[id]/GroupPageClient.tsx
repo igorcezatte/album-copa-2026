@@ -70,7 +70,7 @@ export function GroupPageClient({ group }: Props) {
         <span className="font-mono text-white/25" aria-hidden>—</span>
         Seleções
       </h2>
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         {teams.map((team) => (
           <TeamCard key={team.code} team={team} />
         ))}

@@ -23,10 +23,11 @@ export default function HomePage() {
   const [packOpen, setPackOpen] = useState(false)
 
   return (
-    <div className="px-4 pt-6 animate-fade-in">
+    <div className="px-4 md:px-6 pt-6 animate-fade-in">
       {/* Hero header */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-1">
+        {/* Logo + ícones — só em mobile (em desktop o DesktopHeader cobre) */}
+        <div className="md:hidden flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
             <div
               className="w-8 h-8 flex items-center justify-center font-display font-black text-base corner-cut corner-cut-sm"
@@ -141,7 +142,7 @@ export default function HomePage() {
       {/* Groups grid */}
       <div className="mb-4">
         <SectionTitle title="Grupos" count="12" />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {GROUPS.map((group) => (
             <GroupCard key={group} group={group} />
           ))}
@@ -151,7 +152,7 @@ export default function HomePage() {
       {/* Special sections */}
       <div className="mb-4">
         <SectionTitle title="Especiais" count="02" />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <SpecialCard code="FWC" label="Copa History" total={19} />
           <SpecialCard code="CC" label="Coca-Cola" total={14} />
         </div>
