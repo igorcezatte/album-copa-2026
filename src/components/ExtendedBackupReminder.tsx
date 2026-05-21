@@ -51,7 +51,8 @@ export function ExtendedBackupReminder() {
 
   return (
     <div
-      className="mx-4 mb-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 animate-fade-in"
+      className="mx-4 mb-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 animate-fade-in corner-cut corner-cut-md"
+      style={{ ['--cut-accent' as string]: 'rgba(252, 211, 77, 0.5)' } as React.CSSProperties}
       role="region"
       aria-label="Lembrete de backup"
     >
@@ -72,10 +73,11 @@ export function ExtendedBackupReminder() {
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[12px] font-bold text-amber-200 leading-tight">
-            Você tem {total.collected} figurinhas sem backup
+          <p className="text-[10px] text-amber-300/80 font-mono tracking-[0.22em] uppercase">Sem backup</p>
+          <p className="text-base font-display font-black tracking-tight uppercase text-amber-200 leading-none mt-0.5">
+            <span className="text-2xl">{total.collected}</span> figurinhas em risco
           </p>
-          <p className="text-[11px] text-white/50 leading-relaxed mt-1">
+          <p className="text-[11px] text-white/50 leading-relaxed mt-2">
             Recomendamos uma destas opções pra não perder o progresso se o
             celular travar, limpar dados ou trocar de aparelho:
           </p>
@@ -85,13 +87,13 @@ export function ExtendedBackupReminder() {
       <div className="space-y-2">
         <button
           onClick={() => signIn('google', { callbackUrl: '/' })}
-          className="w-full py-2.5 rounded-xl bg-copa-gold text-black text-[12px] font-black active:scale-[0.98] transition-transform"
+          className="w-full py-2.5 rounded-xl bg-copa-gold text-black text-[11px] font-mono font-black tracking-widest uppercase active:scale-[0.98] transition-transform"
         >
           Criar conta grátis com Google
         </button>
         <Link
           href="/config"
-          className="block w-full py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-[12px] font-bold text-center active:scale-[0.98] transition-transform"
+          className="block w-full py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-[11px] font-mono font-bold tracking-widest uppercase text-center active:scale-[0.98] transition-transform"
         >
           Baixar backup do álbum
         </Link>
@@ -99,7 +101,7 @@ export function ExtendedBackupReminder() {
 
       <button
         onClick={handleDismiss}
-        className="w-full text-[10px] font-bold text-white/30 mt-3 active:text-white/50 transition-colors"
+        className="w-full text-[10px] font-mono font-bold tracking-widest uppercase text-white/30 mt-3 active:text-white/50 transition-colors"
       >
         Não mostrar de novo
       </button>
