@@ -29,13 +29,13 @@ function ResultRow({ result, onClose }: { result: SearchResult; onClose: () => v
     >
       <Flag code={result.flagCode} size="sm" grayscale={!collected} />
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] text-white/40 font-medium">{result.teamName}</p>
-        <p className={cn('text-sm font-bold truncate', collected ? 'text-white' : 'text-white/50')}>
+        <p className="text-[10px] text-white/40 font-mono tracking-widest uppercase">{result.teamName}</p>
+        <p className={cn('text-sm font-display font-bold tracking-wide uppercase truncate mt-0.5', collected ? 'text-white' : 'text-white/50')}>
           {result.sticker.label}
         </p>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
-        <span className="text-[10px] font-mono text-white/30">#{result.sticker.number}</span>
+        <span className="text-[10px] font-mono font-bold tracking-wider text-white/30">#{result.sticker.number}</span>
         {collected && (
           <div
             className="w-4 h-4 rounded-full flex items-center justify-center"
@@ -85,15 +85,18 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
+        <div className="px-4 pt-3 pb-2">
+          <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase mb-1">Busca</p>
+        </div>
+        <div className="flex items-center gap-3 px-4 pb-3 border-b border-white/5">
           <svg className="w-5 h-5 text-white/30 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
             ref={inputRef}
             type="search"
-            placeholder="Buscar jogador, seleção ou número..."
-            className="flex-1 bg-transparent text-white placeholder-white/25 text-sm outline-none"
+            placeholder="Jogador, seleção ou número…"
+            className="flex-1 bg-transparent text-white placeholder-white/25 text-sm outline-none font-mono"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoComplete="off"
@@ -110,12 +113,12 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
         {/* Results */}
         <div className="overflow-y-auto flex-1">
           {!query && (
-            <p className="text-center text-white/25 text-sm py-10">
+            <p className="text-center text-white/25 text-[11px] font-mono tracking-widest uppercase py-10">
               Digite para buscar figurinhas
             </p>
           )}
           {query && results.length === 0 && (
-            <p className="text-center text-white/25 text-sm py-10">
+            <p className="text-center text-white/25 text-[11px] font-mono tracking-widest uppercase py-10">
               Nenhuma figurinha encontrada
             </p>
           )}
@@ -127,8 +130,8 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
             />
           ))}
           {results.length === 50 && (
-            <p className="text-center text-white/20 text-[10px] py-3">
-              Mostrando os primeiros 50 resultados
+            <p className="text-center text-white/20 text-[10px] font-mono tracking-widest uppercase py-3">
+              Primeiros 50 resultados
             </p>
           )}
         </div>

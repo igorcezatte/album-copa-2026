@@ -77,11 +77,12 @@ export function ShareSheet({ open, onClose, onShare }: Props) {
             📤
           </div>
           <div className="flex-1 min-w-0">
-            <h2 id="sharesheet-title" className="text-base font-black text-white">
+            <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Compartilhar</p>
+            <h2 id="sharesheet-title" className="text-base font-display font-black text-white tracking-tight uppercase leading-none mt-0.5">
               Compartilhar coleção
             </h2>
-            <p className="text-[11px] text-white/40">
-              Escolha o formato que melhor se encaixa
+            <p className="text-[10px] font-mono tracking-wider text-white/40 mt-1">
+              Escolha o formato
             </p>
           </div>
           <button
@@ -105,7 +106,9 @@ export function ShareSheet({ open, onClose, onShare }: Props) {
                 key={opt.format}
                 onClick={() => handle(opt.format)}
                 disabled={!!busy}
-                className="w-full p-4 rounded-2xl flex items-center gap-3 active:scale-[0.98] transition-transform disabled:opacity-50"
+                className={`w-full p-4 rounded-2xl flex items-center gap-3 active:scale-[0.98] transition-transform disabled:opacity-50 ${
+                  opt.highlight ? 'corner-cut corner-cut-sm' : ''
+                }`}
                 style={{
                   background: opt.highlight
                     ? 'rgba(245, 196, 46, 0.08)'
@@ -113,21 +116,22 @@ export function ShareSheet({ open, onClose, onShare }: Props) {
                   border: opt.highlight
                     ? '1px solid rgba(245, 196, 46, 0.3)'
                     : '1px solid rgba(255, 255, 255, 0.05)',
-                }}
+                  ['--cut-accent' as string]: opt.highlight ? 'rgba(245, 196, 46, 0.55)' : undefined,
+                } as React.CSSProperties}
               >
                 <span className="text-2xl" aria-hidden>{opt.icon}</span>
                 <div className="flex-1 min-w-0 text-left">
                   <div className="flex items-center gap-2">
-                    <span className="text-[14px] font-black text-white">
+                    <span className="text-sm font-display font-black tracking-tight uppercase text-white">
                       {opt.label}
                     </span>
                     {opt.highlight && (
-                      <span className="text-[9px] font-black bg-copa-gold text-black px-1.5 py-0.5 rounded-full">
-                        RECOMENDADO
+                      <span className="text-[9px] font-mono font-black tracking-widest uppercase bg-copa-gold text-black px-1.5 py-0.5 rounded-full">
+                        Recomendado
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-white/40 leading-tight mt-0.5">
+                  <p className="text-[10px] font-mono tracking-wider text-white/40 leading-tight mt-1">
                     {opt.subtitle}
                   </p>
                 </div>

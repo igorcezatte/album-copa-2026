@@ -134,24 +134,28 @@ function AccountMenu({ open, onClose }: AccountMenuProps) {
             />
           ) : (
             <div className="w-14 h-14 rounded-full bg-copa-gold/20 flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl font-black text-copa-gold">
+              <span className="text-2xl font-display font-black text-copa-gold">
                 {initial}
               </span>
             </div>
           )}
           <div className="flex-1 min-w-0">
+            <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Conta</p>
             <h2
               id="account-menu-title"
-              className="text-base font-black text-white truncate"
+              className="text-base font-display font-black text-white tracking-tight uppercase truncate leading-none mt-0.5"
             >
               {session.user.name ?? 'Sua conta'}
             </h2>
             {session.user.email && (
-              <p className="text-[12px] text-white/50 truncate mt-0.5">
+              <p className="text-[11px] font-mono text-white/50 truncate mt-1.5">
                 {session.user.email}
               </p>
             )}
-            <p className="inline-block mt-2 text-[10px] font-bold text-copa-green bg-copa-green/10 px-2 py-0.5 rounded-full">
+            <p
+              className="inline-block mt-2 text-[9px] font-mono font-black tracking-widest uppercase px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(21, 160, 101, 0.12)', color: 'var(--copa-field)' }}
+            >
               Sincronizado
             </p>
           </div>
@@ -197,11 +201,11 @@ function AccountMenu({ open, onClose }: AccountMenuProps) {
               </svg>
             </div>
             <div className="flex-1 min-w-0 text-left">
-              <span className="block text-[13px] font-bold text-white">
+              <span className="block text-[12px] font-display font-bold tracking-wide uppercase text-white">
                 Configurações
               </span>
-              <span className="block text-[11px] text-white/40 leading-tight mt-0.5">
-                Backup, histórico e mais
+              <span className="block text-[10px] font-mono tracking-wider text-white/40 leading-tight mt-1">
+                Backup · histórico · mais
               </span>
             </div>
             <svg
@@ -236,10 +240,10 @@ function AccountMenu({ open, onClose }: AccountMenuProps) {
               </svg>
             </div>
             <div className="flex-1 min-w-0 text-left">
-              <span className="block text-[13px] font-bold text-red-400">
+              <span className="block text-[12px] font-display font-bold tracking-wide uppercase text-red-400">
                 {signingOut ? 'Saindo…' : 'Sair da conta'}
               </span>
-              <span className="block text-[11px] text-white/40 leading-tight mt-0.5">
+              <span className="block text-[10px] font-mono tracking-wider text-white/40 leading-tight mt-1">
                 Suas figurinhas continuam neste dispositivo
               </span>
             </div>
