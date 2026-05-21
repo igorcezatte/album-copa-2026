@@ -73,7 +73,7 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
 
   const typeLabel = {
     badge: 'Escudo',
-    photo: 'Perfilada',
+    photo: 'Seleção',
     player: '#' + sticker.number,
     special: 'Especial',
   }[sticker.type]
