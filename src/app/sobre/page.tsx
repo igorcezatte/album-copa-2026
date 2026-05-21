@@ -36,9 +36,7 @@ export default function SobrePage() {
         </svg>
         Voltar
       </button>
-      <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Institucional</p>
-      <h1 className="text-2xl font-display font-black text-white tracking-tight uppercase leading-none mt-0.5">Sobre</h1>
-      <p className="text-[11px] text-white/40 font-mono tracking-wider mt-1 mb-7">Quem fez · por que existe · como apoiar</p>
+      <h1 className="text-2xl font-display font-black text-white tracking-tight uppercase leading-none mb-7">Sobre</h1>
 
       {/* Sobre o app */}
       <section className="mb-7">
@@ -92,7 +90,7 @@ export default function SobrePage() {
             />
             <div>
               <p className="text-base font-display font-black text-white tracking-tight uppercase leading-none">Igor Cezatte</p>
-              <p className="text-[10px] font-mono tracking-widest uppercase text-white/50 mt-1.5">Eng. de Computação</p>
+              <p className="text-[10px] font-mono tracking-widest uppercase text-white/50 mt-1.5">Engenheiro de Computação</p>
               <a
                 href="https://github.com/igorcezatte"
                 target="_blank"
