@@ -44,7 +44,7 @@ export default function StatsPage() {
         <StatCard value={totalDuplicates} label="Repetidas" color="#6366f1" />
       </div>
       <div className="grid grid-cols-2 gap-2 mb-6">
-        <StatCard value={`${pct(total.collected, total.total)}%`} label="Completo" color="var(--copa-field)" />
+        <StatCard value={`${pct(total.collected, total.total)}%`} label="Completo" color="#15a065" />
         <StatCard value={`${completedCount}/48`} label="Seleções 100%" color="#f5c42e" />
       </div>
 
