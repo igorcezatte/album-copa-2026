@@ -71,7 +71,7 @@ export function ConflictModal() {
         <div className="px-5 py-4 grid grid-cols-2 gap-3 border-b border-white/5">
           <div
             className="rounded-2xl bg-white/5 p-3 text-center corner-cut corner-cut-sm"
-            style={{ ['--cut-accent' as string]: 'rgba(255, 255, 255, 0.25)' } as React.CSSProperties}
+            style={{ ['--cut-accent' as string]: 'var(--cut-accent-neutral)' } as React.CSSProperties}
           >
             <p className="text-[9px] font-mono font-bold tracking-widest uppercase text-white/40 mb-1.5">
               Este dispositivo

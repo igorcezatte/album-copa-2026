@@ -11,6 +11,9 @@
   --copa-card: #0d1424;
   --copa-field: #15a065;
   --copa-grain-opacity: 0.06;
+  /* Linha do corner-cut para cards "neutros" (sem cor do time/grupo).
+     Trocada por uma cor escura no tema light pra continuar visível. */
+  --cut-accent-neutral: rgba(255, 255, 255, 0.22);
 }
 
 /* ── Tema Kids (light) ───────────────────────────────────────── */
@@ -20,6 +23,7 @@
   --copa-card: #ffffff;
   --copa-field: #0d8466;
   --copa-grain-opacity: 0.05;
+  --cut-accent-neutral: rgba(26, 26, 46, 0.28);
 }
 
 /* Texto */
@@ -141,7 +145,7 @@ body::before {
 .corner-cut {
   --cut-size: 16px;
   --cut-border: 1.5px;
-  --cut-accent: rgba(255, 255, 255, 0.22);
+  --cut-accent: var(--cut-accent-neutral);
   clip-path: polygon(
     0 0,
     calc(100% - var(--cut-size)) 0,

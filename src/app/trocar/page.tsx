@@ -203,7 +203,7 @@ function TrocarContent() {
             className="rounded-2xl border border-white/5 p-4 corner-cut corner-cut-sm"
             style={{
               background: 'var(--copa-card)',
-              ['--cut-accent' as string]: 'rgba(255, 255, 255, 0.18)',
+              ['--cut-accent' as string]: 'var(--cut-accent-neutral)',
             } as React.CSSProperties}
           >
             <p className="text-[10px] font-mono tracking-wider text-white/40 mb-3 uppercase">Cole o link ou código compartilhado</p>

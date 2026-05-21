@@ -134,7 +134,7 @@ export function AdminClient() {
         className="rounded-2xl border border-white/5 overflow-hidden corner-cut corner-cut-sm"
         style={{
           background: 'var(--copa-card)',
-          ['--cut-accent' as string]: 'rgba(255, 255, 255, 0.22)',
+          ['--cut-accent' as string]: 'var(--cut-accent-neutral)',
         } as React.CSSProperties}
       >
         {usersError && (
