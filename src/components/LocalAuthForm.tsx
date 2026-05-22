@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { signIn } from 'next-auth/react'
 
 type Tab = 'login' | 'signup'
@@ -44,8 +45,14 @@ export function LocalAuthForm({
     'checking' | 'available' | 'taken' | 'invalid' | 'idle'
   >('idle')
   const checkAbortRef = useRef<AbortController | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   const isModal = variant === 'modal'
+
+  // Portal precisa rodar só client-side
+  useEffect(() => {
+    if (isModal) setMounted(true)
+  }, [isModal])
 
   // Reset estado ao trocar de aba
   useEffect(() => {
@@ -361,8 +368,9 @@ export function LocalAuthForm({
   )
 
   if (!isModal) return form
+  if (!mounted) return null
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -404,6 +412,7 @@ export function LocalAuthForm({
         </div>
         <div className="px-5 pb-5">{form}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

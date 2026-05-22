@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { signIn } from 'next-auth/react'
 import { LocalAuthForm } from './LocalAuthForm'
 
@@ -25,6 +26,12 @@ export function SignInSheet({
   callbackUrl = '/',
 }: SignInSheetProps) {
   const [mode, setMode] = useState<'choose' | 'local'>('choose')
+  const [mounted, setMounted] = useState(false)
+
+  // Garante render só client-side (portal precisa de document.body)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Reset pro choose ao reabrir
   useEffect(() => {
@@ -45,9 +52,9 @@ export function SignInSheet({
     signIn('google', { callbackUrl })
   }, [callbackUrl])
 
-  if (!open) return null
+  if (!open || !mounted) return null
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -160,6 +167,7 @@ export function SignInSheet({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
