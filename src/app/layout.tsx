@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Big_Shoulders_Display, Sora, Space_Mono } from 'next/font/google'
 import './globals.css'
+import { Analytics } from '@vercel/analytics/react'
 import { NavBar } from '@/components/NavBar'
 import { DesktopHeader } from '@/components/DesktopHeader'
 import { WelcomeModal } from '@/components/WelcomeModal'
@@ -60,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <WelcomeModal />
         </AuthProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   )
