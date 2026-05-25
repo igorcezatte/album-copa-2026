@@ -359,12 +359,13 @@ export default function ColecaoPage() {
         </button>
       </div>
 
-      {/* Content por view */}
-      {view === 'faltantes' && (
+      {/* Content por view — só renderiza após hidratar pra evitar mismatch
+          (getMissing retorna 20 no SSR, ~16 no client) */}
+      {hydrated && view === 'faltantes' && (
         <FaltantesView teamsWithMissing={teamsWithMissing} totalMissing={totalMissing} />
       )}
 
-      {view === 'repetidas' && (
+      {hydrated && view === 'repetidas' && (
         <RepetidasView
           duplicates={duplicates}
           addDuplicate={addDuplicate}
