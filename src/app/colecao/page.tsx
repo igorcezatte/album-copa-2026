@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { useAlbumStore, stickerId } from '@/store/albumStore'
+import { useHydrated } from '@/hooks/useHydrated'
 import { TEAMS, FWC_SECTION, CC_SECTION, GROUP_COLORS } from '@/data/teams'
 import { Flag } from '@/components/Flag'
 import { ShareSheet, type ShareFormat } from '@/components/ShareSheet'
@@ -11,6 +12,8 @@ import {
   generatePdfBlob,
 } from '@/utils/pdf'
 import { buildShareText, buildTextDuplicates } from '@/utils/shareText'
+import { buildShareImagePayload, requestShareImage } from '@/utils/shareImage'
+import { imageBlobToPdfBlob } from '@/utils/imageToPdf'
 import { cn } from '@/lib/utils'
 
 type View = 'faltantes' | 'repetidas'
@@ -25,10 +28,21 @@ function getStickerInfo(id: string) {
 
 // Web Share com fallback pra download.
 // Pra texto: tenta share via Web Share API; senão, copia pra clipboard.
-async function shareFileOrDownload(file: File, title: string): Promise<void> {
+async function shareFileOrDownload(file: File, title: string, text?: string): Promise<void> {
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    await navigator.share({ title, files: [file] })
-    return
+    try {
+      await navigator.share({ title, text, files: [file] })
+      return
+    } catch (err) {
+      const name = err instanceof Error ? err.name : ''
+      if (name === 'AbortError') return // user cancelou
+      // NotAllowedError = user gesture perdido (ex: imagem demorou e share
+      // foi disparado fora da janela do gesture). Cai pro download.
+      // Outros erros inesperados: também tenta download como ultimo recurso.
+      if (name !== 'NotAllowedError' && name !== 'NotSupportedError') {
+        console.warn('share falhou, caindo pro download:', err)
+      }
+    }
   }
   // fallback: download
   const url = URL.createObjectURL(file)
@@ -40,6 +54,12 @@ async function shareFileOrDownload(file: File, title: string): Promise<void> {
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
 }
+
+// Texto curto pra acompanhar o Stories quando o user escolher
+// um destino que aproveita texto (WhatsApp, Telegram). No Instagram
+// Stories o texto é ignorado e só a imagem vai.
+const STORY_SHARE_TEXT =
+  'Olha minha coleção do álbum Copa 26 🏆 Faça o seu grátis em meualbumcopa26.vercel.app'
 
 async function shareTextOrCopy(text: string, title: string): Promise<void> {
   if (navigator.share) {
@@ -58,6 +78,8 @@ export default function ColecaoPage() {
   const getMissing = useAlbumStore((s) => s.getMissing)
   const isCollected = useAlbumStore((s) => s.isCollected)
   const getTotalProgress = useAlbumStore((s) => s.getTotalProgress)
+  const getTeamProgress = useAlbumStore((s) => s.getTeamProgress)
+  const getSectionProgress = useAlbumStore((s) => s.getSectionProgress)
   const getDuplicatesFn = useAlbumStore((s) => s.getDuplicates)
   const duplicates = useAlbumStore((s) => s.getDuplicates())
   const addDuplicate = useAlbumStore((s) => s.addDuplicate)
@@ -65,6 +87,16 @@ export default function ColecaoPage() {
 
   const [view, setView] = useState<View>('faltantes')
   const [shareOpen, setShareOpen] = useState(false)
+  const hydrated = useHydrated()
+  // Pré-fetch da imagem do share: o blob começa a ser gerado no momento
+  // em que o user clica em "Compartilhar" (gesture A), e quando ele clica
+  // em "Imagem" depois (gesture B) o blob normalmente ja chegou — assim o
+  // navigator.share roda dentro da janela do gesture B. Sem isso, o await
+  // do fetch do Edge perdia o gesture e disparava NotAllowedError.
+  // Refs separadas pra card (PDF) e story (PNG 9:16) — formatos diferentes
+  // disparam endpoints diferentes.
+  const cardPromiseRef = useRef<Promise<Blob> | null>(null)
+  const storyPromiseRef = useRef<Promise<Blob> | null>(null)
 
   // Computa faltantes
   const teamsWithMissing = TEAMS.map((team) => ({
@@ -79,9 +111,70 @@ export default function ColecaoPage() {
   // Repetidas: quantidade total = soma dos extras
   const totalDuplicates = duplicates.reduce((acc, d) => acc + d.quantity, 0)
 
-  const hasContent = totalMissing > 0 || duplicates.length > 0
+  // Antes do Zustand persist hidratar, o store está vazio → todos os
+  // 48*20=960 stickers contam como faltantes. Mostrar 0 nesse intervalo
+  // evita o hydration mismatch entre SSR (960) e client real (e.g. 759).
+  const displayMissing = hydrated ? totalMissing : 0
+  const displayDuplicates = hydrated ? totalDuplicates : 0
+  const hasContent = hydrated && (totalMissing > 0 || duplicates.length > 0)
 
   const totalProgress = getTotalProgress()
+
+  const buildImagePayload = () => {
+    const pdfData = buildPdfDataInputs()
+    const fwcMissing = FWC_SECTION.stickers
+      .filter((s) => !isCollected(stickerId('FWC', s.number)))
+      .map((s) => s.number)
+    const ccMissing = CC_SECTION.stickers
+      .filter((s) => !isCollected(stickerId('CC', s.number)))
+      .map((s) => s.number)
+    return buildShareImagePayload({
+      totalProgress: getTotalProgress(),
+      teams: TEAMS.map((t) => ({
+        code: t.code,
+        name: t.name,
+        flagCode: t.flagCode,
+        primaryColor: t.primaryColor,
+        group: t.group,
+        progress: getTeamProgress(t.code),
+        missing: getMissing(t.code),
+      })),
+      specials: [
+        {
+          code: 'FWC',
+          name: 'Copa History',
+          color: '#f5c42e',
+          progress: getSectionProgress('FWC'),
+          missing: fwcMissing,
+        },
+        {
+          code: 'CC',
+          name: 'Coca-Cola',
+          color: '#e8222a',
+          progress: getSectionProgress('CC'),
+          missing: ccMissing,
+        },
+      ],
+      duplicates: pdfData.duplicatesSection?.entries ?? [],
+    })
+  }
+
+  const handleOpenShare = () => {
+    // Dispara fetch dos 2 formatos de imagem em paralelo. Esse onClick é
+    // gesture válido, então quando o user clica em "Card" ou "Stories" no
+    // sheet, o blob normalmente já chegou e o navigator.share roda dentro
+    // do gesture daquele segundo clique.
+    const payload = buildImagePayload()
+    const cardP = requestShareImage(payload, 'card')
+    const storyP = requestShareImage(payload, 'story')
+    cardPromiseRef.current = cardP
+    storyPromiseRef.current = storyP
+    // Previne unhandled rejection se user escolher outro formato; o erro
+    // ainda é capturado pelo handleShare quando ele faz await dessas mesmas promises.
+    cardP.catch(() => {})
+    storyP.catch(() => {})
+    setShareOpen(true)
+  }
 
   const buildPdfDataInputs = () => {
     const allTeams = TEAMS.map((team) => ({
@@ -152,12 +245,41 @@ export default function ColecaoPage() {
         return
       }
 
-      if (format === 'pdf') {
+      if (format === 'list') {
         const blob = await generatePdfBlob(buildPdfDataInputs())
-        const file = new File([blob], 'colecao-copa2026.pdf', {
+        const file = new File([blob], 'colecao-copa2026-lista.pdf', {
           type: 'application/pdf',
         })
         await shareFileOrDownload(file, 'Álbum Copa 2026 — Minha coleção')
+        return
+      }
+
+      if (format === 'card') {
+        // Gera o PNG (reusa o pre-fetch do handleOpenShare) e embrulha
+        // em PDF de 1 pagina. Motivo: WhatsApp recomprime imagens enviadas
+        // como foto, mas NAO recomprime documentos PDF. Receptor abre o PDF
+        // e ve o card em qualidade original.
+        const blobPromise =
+          cardPromiseRef.current ?? requestShareImage(buildImagePayload(), 'card')
+        const imageBlob = await blobPromise
+        const pdfBlob = await imageBlobToPdfBlob(imageBlob)
+        const file = new File([pdfBlob], 'colecao-copa2026-card.pdf', {
+          type: 'application/pdf',
+        })
+        await shareFileOrDownload(file, 'Álbum Copa 2026 — Minha coleção')
+        return
+      }
+
+      if (format === 'story') {
+        // PNG 9:16 direto (sem PDF wrap). Instagram Stories aceita PNG
+        // diretamente e nao recomprime quando subido da galeria.
+        const blobPromise =
+          storyPromiseRef.current ?? requestShareImage(buildImagePayload(), 'story')
+        const imageBlob = await blobPromise
+        const file = new File([imageBlob], 'colecao-copa2026-story.png', {
+          type: 'image/png',
+        })
+        await shareFileOrDownload(file, 'Álbum Copa 2026 — Minha coleção', STORY_SHARE_TEXT)
         return
       }
     } catch (err) {
@@ -172,14 +294,14 @@ export default function ColecaoPage() {
         <div className="min-w-0">
           <h1 className="text-xl font-display font-black text-white tracking-wide uppercase">Minha coleção</h1>
           <p className="text-[11px] text-white/40 mt-1 font-mono tracking-wider">
-            {totalMissing} faltando · {totalDuplicates} repetida
-            {totalDuplicates !== 1 ? 's' : ''}
+            {displayMissing} faltando · {displayDuplicates} repetida
+            {displayDuplicates !== 1 ? 's' : ''}
           </p>
         </div>
 
         {hasContent && (
           <button
-            onClick={() => setShareOpen(true)}
+            onClick={handleOpenShare}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-copa-gold/10 text-copa-gold text-[11px] font-display font-bold tracking-widest uppercase active:scale-95 transition-transform flex-shrink-0"
             aria-label="Compartilhar coleção"
           >
@@ -211,7 +333,7 @@ export default function ColecaoPage() {
                 : 'bg-white/10 text-white/60'
             )}
           >
-            {totalMissing}
+            {displayMissing}
           </span>
         </button>
         <button
@@ -232,7 +354,7 @@ export default function ColecaoPage() {
                 : 'bg-white/10 text-white/60'
             )}
           >
-            {totalDuplicates}
+            {displayDuplicates}
           </span>
         </button>
       </div>

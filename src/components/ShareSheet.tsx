@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
-export type ShareFormat = 'text' | 'pdf'
+export type ShareFormat = 'card' | 'story' | 'list' | 'text'
 
 interface Props {
   open: boolean
@@ -19,11 +19,23 @@ const OPTIONS: Array<{
   highlight?: boolean
 }> = [
   {
-    format: 'pdf',
-    icon: '📄',
-    label: 'PDF',
-    subtitle: 'Lista completa com bandeiras',
+    format: 'card',
+    icon: '🖼️',
+    label: 'Card',
+    subtitle: 'Imagem em PDF, qualidade máxima',
     highlight: true,
+  },
+  {
+    format: 'story',
+    icon: '📱',
+    label: 'Compartilhar Stories',
+    subtitle: 'Imagem 9:16 da sua coleção',
+  },
+  {
+    format: 'list',
+    icon: '📋',
+    label: 'Lista',
+    subtitle: 'PDF detalhado pra trocas e impressão',
   },
   {
     format: 'text',
