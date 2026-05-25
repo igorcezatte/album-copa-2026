@@ -1,18 +1,21 @@
-// Carrega TTF do Google Fonts pra alimentar o ImageResponse (Satori não
-// aceita woff2). A CSS API legacy (sem User-Agent moderno) retorna TTF.
-// O fetch é cacheado no Edge entre invocações, então só dói no cold start.
+// Fontes bundleadas inline como base64 — sem fetch externo. Antes,
+// loadGoogleFont() fazia 2 fetches em cascata (CSS legacy + TTF) por
+// cold start do Edge runtime do Vercel, totalizando ~20s pra renderizar
+// a primeira imagem. Inline elimina o roundtrip e cai pra <1s.
+//
+// Pra atualizar uma fonte, regerar com:
+//   curl -A "Mozilla/5.0" "https://fonts.googleapis.com/css?family=NAME:WEIGHT"
+//   curl -o NAME-WEIGHT.ttf <url-extraída-do-css>
+//   base64 NAME-WEIGHT.ttf > NAME-WEIGHT.ts (formato deste módulo)
+import { FONT_BASE64 as BIG_SHOULDERS_DISPLAY_900 } from './fonts-data/big-shoulders-display-900'
+import { FONT_BASE64 as SPACE_MONO_700 } from './fonts-data/space-mono-700'
 
-async function loadGoogleFont(family: string, weight: number): Promise<ArrayBuffer> {
-  const familyUrl = family.replace(/ /g, '+')
-  const cssUrl = `https://fonts.googleapis.com/css?family=${familyUrl}:${weight}`
-  const cssRes = await fetch(cssUrl)
-  if (!cssRes.ok) throw new Error(`google fonts css ${cssRes.status} for ${family}`)
-  const css = await cssRes.text()
-  const match = css.match(/url\((https?:\/\/[^)]+\.ttf)\)/)
-  if (!match) throw new Error(`no TTF url in css for ${family}`)
-  const fontRes = await fetch(match[1])
-  if (!fontRes.ok) throw new Error(`google fonts ttf ${fontRes.status} for ${family}`)
-  return await fontRes.arrayBuffer()
+function decodeBase64(b64: string): ArrayBuffer {
+  const bin = atob(b64)
+  const len = bin.length
+  const bytes = new Uint8Array(len)
+  for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i)
+  return bytes.buffer
 }
 
 export interface LoadedFonts {
@@ -20,14 +23,14 @@ export interface LoadedFonts {
   mono: ArrayBuffer
 }
 
-let cached: Promise<LoadedFonts> | null = null
+let cached: LoadedFonts | null = null
 
-export function loadShareFonts(): Promise<LoadedFonts> {
+export function loadShareFonts(): LoadedFonts {
   if (!cached) {
-    cached = Promise.all([
-      loadGoogleFont('Big Shoulders Display', 900),
-      loadGoogleFont('Space Mono', 700),
-    ]).then(([display, mono]) => ({ display, mono }))
+    cached = {
+      display: decodeBase64(BIG_SHOULDERS_DISPLAY_900),
+      mono: decodeBase64(SPACE_MONO_700),
+    }
   }
   return cached
 }

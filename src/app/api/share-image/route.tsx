@@ -51,11 +51,10 @@ export async function POST(req: Request): Promise<Response> {
 
   const format = body.format ?? 'card'
 
-  // Pre-load em paralelo: fontes + todas as bandeiras como data URI.
-  // Sem isso, o Satori dispara fetches sequenciais durante o render.
-  // QR carrega em paralelo só pro story (não precisa pro card).
-  const [fonts, flagMap, qrDataUri] = await Promise.all([
-    loadShareFonts(),
+  // Fontes são síncronas (bundleadas inline). Bandeiras e QR em paralelo
+  // por rede — sem isso, Satori faria fetches sequenciais durante o render.
+  const fonts = loadShareFonts()
+  const [flagMap, qrDataUri] = await Promise.all([
     loadFlags(collectFlagCodes(body)),
     format === 'story' ? loadQrDataUri(APP_URL, { margin: 1 }) : Promise.resolve(''),
   ])

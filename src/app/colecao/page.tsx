@@ -160,19 +160,15 @@ export default function ColecaoPage() {
   }
 
   const handleOpenShare = () => {
-    // Dispara fetch dos 2 formatos de imagem em paralelo. Esse onClick é
-    // gesture válido, então quando o user clica em "Card" ou "Stories" no
-    // sheet, o blob normalmente já chegou e o navigator.share roda dentro
-    // do gesture daquele segundo clique.
-    const payload = buildImagePayload()
-    const cardP = requestShareImage(payload, 'card')
-    const storyP = requestShareImage(payload, 'story')
+    // Pré-fetch APENAS do card (Recomendado) pra reduzir carga no cold
+    // start do Edge — disparar os 2 formatos em paralelo duplicava o
+    // tempo de geração (cada invocação Edge fria carregava fontes/flags
+    // por conta própria). Story busca on-demand quando o user clicar.
+    const cardP = requestShareImage(buildImagePayload(), 'card')
     cardPromiseRef.current = cardP
-    storyPromiseRef.current = storyP
     // Previne unhandled rejection se user escolher outro formato; o erro
-    // ainda é capturado pelo handleShare quando ele faz await dessas mesmas promises.
+    // ainda é capturado pelo handleShare quando ele faz await dessa promise.
     cardP.catch(() => {})
-    storyP.catch(() => {})
     setShareOpen(true)
   }
 
