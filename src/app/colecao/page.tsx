@@ -160,13 +160,19 @@ export default function ColecaoPage() {
   }
 
   const handleOpenShare = () => {
-    // Dispara fetch dos 2 formatos em paralelo. Esse onClick é gesture
-    // válido, então quando o user clica em "Card" ou "Stories" no sheet,
-    // o blob normalmente já chegou e o navigator.share roda dentro do
-    // gesture daquele segundo clique. Edge runtime do Vercel escala
-    // cada request em instância isolada, então 2 paralelas != 2x tempo.
+    // Dispara fetch dos 2 formatos em paralelo no gesture A. Quando user
+    // clica em "Card" ou "Stories" no sheet (gesture B), o blob ideal
+    // já chegou e navigator.share roda dentro da janela do gesture B.
+    // Edge runtime do Vercel escala cada request em instância isolada,
+    // então 2 paralelas != 2x tempo.
+    //
+    // IMPORTANTE: card já chega como PDF final aqui (PNG → wrap PDF em
+    // background). Mover o imageBlobToPdfBlob pro pre-fetch foi crítico
+    // pra iOS Safari — o dynamic import do jspdf + addImage custam
+    // 500ms-1s no gesture B e fazem o gesture expirar (cai no fallback
+    // de download em vez de abrir o share sheet).
     const payload = buildImagePayload()
-    const cardP = requestShareImage(payload, 'card')
+    const cardP = requestShareImage(payload, 'card').then(imageBlobToPdfBlob)
     const storyP = requestShareImage(payload, 'story')
     cardPromiseRef.current = cardP
     storyPromiseRef.current = storyP
@@ -254,14 +260,17 @@ export default function ColecaoPage() {
       }
 
       if (format === 'card') {
-        // Gera o PNG (reusa o pre-fetch do handleOpenShare) e embrulha
-        // em PDF de 1 pagina. Motivo: WhatsApp recomprime imagens enviadas
-        // como foto, mas NAO recomprime documentos PDF. Receptor abre o PDF
-        // e ve o card em qualidade original.
-        const blobPromise =
-          cardPromiseRef.current ?? requestShareImage(buildImagePayload(), 'card')
-        const imageBlob = await blobPromise
-        const pdfBlob = await imageBlobToPdfBlob(imageBlob)
+        // cardPromiseRef já chega como PDF (PNG → wrap PDF foi feito no
+        // pre-fetch do gesture A). Aqui só faz await + navigator.share,
+        // zero processamento que pudesse expirar o gesture.
+        //
+        // Motivo do PDF wrap: WhatsApp recomprime imagens enviadas como
+        // foto (JPEG agressivo que arruina texto pequeno), mas NÃO
+        // recomprime documentos PDF.
+        const pdfPromise =
+          cardPromiseRef.current ??
+          requestShareImage(buildImagePayload(), 'card').then(imageBlobToPdfBlob)
+        const pdfBlob = await pdfPromise
         const file = new File([pdfBlob], 'colecao-copa2026-card.pdf', {
           type: 'application/pdf',
         })
