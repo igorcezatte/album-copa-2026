@@ -195,7 +195,7 @@ export function StoryCard({ data, getFlag, qrDataUri }: Props) {
             letterSpacing: 5,
           }}
         >
-          — 48 SELEÇÕES
+          48 SELEÇÕES
         </span>
         <span
           style={{
@@ -467,17 +467,19 @@ function FlagCell({ team, getFlag }: { team: ShareImageTeam; getFlag: FlagResolv
               justifyContent: 'center',
             }}
           >
-            <span
-              style={{
-                color: '#000000',
-                fontSize: 15,
-                fontWeight: 900,
-                fontFamily: 'BigShouldersDisplay',
-                lineHeight: 1,
-              }}
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#000000"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ display: 'flex' }}
             >
-              ✓
-            </span>
+              <path d="M5 12l5 5L19 7" />
+            </svg>
           </div>
         )}
       </div>

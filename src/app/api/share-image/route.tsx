@@ -39,6 +39,10 @@ function collectFlagCodes(p: ShareImagePayload): string[] {
 }
 
 export async function POST(req: Request): Promise<Response> {
+  const t0 = Date.now()
+  const mark = (label: string, since: number) =>
+    console.log(`[share-image] ${label}: ${Date.now() - since}ms`)
+
   let body: unknown
   try {
     body = await req.json()
@@ -48,16 +52,20 @@ export async function POST(req: Request): Promise<Response> {
   if (!isValidPayload(body)) {
     return new Response('invalid payload', { status: 400 })
   }
+  mark('parse', t0)
 
   const format = body.format ?? 'card'
 
-  // Fontes são síncronas (bundleadas inline). Bandeiras e QR em paralelo
-  // por rede — sem isso, Satori faria fetches sequenciais durante o render.
+  const tFonts = Date.now()
   const fonts = loadShareFonts()
+  mark('fonts', tFonts)
+
+  const tAssets = Date.now()
   const [flagMap, qrDataUri] = await Promise.all([
     loadFlags(collectFlagCodes(body)),
     format === 'story' ? loadQrDataUri(APP_URL, { margin: 1 }) : Promise.resolve(''),
   ])
+  mark('assets(flags+qr)', tAssets)
   const getFlag = makeFlagResolver(flagMap)
 
   const fontDefs = [
@@ -65,27 +73,26 @@ export async function POST(req: Request): Promise<Response> {
     { name: 'SpaceMono', data: fonts.mono, weight: 700 as const, style: 'normal' as const },
   ]
 
+  const tRender = Date.now()
+  let response: Response
   if (format === 'story') {
-    return new ImageResponse(
+    response = new ImageResponse(
       <StoryCard data={body} getFlag={getFlag} qrDataUri={qrDataUri} />,
+      { width: STORY_WIDTH, height: STORY_HEIGHT, fonts: fontDefs, headers: { 'Cache-Control': 'no-store' } }
+    )
+  } else {
+    const baseHeight = estimateCollectionHeight(body)
+    response = new ImageResponse(
+      <CollectionCard data={body} getFlag={getFlag} baseHeight={baseHeight} />,
       {
-        width: STORY_WIDTH,
-        height: STORY_HEIGHT,
+        width: BASE_WIDTH * RENDER_SCALE,
+        height: Math.round(baseHeight * RENDER_SCALE),
         fonts: fontDefs,
         headers: { 'Cache-Control': 'no-store' },
       }
     )
   }
-
-  // Default: card (CollectionCard com altura variável)
-  const baseHeight = estimateCollectionHeight(body)
-  return new ImageResponse(
-    <CollectionCard data={body} getFlag={getFlag} baseHeight={baseHeight} />,
-    {
-      width: BASE_WIDTH * RENDER_SCALE,
-      height: Math.round(baseHeight * RENDER_SCALE),
-      fonts: fontDefs,
-      headers: { 'Cache-Control': 'no-store' },
-    }
-  )
+  mark(`ImageResponse(${format}) ctor`, tRender)
+  mark('TOTAL', t0)
+  return response
 }

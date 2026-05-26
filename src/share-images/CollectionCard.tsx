@@ -17,12 +17,13 @@ const BG_CARD = 'rgba(255,255,255,0.03)'
 const BORDER = 'rgba(255,255,255,0.06)'
 const APP_URL = 'meualbumcopa26.vercel.app'
 
-// Render scale: o card é desenhado em base 1080 (referencial mental do
-// design), depois um wrapper externo escala pra 1.5x via transform.
-// Isso entrega PNG 1620 wide com 1.5x mais pixels por glifo — texto
-// sobrevive melhor à recompressao JPEG do WhatsApp sem precisar mexer
-// em todas as fontes/paddings/heights manualmente.
-export const RENDER_SCALE = 1.5
+// Render scale: o card é desenhado em base 1080 e renderizado nativamente
+// nessa resolução. O 1.5x histórico existia pra proteger texto pequeno da
+// recompressão JPEG do WhatsApp, mas o PDF wrap (imageBlobToPdfBlob)
+// preserva o PNG intacto — WhatsApp não recomprime documentos PDF.
+// Render em 1080 corta ~4x os pixels processados pelo Satori (de ~3.9M
+// pra ~2M), derrubando o tempo de geração de ~5s pra ~1-2s.
+export const RENDER_SCALE = 1
 export const BASE_WIDTH = 1080
 
 // Dimensoes FIXAS (em base 1080) pra alinhar todos os times e grupos uniformemente.
@@ -85,26 +86,16 @@ export function CollectionCard({ data, getFlag, baseHeight }: Props) {
   return (
     <div
       style={{
-        width: BASE_WIDTH * RENDER_SCALE,
-        height: baseHeight * RENDER_SCALE,
+        width: BASE_WIDTH,
+        height: baseHeight,
         background: BG,
         display: 'flex',
+        flexDirection: 'column',
+        padding: 48,
+        fontFamily: 'SpaceMono',
+        color: '#FFFFFF',
       }}
     >
-      <div
-        style={{
-          width: BASE_WIDTH,
-          height: baseHeight,
-          background: BG,
-          display: 'flex',
-          flexDirection: 'column',
-          padding: 48,
-          fontFamily: 'SpaceMono',
-          color: '#FFFFFF',
-          transform: `scale(${RENDER_SCALE})`,
-          transformOrigin: 'top left',
-        }}
-      >
       <Header data={data} pct={pct} pctLabel={pctLabel} totalMissing={totalMissing} />
 
       <SectionTitle title="FALTANTES" count={totalMissing} accent="neutral" />
@@ -210,7 +201,6 @@ export function CollectionCard({ data, getFlag, baseHeight }: Props) {
         >
           GRÁTIS · SEM CADASTRO · SEM ADS
         </span>
-      </div>
       </div>
     </div>
   )
@@ -635,7 +625,7 @@ function TeamRow({ team, getFlag }: { team: ShareImageTeam; getFlag: FlagResolve
               lineHeight: 1,
             }}
           >
-            −{team.missing.length}
+            -{team.missing.length}
           </span>
         )}
       </div>
@@ -708,12 +698,12 @@ function SpecialBlock({
             style={{
               fontFamily: 'BigShouldersDisplay',
               fontWeight: 900,
-              fontSize: 18,
+              fontSize: 22,
               color: '#000000',
               lineHeight: 1,
             }}
           >
-            ★
+            {special.code}
           </span>
         </div>
         <span
@@ -767,7 +757,7 @@ function SpecialBlock({
             letterSpacing: 2,
           }}
         >
-          ✓ SEÇÃO COMPLETA
+          SEÇÃO COMPLETA
         </span>
       ) : (
         <div

@@ -160,15 +160,18 @@ export default function ColecaoPage() {
   }
 
   const handleOpenShare = () => {
-    // Pré-fetch APENAS do card (Recomendado) pra reduzir carga no cold
-    // start do Edge — disparar os 2 formatos em paralelo duplicava o
-    // tempo de geração (cada invocação Edge fria carregava fontes/flags
-    // por conta própria). Story busca on-demand quando o user clicar.
-    const cardP = requestShareImage(buildImagePayload(), 'card')
+    // Dispara fetch dos 2 formatos em paralelo. Esse onClick é gesture
+    // válido, então quando o user clica em "Card" ou "Stories" no sheet,
+    // o blob normalmente já chegou e o navigator.share roda dentro do
+    // gesture daquele segundo clique. Edge runtime do Vercel escala
+    // cada request em instância isolada, então 2 paralelas != 2x tempo.
+    const payload = buildImagePayload()
+    const cardP = requestShareImage(payload, 'card')
+    const storyP = requestShareImage(payload, 'story')
     cardPromiseRef.current = cardP
-    // Previne unhandled rejection se user escolher outro formato; o erro
-    // ainda é capturado pelo handleShare quando ele faz await dessa promise.
+    storyPromiseRef.current = storyP
     cardP.catch(() => {})
+    storyP.catch(() => {})
     setShareOpen(true)
   }
 
