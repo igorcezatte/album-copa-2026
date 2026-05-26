@@ -61,6 +61,25 @@ async function shareFileOrDownload(file: File, title: string, text?: string): Pr
 const STORY_SHARE_TEXT =
   'Olha minha coleção do álbum Copa 26 🏆 Faça o seu grátis em meualbumcopa26.vercel.app'
 
+// Hash determinístico do payload — usado pra detectar se o card precisa
+// ser regenerado. Cobre os campos que afetam o pixel output: progresso
+// total, completedTeams, totalDuplicates e o detalhe de cada time +
+// duplicata. Ordem-sensível pra estabilidade (payload é construído na
+// mesma ordem todo render).
+function computePayloadHash(p: {
+  collected: number
+  total: number
+  completedTeams: number
+  totalDuplicates: number
+  teams: Array<{ code: string; collected: number; total: number }>
+  duplicates: Array<{ teamCode: string; totalExtras: number; labels: string[] }>
+}): string {
+  const parts = [`${p.collected}/${p.total}/${p.completedTeams}/${p.totalDuplicates}`]
+  for (const t of p.teams) parts.push(`${t.code}:${t.collected}`)
+  for (const d of p.duplicates) parts.push(`${d.teamCode}:${d.totalExtras}:${d.labels.join(',')}`)
+  return parts.join('|')
+}
+
 async function shareTextOrCopy(text: string, title: string): Promise<void> {
   if (navigator.share) {
     try {
@@ -96,15 +115,18 @@ export default function ColecaoPage() {
   const [cardReady, setCardReady] = useState(false)
   const [storyReady, setStoryReady] = useState(false)
   const hydrated = useHydrated()
-  // Refs guardam as Promises dos blobs pré-gerados (gesture A → handleOpenShare).
-  const cardPromiseRef = useRef<Promise<Blob> | null>(null)
-  const storyPromiseRef = useRef<Promise<Blob> | null>(null)
+  // Cache do blob: keyed por hash do payload. Enquanto o hash não muda,
+  // re-aberturas do sheet reusam o blob sem regenerar. Geração proativa
+  // (debounced) preenche o cache antes do user clicar em Compartilhar.
+  const blobCacheRef = useRef<{
+    hash: string
+    cardP: Promise<Blob>
+    storyP: Promise<Blob>
+  } | null>(null)
 
   // Pre-warm do dynamic import('jspdf') logo no mount da página. Sem
   // isso, o primeiro await import('jspdf') no pre-fetch do card baixa
   // ~300KB de chunk e custa 500ms-1s no celular — atrasando o ready.
-  // Com pre-warm, quando o handleOpenShare disparar, jspdf já está em
-  // cache do browser e o pre-fetch fica só com o tempo do servidor.
   useEffect(() => {
     import('jspdf').catch(() => {})
   }, [])
@@ -170,26 +192,28 @@ export default function ColecaoPage() {
     })
   }
 
-  const handleOpenShare = () => {
-    // Reset ready state — começa com botões desabilitados ("Gerando…")
-    // até cada blob chegar. Quando vira ready=true, user pode clicar e
-    // o navigator.share roda IMEDIATO dentro do gesture (sem await que
-    // estoure o gesture iOS Safari).
+  // Gera blobs em background se o cache estiver vazio ou stale (payload
+  // mudou). No-op se cache fresco. Chamado tanto proativamente (debounced
+  // após mudanças nos dados) quanto no handleOpenShare como salvaguarda.
+  const ensureBlobsFresh = (): void => {
+    if (!hydrated) return
+    const payload = buildImagePayload()
+    const hash = computePayloadHash(payload)
+    if (blobCacheRef.current?.hash === hash) {
+      // Cache fresco — promises já existem (resolvidas ou pendentes).
+      // Sincroniza ready state com o estado real da promise (caso esse
+      // render tenha começado com ready=false antes do cache existir).
+      blobCacheRef.current.cardP.then(() => setCardReady(true), () => {})
+      blobCacheRef.current.storyP.then(() => setStoryReady(true), () => {})
+      return
+    }
+    // Stale ou primeiro uso — regera. Edge runtime do Vercel escala cada
+    // request em instância isolada, então 2 paralelas não dobram tempo.
     setCardReady(false)
     setStoryReady(false)
-
-    // Dispara fetch dos 2 formatos em paralelo no gesture A. Edge runtime
-    // do Vercel escala cada request em instância isolada, então 2 paralelas
-    // não dobram tempo total.
-    //
-    // Card já chega como PDF final aqui (PNG → wrap PDF em background).
-    // jspdf foi pre-warmed no useEffect do mount, então o .then é rápido.
-    const payload = buildImagePayload()
     const cardP = requestShareImage(payload, 'card').then(imageBlobToPdfBlob)
     const storyP = requestShareImage(payload, 'story')
-    cardPromiseRef.current = cardP
-    storyPromiseRef.current = storyP
-
+    blobCacheRef.current = { hash, cardP, storyP }
     cardP.then(
       () => setCardReady(true),
       (err) => console.error('[share] card pre-fetch falhou:', err)
@@ -198,7 +222,24 @@ export default function ColecaoPage() {
       () => setStoryReady(true),
       (err) => console.error('[share] story pre-fetch falhou:', err)
     )
+  }
 
+  // Geração proativa: dispara 3s após qualquer mudança nos dados que
+  // afetam o card (figurinhas marcadas, repetidas adicionadas). Quando
+  // o user clica em Compartilhar minutos depois, blob já está pronto.
+  // Debounce evita disparar uma geração nova a cada clique no álbum.
+  useEffect(() => {
+    if (!hydrated) return
+    const handle = setTimeout(() => ensureBlobsFresh(), 3000)
+    return () => clearTimeout(handle)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, totalMissing, totalDuplicates])
+
+  const handleOpenShare = () => {
+    // Safeguard pra caso o debounce ainda não tenha disparado ou o user
+    // clique em Compartilhar antes da geração proativa. ensureBlobsFresh
+    // é no-op se cache fresco (caso comum) ou regera se stale.
+    ensureBlobsFresh()
     setShareOpen(true)
   }
 
@@ -281,15 +322,15 @@ export default function ColecaoPage() {
       }
 
       if (format === 'card') {
-        // cardPromiseRef já chega como PDF (PNG → wrap PDF foi feito no
-        // pre-fetch do gesture A). Aqui só faz await + navigator.share,
-        // zero processamento que pudesse expirar o gesture.
+        // Cache contém o PDF final (PNG → wrap PDF feito proativamente).
+        // Aqui só faz await + navigator.share, zero processamento que
+        // pudesse expirar o user gesture do iOS.
         //
         // Motivo do PDF wrap: WhatsApp recomprime imagens enviadas como
         // foto (JPEG agressivo que arruina texto pequeno), mas NÃO
         // recomprime documentos PDF.
         const pdfPromise =
-          cardPromiseRef.current ??
+          blobCacheRef.current?.cardP ??
           requestShareImage(buildImagePayload(), 'card').then(imageBlobToPdfBlob)
         const pdfBlob = await pdfPromise
         const file = new File([pdfBlob], 'colecao-copa2026-card.pdf', {
@@ -303,7 +344,7 @@ export default function ColecaoPage() {
         // PNG 9:16 direto (sem PDF wrap). Instagram Stories aceita PNG
         // diretamente e nao recomprime quando subido da galeria.
         const blobPromise =
-          storyPromiseRef.current ?? requestShareImage(buildImagePayload(), 'story')
+          blobCacheRef.current?.storyP ?? requestShareImage(buildImagePayload(), 'story')
         const imageBlob = await blobPromise
         const file = new File([imageBlob], 'colecao-copa2026-story.png', {
           type: 'image/png',
