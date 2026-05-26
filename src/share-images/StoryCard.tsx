@@ -4,7 +4,11 @@
 // + grid de bandeiras + footer PROTAGONISTA com URL gigante e QR code.
 //
 // Pipeline: PNG direto (sem PDF wrap) — Stories aceita PNG e não recomprime.
-import type { ShareImagePayload, ShareImageTeam } from '@/utils/shareImage'
+import type {
+  ShareImageDuplicate,
+  ShareImagePayload,
+  ShareImageTeam,
+} from '@/utils/shareImage'
 import type { FlagResolver } from '@/share-images/flags'
 
 const GOLD = '#F5C42E'
@@ -227,14 +231,19 @@ export function StoryCard({ data, getFlag, qrDataUri }: Props) {
         ))}
       </div>
 
-      {/* ─── Footer PROTAGONISTA ────────────────────────────── */}
+      {/* ─── Repetidas pra troca ────────────────────────────── */}
+      {data.duplicates.length > 0 && (
+        <DuplicatesSection duplicates={data.duplicates} totalDuplicates={data.totalDuplicates} />
+      )}
+
+      {/* ─── Footer compacto ────────────────────────────────── */}
       <div
         style={{
           marginTop: 'auto',
           display: 'flex',
           background: GOLD,
-          borderRadius: 24,
-          padding: '30px 32px',
+          borderRadius: 20,
+          padding: '22px 26px',
           alignItems: 'center',
         }}
       >
@@ -243,9 +252,9 @@ export function StoryCard({ data, getFlag, qrDataUri }: Props) {
             style={{
               fontFamily: 'SpaceMono',
               fontWeight: 700,
-              fontSize: 15,
+              fontSize: 13,
               color: 'rgba(0,0,0,0.65)',
-              letterSpacing: 4,
+              letterSpacing: 3.5,
               lineHeight: 1,
             }}
           >
@@ -255,49 +264,24 @@ export function StoryCard({ data, getFlag, qrDataUri }: Props) {
             style={{
               fontFamily: 'BigShouldersDisplay',
               fontWeight: 900,
-              fontSize: 92,
-              color: '#000000',
-              letterSpacing: -2,
-              lineHeight: 0.88,
-              marginTop: 8,
-            }}
-          >
-            MEUALBUM
-          </span>
-          <span
-            style={{
-              fontFamily: 'BigShouldersDisplay',
-              fontWeight: 900,
-              fontSize: 92,
-              color: '#000000',
-              letterSpacing: -2,
-              lineHeight: 0.88,
-            }}
-          >
-            COPA26
-          </span>
-          <span
-            style={{
-              fontFamily: 'BigShouldersDisplay',
-              fontWeight: 900,
               fontSize: 42,
-              color: 'rgba(0,0,0,0.55)',
-              letterSpacing: -0.5,
+              color: '#000000',
+              letterSpacing: -0.8,
               lineHeight: 1,
-              marginTop: 4,
+              marginTop: 6,
             }}
           >
-            .VERCEL.APP
+            MEUALBUMCOPA26.VERCEL.APP
           </span>
           <span
             style={{
               fontFamily: 'SpaceMono',
               fontWeight: 700,
-              fontSize: 13,
-              color: 'rgba(0,0,0,0.7)',
+              fontSize: 12,
+              color: 'rgba(0,0,0,0.55)',
               letterSpacing: 2.5,
               lineHeight: 1,
-              marginTop: 18,
+              marginTop: 10,
             }}
           >
             GRÁTIS · SEM CADASTRO · SEM ADS
@@ -307,22 +291,22 @@ export function StoryCard({ data, getFlag, qrDataUri }: Props) {
         {/* QR code à direita */}
         <div
           style={{
-            marginLeft: 28,
-            width: 300,
-            height: 300,
+            marginLeft: 22,
+            width: 200,
+            height: 200,
             background: '#FFFFFF',
-            borderRadius: 18,
-            padding: 16,
+            borderRadius: 14,
+            padding: 12,
             display: 'flex',
             flexShrink: 0,
-            border: '3px solid #000000',
+            border: '2px solid #000000',
           }}
         >
           <img
             src={qrDataUri}
             alt=""
-            width={268}
-            height={268}
+            width={176}
+            height={176}
             style={{ display: 'flex' }}
           />
         </div>
@@ -504,6 +488,179 @@ function FlagCell({ team, getFlag }: { team: ShareImageTeam; getFlag: FlagResolv
           />
         )}
       </div>
+    </div>
+  )
+}
+
+// ─── Repetidas pra troca ─────────────────────────────────────
+//
+// Lista compacta em 2 colunas. Se houver mais que MAX_DUP_ROWS entradas,
+// a última vira "+N OUTRAS" — objetivo é dar pra um amigo bater o olho
+// e ver o que tem disponível pra trocar, sem virar parede de texto.
+const MAX_DUP_ROWS = 10
+
+function DuplicatesSection({
+  duplicates,
+  totalDuplicates,
+}: {
+  duplicates: ShareImageDuplicate[]
+  totalDuplicates: number
+}) {
+  const hasOverflow = duplicates.length > MAX_DUP_ROWS
+  const visibleCount = hasOverflow ? MAX_DUP_ROWS - 1 : duplicates.length
+  const visible = duplicates.slice(0, visibleCount)
+  const overflow = duplicates.length - visible.length
+  const half = Math.ceil(visible.length / 2)
+  const leftCol = visible.slice(0, half)
+  const rightCol = visible.slice(half)
+
+  return (
+    <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+        }}
+      >
+        <span
+          style={{
+            fontFamily: 'BigShouldersDisplay',
+            fontWeight: 900,
+            fontSize: 22,
+            color: GOLD,
+            letterSpacing: 4,
+            lineHeight: 1,
+          }}
+        >
+          REPETIDAS PRA TROCA
+        </span>
+        <span
+          style={{
+            fontFamily: 'SpaceMono',
+            fontWeight: 700,
+            fontSize: 12,
+            color: 'rgba(255,255,255,0.5)',
+            letterSpacing: 2,
+          }}
+        >
+          {totalDuplicates} TOTAL · {duplicates.length} SELEÇÕES
+        </span>
+      </div>
+
+      <div style={{ marginTop: 12, display: 'flex' }}>
+        <DupColumn rows={leftCol} />
+        <div style={{ flex: 1, marginLeft: 16, display: 'flex', flexDirection: 'column' }}>
+          {rightCol.map((d, i) => (
+            <DupRow key={d.teamCode + ':' + i} dup={d} />
+          ))}
+          {hasOverflow && (
+            <div
+              style={{
+                marginTop: 0,
+                padding: '8px 12px',
+                background: 'rgba(245,196,46,0.10)',
+                border: '1px solid rgba(245,196,46,0.30)',
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: 'BigShouldersDisplay',
+                  fontWeight: 900,
+                  fontSize: 16,
+                  color: GOLD,
+                  letterSpacing: 2,
+                  lineHeight: 1,
+                }}
+              >
+                + {overflow} OUTRAS SELEÇÕES
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DupColumn({ rows }: { rows: ShareImageDuplicate[] }) {
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      {rows.map((d, i) => (
+        <DupRow key={d.teamCode + ':' + i} dup={d} />
+      ))}
+    </div>
+  )
+}
+
+function DupRow({ dup }: { dup: ShareImageDuplicate }) {
+  // Layout horizontal compacto: nome | labels mono | badge +N.
+  // overflow:hidden + nowrap evita que muitas labels deformem o grid.
+  const labelStr = dup.labels.join(' · ')
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        padding: '6px 10px',
+        marginBottom: 6,
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.06)',
+        borderRadius: 8,
+        overflow: 'hidden',
+      }}
+    >
+      <span
+        style={{
+          fontFamily: 'BigShouldersDisplay',
+          fontWeight: 900,
+          fontSize: 17,
+          color: '#FFFFFF',
+          letterSpacing: 0.3,
+          lineHeight: 1,
+          flexShrink: 0,
+        }}
+      >
+        {dup.teamName.toUpperCase()}
+      </span>
+      <span
+        style={{
+          fontFamily: 'SpaceMono',
+          fontWeight: 700,
+          fontSize: 13,
+          color: 'rgba(245,196,46,0.9)',
+          letterSpacing: 0.5,
+          lineHeight: 1,
+          marginLeft: 10,
+          flex: 1,
+          minWidth: 0,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {labelStr}
+      </span>
+      <span
+        style={{
+          fontFamily: 'BigShouldersDisplay',
+          fontWeight: 900,
+          fontSize: 14,
+          color: GOLD,
+          lineHeight: 1,
+          padding: '3px 7px',
+          background: 'rgba(245,196,46,0.12)',
+          borderRadius: 4,
+          marginLeft: 10,
+          flexShrink: 0,
+        }}
+      >
+        +{dup.totalExtras}
+      </span>
     </div>
   )
 }

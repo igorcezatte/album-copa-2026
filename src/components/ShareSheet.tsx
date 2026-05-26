@@ -27,15 +27,15 @@ const OPTIONS: Array<{
   {
     format: 'card',
     icon: '🖼️',
-    label: 'Card',
-    subtitle: 'Imagem em PDF, qualidade máxima',
+    label: 'Coleção detalhada',
+    subtitle: 'Faltantes e repetidas por seleção, perfeito pra trocas',
     highlight: true,
   },
   {
     format: 'story',
     icon: '📱',
-    label: 'Compartilhar Stories',
-    subtitle: 'Imagem 9:16 da sua coleção',
+    label: 'Versão Stories',
+    subtitle: 'Imagem 9:16 pra postar nas redes e exibir sua coleção',
   },
   {
     format: 'list',
