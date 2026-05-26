@@ -9,6 +9,12 @@ interface Props {
   open: boolean
   onClose: () => void
   onShare: (format: ShareFormat) => Promise<void>
+  /** Marcar formatos que precisam de pré-processamento assíncrono antes
+   *  do clique virar share — quando false, botão fica desabilitado com
+   *  label "Gerando…" pra preservar o user gesture do navigator.share.
+   *  iOS Safari estoura gesture se navigator.share for chamado depois
+   *  de um await longo. Formatos não listados são considerados ready=true. */
+  formatReady?: Partial<Record<ShareFormat, boolean>>
 }
 
 const OPTIONS: Array<{
@@ -45,7 +51,7 @@ const OPTIONS: Array<{
   },
 ]
 
-export function ShareSheet({ open, onClose, onShare }: Props) {
+export function ShareSheet({ open, onClose, onShare, formatReady }: Props) {
   const [busy, setBusy] = useState<ShareFormat | null>(null)
   const [mounted, setMounted] = useState(false)
 
@@ -113,12 +119,17 @@ export function ShareSheet({ open, onClose, onShare }: Props) {
         <div className="p-3 space-y-2">
           {OPTIONS.map((opt) => {
             const isBusy = busy === opt.format
+            // Format sem entrada em formatReady → considerado ready (caso
+            // dos formatos síncronos como list/text). Apenas formats em
+            // formatReady com valor false aparecem como "Gerando…".
+            const ready = formatReady?.[opt.format] ?? true
+            const disabled = !!busy || !ready
             return (
               <button
                 key={opt.format}
                 onClick={() => handle(opt.format)}
-                disabled={!!busy}
-                className={`w-full p-4 rounded-2xl flex items-center gap-3 active:scale-[0.98] transition-transform disabled:opacity-50 ${
+                disabled={disabled}
+                className={`w-full p-4 rounded-2xl flex items-center gap-3 active:scale-[0.98] transition-transform disabled:opacity-50 disabled:active:scale-100 ${
                   opt.highlight ? 'corner-cut corner-cut-sm' : ''
                 }`}
                 style={{
@@ -144,10 +155,10 @@ export function ShareSheet({ open, onClose, onShare }: Props) {
                     )}
                   </div>
                   <p className="text-[10px] font-mono tracking-wider text-white/40 leading-tight mt-1">
-                    {opt.subtitle}
+                    {!ready ? 'Gerando imagem…' : opt.subtitle}
                   </p>
                 </div>
-                {isBusy ? (
+                {isBusy || !ready ? (
                   <svg className="w-4 h-4 animate-spin text-white/60" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />

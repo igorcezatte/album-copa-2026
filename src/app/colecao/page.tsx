@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useAlbumStore, stickerId } from '@/store/albumStore'
 import { useHydrated } from '@/hooks/useHydrated'
@@ -87,16 +87,27 @@ export default function ColecaoPage() {
 
   const [view, setView] = useState<View>('faltantes')
   const [shareOpen, setShareOpen] = useState(false)
+  // Tracking explícito do ready de cada formato — o ShareSheet usa isso
+  // pra deixar o botão desabilitado com "Gerando…" até o blob estar
+  // pronto. Isso é a peça-chave pra navigator.share funcionar em iOS:
+  // quando user clica num formato ready, blob está cacheado em memória
+  // e a chamada navigator.share roda imediato dentro do gesture B (sem
+  // await pendente que estoura o limite de gesture).
+  const [cardReady, setCardReady] = useState(false)
+  const [storyReady, setStoryReady] = useState(false)
   const hydrated = useHydrated()
-  // Pré-fetch da imagem do share: o blob começa a ser gerado no momento
-  // em que o user clica em "Compartilhar" (gesture A), e quando ele clica
-  // em "Imagem" depois (gesture B) o blob normalmente ja chegou — assim o
-  // navigator.share roda dentro da janela do gesture B. Sem isso, o await
-  // do fetch do Edge perdia o gesture e disparava NotAllowedError.
-  // Refs separadas pra card (PDF) e story (PNG 9:16) — formatos diferentes
-  // disparam endpoints diferentes.
+  // Refs guardam as Promises dos blobs pré-gerados (gesture A → handleOpenShare).
   const cardPromiseRef = useRef<Promise<Blob> | null>(null)
   const storyPromiseRef = useRef<Promise<Blob> | null>(null)
+
+  // Pre-warm do dynamic import('jspdf') logo no mount da página. Sem
+  // isso, o primeiro await import('jspdf') no pre-fetch do card baixa
+  // ~300KB de chunk e custa 500ms-1s no celular — atrasando o ready.
+  // Com pre-warm, quando o handleOpenShare disparar, jspdf já está em
+  // cache do browser e o pre-fetch fica só com o tempo do servidor.
+  useEffect(() => {
+    import('jspdf').catch(() => {})
+  }, [])
 
   // Computa faltantes
   const teamsWithMissing = TEAMS.map((team) => ({
@@ -160,24 +171,34 @@ export default function ColecaoPage() {
   }
 
   const handleOpenShare = () => {
-    // Dispara fetch dos 2 formatos em paralelo no gesture A. Quando user
-    // clica em "Card" ou "Stories" no sheet (gesture B), o blob ideal
-    // já chegou e navigator.share roda dentro da janela do gesture B.
-    // Edge runtime do Vercel escala cada request em instância isolada,
-    // então 2 paralelas != 2x tempo.
+    // Reset ready state — começa com botões desabilitados ("Gerando…")
+    // até cada blob chegar. Quando vira ready=true, user pode clicar e
+    // o navigator.share roda IMEDIATO dentro do gesture (sem await que
+    // estoure o gesture iOS Safari).
+    setCardReady(false)
+    setStoryReady(false)
+
+    // Dispara fetch dos 2 formatos em paralelo no gesture A. Edge runtime
+    // do Vercel escala cada request em instância isolada, então 2 paralelas
+    // não dobram tempo total.
     //
-    // IMPORTANTE: card já chega como PDF final aqui (PNG → wrap PDF em
-    // background). Mover o imageBlobToPdfBlob pro pre-fetch foi crítico
-    // pra iOS Safari — o dynamic import do jspdf + addImage custam
-    // 500ms-1s no gesture B e fazem o gesture expirar (cai no fallback
-    // de download em vez de abrir o share sheet).
+    // Card já chega como PDF final aqui (PNG → wrap PDF em background).
+    // jspdf foi pre-warmed no useEffect do mount, então o .then é rápido.
     const payload = buildImagePayload()
     const cardP = requestShareImage(payload, 'card').then(imageBlobToPdfBlob)
     const storyP = requestShareImage(payload, 'story')
     cardPromiseRef.current = cardP
     storyPromiseRef.current = storyP
-    cardP.catch(() => {})
-    storyP.catch(() => {})
+
+    cardP.then(
+      () => setCardReady(true),
+      (err) => console.error('[share] card pre-fetch falhou:', err)
+    )
+    storyP.then(
+      () => setStoryReady(true),
+      (err) => console.error('[share] story pre-fetch falhou:', err)
+    )
+
     setShareOpen(true)
   }
 
@@ -381,11 +402,14 @@ export default function ColecaoPage() {
         />
       )}
 
-      {/* ShareSheet — abre com 3 opções de formato */}
+      {/* ShareSheet — abre com 4 opções. formatReady gate os botões que
+          dependem de pre-fetch async (card/story) — list e text são
+          síncronos e cabem direto no gesture do clique. */}
       <ShareSheet
         open={shareOpen}
         onClose={() => setShareOpen(false)}
         onShare={handleShare}
+        formatReady={{ card: cardReady, story: storyReady }}
       />
 
     </div>
