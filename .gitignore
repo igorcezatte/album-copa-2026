@@ -22,6 +22,21 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
+
+# Test coverage
+coverage/
+
+# Vercel CLI (cria .vercel/ com credenciais de deploy)
+.vercel/
+
+# Caches
+.eslintcache
+.swc/
+
+# Temporários
+*.tmp
+*.bak
 
 # System
 .DS_Store
