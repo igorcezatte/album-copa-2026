@@ -10,12 +10,22 @@
 
 import { TEAMS, FWC_SECTION, CC_SECTION } from '@/data/teams'
 
-// Map team/section code → quantidade total de figurinhas
-const TEAM_RANGES: Record<string, number> = (() => {
-  const r: Record<string, number> = {}
-  for (const team of TEAMS) r[team.code] = team.stickers.length
-  r['FWC'] = FWC_SECTION.stickers.length
-  r['CC'] = CC_SECTION.stickers.length
+// Map team/section code → faixa de números válidos. min/max são os números
+// reais que existem no álbum (não 1..count) — FWC começa em 0 (We Are Panini)
+// enquanto times normais começam em 1 (Escudo).
+interface NumberRange {
+  min: number
+  max: number
+}
+const TEAM_RANGES: Record<string, NumberRange> = (() => {
+  const r: Record<string, NumberRange> = {}
+  const fromStickers = (s: { number: string }[]): NumberRange => {
+    const nums = s.map((x) => Number(x.number))
+    return { min: Math.min(...nums), max: Math.max(...nums) }
+  }
+  for (const team of TEAMS) r[team.code] = fromStickers(team.stickers)
+  r['FWC'] = fromStickers(FWC_SECTION.stickers)
+  r['CC'] = fromStickers(CC_SECTION.stickers)
   return r
 })()
 
@@ -89,7 +99,7 @@ const MAX_NAME_TOKENS = (() => {
 })()
 
 export function getMaxNumber(code: string): number | null {
-  return TEAM_RANGES[code] ?? null
+  return TEAM_RANGES[code]?.max ?? null
 }
 
 export type QuickAddItem = {
@@ -110,8 +120,8 @@ export function parseQuickNumbers(
   input: string,
   teamCode: string
 ): ParseResult {
-  const max = TEAM_RANGES[teamCode]
-  if (!max) {
+  const range = TEAM_RANGES[teamCode]
+  if (!range) {
     return { items: [], errors: [`Time "${teamCode}" desconhecido`] }
   }
 
@@ -121,8 +131,8 @@ export function parseQuickNumbers(
 
   for (const token of tokens) {
     const num = parseInt(token, 10)
-    if (num < 1 || num > max) {
-      errors.push(`#${token} não existe (válido: 1–${max})`)
+    if (num < range.min || num > range.max) {
+      errors.push(`#${token} não existe (válido: ${range.min}–${range.max})`)
       continue
     }
     items.push({ teamCode, number: String(num) })
@@ -162,9 +172,9 @@ export function parsePackInput(input: string): ParseResult {
         continue
       }
       const num = parseInt(token, 10)
-      const max = TEAM_RANGES[currentTeam]
-      if (num < 1 || num > max) {
-        errors.push(`${currentTeam} #${token} não existe (válido: 1–${max})`)
+      const range = TEAM_RANGES[currentTeam]
+      if (num < range.min || num > range.max) {
+        errors.push(`${currentTeam} #${token} não existe (válido: ${range.min}–${range.max})`)
         i++
         continue
       }

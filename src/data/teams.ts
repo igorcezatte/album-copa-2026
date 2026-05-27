@@ -575,6 +575,7 @@ export const FWC_SECTION: SpecialSection = {
   name: 'Copa History',
   section: 'fwc',
   stickers: [
+    { number: '0',  label: 'We Are Panini',            type: 'special' },
     { number: '1',  label: 'Emblema Oficial',          type: 'special' },
     { number: '2',  label: 'Emblema Oficial',          type: 'special' },
     { number: '3',  label: 'Mascotes Oficiais',        type: 'special' },

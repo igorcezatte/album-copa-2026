@@ -146,10 +146,10 @@ describe('getGroupProgress', () => {
 })
 
 describe('getTotalProgress', () => {
-  it('starts at 0/993', () => {
+  it('starts at 0/994', () => {
     const p = useAlbumStore.getState().getTotalProgress()
     expect(p.collected).toBe(0)
-    expect(p.total).toBe(993)
+    expect(p.total).toBe(994)
   })
 
   it('counts stickers from FWC section', () => {
@@ -166,9 +166,9 @@ describe('getTotalProgress', () => {
 })
 
 describe('getSectionProgress', () => {
-  it('FWC starts at 0/19', () => {
+  it('FWC starts at 0/20', () => {
     const p = useAlbumStore.getState().getSectionProgress('FWC')
-    expect(p.total).toBe(19)
+    expect(p.total).toBe(20)
     expect(p.collected).toBe(0)
   })
 
