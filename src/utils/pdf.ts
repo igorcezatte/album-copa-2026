@@ -1,4 +1,4 @@
-import { GROUP_COLORS, TEAMS as ALL_TEAMS, FWC_SECTION, CC_SECTION } from '@/data/teams'
+import { GROUP_COLORS, TEAMS as ALL_TEAMS, CC_SECTION } from '@/data/teams'
 
 // ── Tipos v1 (mantidos para compatibilidade) ────────────────────
 
@@ -99,11 +99,14 @@ export function buildFullPdfData(
       const flagCode = teamEntry?.flagCode
       const primaryColor = teamEntry?.primaryColor ?? (teamCode === 'FWC' ? '#f5c42e' : '#e8222a')
 
-      // Resolve display label: for specials use sticker name, for players use number
+      // Display label:
+      // - FWC: código curto (FWC1, FWC2…). Labels longos como "Emblema
+      //   Oficial" / "Itália 1934" estouravam linha no PDF e no share image.
+      // - CC: nome do jogador (Lamine Yamal, etc) — é a info útil pro amigo.
+      // - Times: só o número da figurinha.
       let stickerLabel: string
       if (teamCode === 'FWC') {
-        const def = FWC_SECTION.stickers.find((s) => s.number === number)
-        stickerLabel = def ? def.label : `FWC${number}`
+        stickerLabel = `FWC${number}`
       } else if (teamCode === 'CC') {
         const def = CC_SECTION.stickers.find((s) => s.number === number)
         stickerLabel = def ? def.label : `CC${number}`
@@ -123,8 +126,12 @@ export function buildFullPdfData(
 
     const entries: PdfDupEntry[] = Array.from(entryMap.values()).map(
       ({ teamCode, teamName, flagCode, primaryColor, stickerExtras }) => {
+        // 'x' minúsculo em vez de '×' (U+00D7): o multiplication sign não
+        // está nas fontes bundleadas em src/share-images/fonts-data/, então
+        // Satori cai num glifo de fallback inválido (vira "⌧" no PNG).
+        // Ver feedback_share_satori.md — mesma classe dos ★ ✓ − —.
         const labels = Array.from(stickerExtras.values()).map(({ label, extras }) =>
-          extras > 1 ? `${label} ×${extras}` : label,
+          extras > 1 ? `${label} x${extras}` : label,
         )
         const totalExtras = Array.from(stickerExtras.values()).reduce((s, e) => s + e.extras, 0)
         return { teamCode, teamName, flagCode, primaryColor, labels, totalExtras }
