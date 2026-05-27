@@ -35,7 +35,7 @@ export interface ShareImageDuplicate {
   totalExtras: number
 }
 
-export type ShareImageFormat = 'card' | 'story'
+export type ShareImageFormat = 'card' | 'story' | 'story-trade'
 
 export interface ShareImagePayload {
   collected: number

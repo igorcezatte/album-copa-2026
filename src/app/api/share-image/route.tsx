@@ -5,6 +5,7 @@ import {
   RENDER_SCALE,
 } from '@/share-images/CollectionCard'
 import { StoryCard, STORY_HEIGHT, STORY_WIDTH } from '@/share-images/StoryCard'
+import { StoryCardTrade, STORY_TRADE_HEIGHT, STORY_TRADE_WIDTH } from '@/share-images/StoryCardTrade'
 import { loadShareFonts } from '@/share-images/fonts'
 import { loadFlags, makeFlagResolver } from '@/share-images/flags'
 import { loadQrDataUri } from '@/share-images/qr'
@@ -63,7 +64,9 @@ export async function POST(req: Request): Promise<Response> {
   const tAssets = Date.now()
   const [flagMap, qrDataUri] = await Promise.all([
     loadFlags(collectFlagCodes(body)),
-    format === 'story' ? loadQrDataUri(APP_URL, { margin: 1 }) : Promise.resolve(''),
+    format === 'story' || format === 'story-trade'
+      ? loadQrDataUri(APP_URL, { margin: 1 })
+      : Promise.resolve(''),
   ])
   mark('assets(flags+qr)', tAssets)
   const getFlag = makeFlagResolver(flagMap)
@@ -79,6 +82,11 @@ export async function POST(req: Request): Promise<Response> {
     response = new ImageResponse(
       <StoryCard data={body} getFlag={getFlag} qrDataUri={qrDataUri} />,
       { width: STORY_WIDTH, height: STORY_HEIGHT, fonts: fontDefs, headers: { 'Cache-Control': 'no-store' } }
+    )
+  } else if (format === 'story-trade') {
+    response = new ImageResponse(
+      <StoryCardTrade data={body} getFlag={getFlag} qrDataUri={qrDataUri} />,
+      { width: STORY_TRADE_WIDTH, height: STORY_TRADE_HEIGHT, fonts: fontDefs, headers: { 'Cache-Control': 'no-store' } }
     )
   } else {
     const baseHeight = estimateCollectionHeight(body)

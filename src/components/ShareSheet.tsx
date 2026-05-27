@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
-export type ShareFormat = 'card' | 'story' | 'list' | 'text'
+export type ShareFormat = 'card' | 'story' | 'story-trade' | 'list' | 'text'
 
 interface Props {
   open: boolean
@@ -15,6 +15,8 @@ interface Props {
    *  iOS Safari estoura gesture se navigator.share for chamado depois
    *  de um await longo. Formatos não listados são considerados ready=true. */
   formatReady?: Partial<Record<ShareFormat, boolean>>
+  /** Formatos omitidos da lista (ex: story-trade quando não há repetidas). */
+  hiddenFormats?: ShareFormat[]
 }
 
 const OPTIONS: Array<{
@@ -34,8 +36,14 @@ const OPTIONS: Array<{
   {
     format: 'story',
     icon: '📱',
-    label: 'Versão Stories',
-    subtitle: 'Imagem 9:16 pra postar nas redes e exibir sua coleção',
+    label: 'Stories — Coleção',
+    subtitle: 'Imagem 9:16 com progresso geral e bandeiras de todas as seleções',
+  },
+  {
+    format: 'story-trade',
+    icon: '🔄',
+    label: 'Stories — Repetidas',
+    subtitle: 'Imagem 9:16 com suas repetidas por seleção, perfeito pra trocar',
   },
   {
     format: 'list',
@@ -51,7 +59,7 @@ const OPTIONS: Array<{
   },
 ]
 
-export function ShareSheet({ open, onClose, onShare, formatReady }: Props) {
+export function ShareSheet({ open, onClose, onShare, formatReady, hiddenFormats }: Props) {
   const [busy, setBusy] = useState<ShareFormat | null>(null)
   const [mounted, setMounted] = useState(false)
 
@@ -117,7 +125,7 @@ export function ShareSheet({ open, onClose, onShare, formatReady }: Props) {
 
         {/* Options */}
         <div className="p-3 space-y-2">
-          {OPTIONS.map((opt) => {
+          {OPTIONS.filter((opt) => !hiddenFormats?.includes(opt.format)).map((opt) => {
             const isBusy = busy === opt.format
             // Format sem entrada em formatReady → considerado ready (caso
             // dos formatos síncronos como list/text). Apenas formats em

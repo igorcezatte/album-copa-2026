@@ -114,6 +114,7 @@ export default function ColecaoPage() {
   // await pendente que estoura o limite de gesture).
   const [cardReady, setCardReady] = useState(false)
   const [storyReady, setStoryReady] = useState(false)
+  const [storyTradeReady, setStoryTradeReady] = useState(false)
   const hydrated = useHydrated()
   // Cache do blob: keyed por hash do payload. Enquanto o hash não muda,
   // re-aberturas do sheet reusam o blob sem regenerar. Geração proativa
@@ -122,6 +123,7 @@ export default function ColecaoPage() {
     hash: string
     cardP: Promise<Blob>
     storyP: Promise<Blob>
+    storyTradeP: Promise<Blob>
   } | null>(null)
 
   // Pre-warm do dynamic import('jspdf') logo no mount da página. Sem
@@ -205,15 +207,21 @@ export default function ColecaoPage() {
       // render tenha começado com ready=false antes do cache existir).
       blobCacheRef.current.cardP.then(() => setCardReady(true), () => {})
       blobCacheRef.current.storyP.then(() => setStoryReady(true), () => {})
+      blobCacheRef.current.storyTradeP.then(() => setStoryTradeReady(true), () => {})
       return
     }
     // Stale ou primeiro uso — regera. Edge runtime do Vercel escala cada
     // request em instância isolada, então 2 paralelas não dobram tempo.
     setCardReady(false)
     setStoryReady(false)
+    setStoryTradeReady(false)
     const cardP = requestShareImage(payload, 'card').then(imageBlobToPdfBlob)
     const storyP = requestShareImage(payload, 'story')
-    blobCacheRef.current = { hash, cardP, storyP }
+    const storyTradeP =
+      payload.duplicates.length > 0
+        ? requestShareImage(payload, 'story-trade')
+        : Promise.resolve(new Blob())
+    blobCacheRef.current = { hash, cardP, storyP, storyTradeP }
     cardP.then(
       () => setCardReady(true),
       (err) => console.error('[share] card pre-fetch falhou:', err)
@@ -221,6 +229,10 @@ export default function ColecaoPage() {
     storyP.then(
       () => setStoryReady(true),
       (err) => console.error('[share] story pre-fetch falhou:', err)
+    )
+    storyTradeP.then(
+      () => setStoryTradeReady(true),
+      (err) => console.error('[share] story-trade pre-fetch falhou:', err)
     )
   }
 
@@ -352,6 +364,21 @@ export default function ColecaoPage() {
         await shareFileOrDownload(file, 'Álbum Copa 2026 — Minha coleção', STORY_SHARE_TEXT)
         return
       }
+
+      if (format === 'story-trade') {
+        const blobPromise =
+          blobCacheRef.current?.storyTradeP ?? requestShareImage(buildImagePayload(), 'story-trade')
+        const imageBlob = await blobPromise
+        const file = new File([imageBlob], 'repetidas-copa2026-story.png', {
+          type: 'image/png',
+        })
+        await shareFileOrDownload(
+          file,
+          'Álbum Copa 2026 — Repetidas pra trocar',
+          'Tenho essas figurinhas repetidas do album Copa 26! Me chama pra trocar. meualbumcopa26.vercel.app'
+        )
+        return
+      }
     } catch (err) {
       if (err instanceof Error && err.name !== 'AbortError') console.error(err)
     }
@@ -450,7 +477,8 @@ export default function ColecaoPage() {
         open={shareOpen}
         onClose={() => setShareOpen(false)}
         onShare={handleShare}
-        formatReady={{ card: cardReady, story: storyReady }}
+        formatReady={{ card: cardReady, story: storyReady, 'story-trade': storyTradeReady }}
+        hiddenFormats={duplicates.length === 0 ? ['story-trade'] : undefined}
       />
 
     </div>
