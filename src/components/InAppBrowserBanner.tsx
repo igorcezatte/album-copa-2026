@@ -80,7 +80,7 @@ export function InAppBrowserBanner() {
           <p className="text-[11px] font-display font-bold tracking-wide uppercase text-amber-200 leading-tight">
             Você está no {info.label}
           </p>
-          <p className="text-[11px] text-white/65 leading-snug mt-1">
+          <p className="text-[11px] text-white/70 leading-snug mt-1">
             Pra salvar suas figurinhas, abra esse link no seu navegador (Safari
             ou Chrome). {browserHint}.
           </p>
