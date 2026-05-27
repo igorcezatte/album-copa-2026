@@ -15,13 +15,15 @@ const SECTION_META = {
   FWC: {
     label: 'Páginas Iniciais & História',
     color: '#f5c42e',
-    icon: '🏆',
+    badgeText: 'FWC',
+    badgeTextColor: '#000000',
     description: 'Mascote, troféu, sedes e história da Copa do Mundo',
   },
   CC: {
     label: 'Figurinhas Coca-Cola',
     color: '#e8222a',
-    icon: '🥤',
+    badgeText: 'CC',
+    badgeTextColor: '#FFFFFF',
     description: 'Coleção especial patrocinada pela Coca-Cola',
   },
 }
@@ -54,14 +56,21 @@ export function SpecialPageClient({ sectionCode }: Props) {
 
         <div className="flex items-center gap-4 mb-4">
           <div
-            className="w-14 h-14 flex items-center justify-center text-3xl flex-shrink-0 corner-cut corner-cut-sm"
+            className="w-14 h-14 flex items-center justify-center flex-shrink-0 corner-cut corner-cut-sm"
             style={{
-              background: `${meta.color}20`,
-              border: `1px solid ${meta.color}40`,
-              ['--cut-accent' as string]: `${meta.color}aa`,
+              background: meta.color,
+              ['--cut-accent' as string]: 'rgba(0,0,0,0.35)',
             } as React.CSSProperties}
           >
-            {meta.icon}
+            <span
+              className="font-display font-black tracking-wider leading-none"
+              style={{
+                color: meta.badgeTextColor,
+                fontSize: meta.badgeText.length > 2 ? '1.25rem' : '1.5rem',
+              }}
+            >
+              {meta.badgeText}
+            </span>
           </div>
           <div>
             <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Edição especial · {sectionCode}</p>
