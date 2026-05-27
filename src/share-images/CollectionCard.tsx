@@ -10,6 +10,7 @@ import type {
   ShareImageSpecial,
   ShareImageDuplicate,
 } from '@/utils/shareImage'
+import { SpecialBadge } from '@/share-images/specialBadges'
 
 const GOLD = '#F5C42E'
 const BG = '#06080F'
@@ -683,29 +684,7 @@ function SpecialBlock({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        <div
-          style={{
-            width: 30,
-            height: 30,
-            borderRadius: 8,
-            background: special.color,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <span
-            style={{
-              fontFamily: 'BigShouldersDisplay',
-              fontWeight: 900,
-              fontSize: 22,
-              color: '#000000',
-              lineHeight: 1,
-            }}
-          >
-            {special.code}
-          </span>
-        </div>
+        <SpecialBadge code={special.code} width={42} height={30} />
         <span
           style={{
             marginLeft: 12,
