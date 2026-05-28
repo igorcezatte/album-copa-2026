@@ -1,198 +1,271 @@
-# 🏆 Álbum Copa 2026
+<div align="center">
 
-> Controle digital do álbum de figurinhas Panini da Copa do Mundo FIFA 2026™  
-> **[→ Acesse em meualbumcopa26.vercel.app](https://meualbumcopa26.vercel.app/)**
+# Meu Álbum Copa 2026
 
----
+**Companheiro de bolso pro álbum Panini da Copa do Mundo 2026.**
 
-## Sobre o projeto
+Marque figurinhas, controle repetidas, encontre matches de troca e gere um PDF
+organizado pra levar na banca — direto do celular, sem cadastro, sem ads.
 
-Aplicação web **mobile-first** para colecionadores do álbum Panini Copa 2026. Marque suas figurinhas, acompanhe o progresso por seleção e grupo, gerencie repetidas, encontre possibilidades de troca com amigos e gere um PDF completo para levar à banca.
+[**→ meualbumcopa26.vercel.app**](https://meualbumcopa26.vercel.app/)
 
-O projeto nasceu de uma necessidade real — controlar um álbum físico de forma prática — e evoluiu para uma PWA completa com autenticação, sincronização na nuvem e um sistema de trocas peer-to-peer.
+<br />
 
----
+![Next.js](https://img.shields.io/badge/Next.js-14-000?style=flat-square&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000?style=flat-square&logo=vercel)
+![Tests](https://img.shields.io/badge/tests-359%20passing-15a065?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
 
-## Desenvolvido com Claude Code
-
-Este projeto foi construído majoritariamente através do **[Claude Code](https://claude.ai/code)**, o ambiente de desenvolvimento assistido por IA da Anthropic. As intervenções manuais em código foram pontuais — a grande maioria das decisões arquiteturais, implementações e refatorações foi escrita diretamente pelo assistente a partir de especificações em linguagem natural.
-
-O processo envolveu:
-- Definição de requisitos e regras de negócio em linguagem natural
-- Revisão e validação das implementações geradas
-- Feedback iterativo sobre UX, bugs e ajustes visuais
-- Tomada de decisões de produto (o que implementar, o que descartar)
-
-Isso demonstra como ferramentas de IA generativa podem acelerar significativamente o ciclo de desenvolvimento quando bem direcionadas — não substituindo o raciocínio do desenvolvedor, mas amplificando sua capacidade de entrega.
+</div>
 
 ---
 
-## Funcionalidades
+## Sobre
 
-| Funcionalidade | Descrição |
+Toda Copa do Mundo, a mesma cena: dezenas de figurinhas espalhadas na mesa,
+uma planilha do Excel meio travada, um caderninho mole no fundo da mochila.
+A cada edição, a mesma fricção pra saber o que falta antes de descer pra trocar
+na banca.
+
+Esse app nasceu como uma planilha pessoal e virou um produto: você marca o que
+tem, ele cuida do resto. Funciona 100% offline, sincroniza só se você quiser,
+gera um PDF de uma página pra levar na banca e tem um sistema de trocas P2P que
+encurta a conversa de "tem essa?" pra "manda o teu código".
+
+Sem login obrigatório. Sem ads. Sem nada que você não autorize.
+
+---
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center" width="25%">
+      <img src="./docs/home.png" alt="Home com progresso total e grupos" />
+      <sub><b>Home</b><br/>Progresso e grupos</sub>
+    </td>
+    <td align="center" width="25%">
+      <img src="./docs/selecao.png" alt="Grid de figurinhas de uma seleção" />
+      <sub><b>Seleção</b><br/>Grid de figurinhas</sub>
+    </td>
+    <td align="center" width="25%">
+      <img src="./docs/colecao.png" alt="Faltantes e repetidas" />
+      <sub><b>Coleção</b><br/>Faltantes e repetidas</sub>
+    </td>
+    <td align="center" width="25%">
+      <img src="./docs/stats.png" alt="Estatísticas e ranking de seleções" />
+      <sub><b>Stats</b><br/>Ranking por seleção</sub>
+    </td>
+  </tr>
+</table>
+
+<br />
+
+<div align="center">
+  <img src="./docs/share-card.png" alt="Card de compartilhamento — coleção inteira em uma imagem" width="720" />
+  <br/>
+  <sub><b>Compartilhamento como card</b> — sua coleção inteira em uma imagem, pronta pra mandar no zap</sub>
+</div>
+
+---
+
+## Features
+
+#### Coleção
+- 994 figurinhas mapeadas — 48 seleções × 20 + Copa History (20) + Coca-Cola (14)
+- Toque para coletar, toque longo para gerenciar repetidas
+- Adição rápida em lote pra quando você abre 10 pacotinhos de uma vez
+- Busca instantânea por nome, número, seleção ou código
+
+#### Trocas
+- Sistema P2P por **código compartilhável** — sem precisar dos dois logados
+- Matching automático por categoria (escudos, perfiladas, jogadores, especiais)
+- PDF de uma página organizado por grupo, pronto pra imprimir ou mandar no zap
+
+#### Compartilhamento
+- **Card de coleção** em PNG (embrulhado em PDF pra não ser recomprimido pelo WhatsApp)
+- **Stories 9:16** com QR code pra Instagram e feeds
+- **Stories de repetidas** — só o que você tem em duplicidade, perfeito pra divulgar trocas
+- **Lista** em PDF e mensagem em texto puro
+
+#### Sincronização (opcional)
+- Login com Google ou apelido + senha — escolha sua
+- Sync automático com debounce de 1.5s e proteção contra perda de dados
+- Histórico de versões com restauração visual (últimas 20 alterações)
+- Indicador de status discreto no canto da tela
+
+#### Polimento
+- PWA instalável (manifest + ícones)
+- Confete e fanfarra ao completar uma seleção
+- Sons gerados pela Web Audio API (sem arquivos)
+- Temas claro e escuro com persistência
+- 359 testes cobrindo dados, store, sync e regras de negócio
+
+---
+
+## Diferenciais
+
+**Velocidade primeiro.** O app é uma SPA leve com estado em memória — não tem
+loading entre telas, não tem skeleton piscando. Você toca e a figurinha já
+está marcada.
+
+**Anônimo por padrão.** O login é opcional pra sempre. O app funciona 100% no
+`localStorage` antes de ver um servidor. Quando você decide entrar, seus dados
+sobem; se sair, ficam onde estavam.
+
+**Mobile-first de verdade.** A interface foi desenhada pro polegar primeiro,
+testada em telas pequenas em pé na fila do mercado. Versão desktop em
+andamento, mas mobile não é fallback — é o caso principal.
+
+**Sem fricção pra trocar.** O fluxo P2P resolve o problema do "tem essa?" sem
+precisar dos dois usuários logados. Gera um código, manda, o outro lado abre e
+vê o que combina. Acabou.
+
+**Sync que protege seus dados.** Bug real em prod me ensinou: full-replace
+sem proteção apaga histórico. O sync v2 detecta divergências catastróficas,
+oferece reconciliação visual e nunca apaga sem confirmação. Soft-delete,
+upserts incrementais, retry exponencial. [Detalhes técnicos →](./TECH_DECISIONS.md)
+
+---
+
+## Stack
+
+| Camada | Ferramenta |
 |---|---|
-| 📘 **Álbum completo** | 994 figurinhas — 48 seleções × 20 + FWC (20) + Coca-Cola (14) |
-| ✅ **Marcar figurinhas** | Toque para coletar, toque longo para gerenciar repetidas |
-| 📊 **Estatísticas** | Progresso por grupo, ranking de seleções, visão geral |
-| 🔍 **Busca** | Encontre qualquer jogador, seleção ou número instantaneamente |
-| 📄 **PDF de faltantes** | Uma página organizada por grupo, com bandeiras e repetidas |
-| 🔄 **Sistema de trocas** | Gere um código de troca compartilhável e encontre matches com amigos |
-| 🎴 **Confete + fanfarra** | Celebração ao completar uma seleção |
-| 🔊 **Sons** | Pop ao coletar, fanfarra ao completar (toggle on/off) |
-| 📱 **PWA** | Instalável no celular como app nativo (manifest + ícones) |
-| ☁️ **Sync na nuvem** | Login Google ou apelido+senha (opcional) — dados sincronizados entre dispositivos |
-| 🌗 **Temas** | Pro (escuro) e Light (claro) com persistência local |
-
----
-
-## Stack técnica
-
-### Frontend
-- **[Next.js 14](https://nextjs.org/)** — App Router, SSG/SSR, rotas de API serverless
-- **[TypeScript](https://www.typescriptlang.org/)** — tipagem estática em todo o projeto
-- **[Tailwind CSS](https://tailwindcss.com/)** — estilização utilitária com tema customizado via CSS variables
-- **[Zustand](https://zustand-demo.pmnd.rs/)** — gerenciamento de estado com middleware `persist` (localStorage)
-- **[flag-icons](https://flagicons.lipis.dev/)** — bandeiras SVG estilo Panini
-
-### Backend & Infraestrutura
-- **[Next.js API Routes](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)** — endpoints serverless para sync do álbum
-- **[NextAuth.js](https://next-auth.js.org/)** — autenticação com Google OAuth + Credentials (apelido+senha via `bcryptjs`), JWT strategy
-- **[Supabase](https://supabase.com/)** — PostgreSQL com API REST auto-gerada
-- **[Vercel](https://vercel.com/)** — deploy contínuo a partir do GitHub
-
-### Bibliotecas de produto
-- **[jsPDF](https://parall.ax/products/jspdf)** — geração de PDF client-side com layout customizado
-- **[canvas-confetti](https://www.kirilv.com/canvas-confetti/)** — animação de confete ao completar seleções
-- **[Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)** — sons gerados programaticamente (sem arquivos de áudio)
-
-### Qualidade
-- **[Jest](https://jestjs.io/) + [Testing Library](https://testing-library.com/)** — 172+ testes unitários cobrindo dados, store, utilities e regras de negócio
-- TDD aplicado em todas as features críticas
-
----
-
-## Arquitetura
-
-### Dados do álbum
-Todas as 994 figurinhas são dados estáticos em TypeScript (`src/data/teams.ts`), carregados em build time. A estrutura real do álbum Panini foi mapeada:
-
-```
-N1  → Escudo (badge)
-N2–N12  → 11 jogadores
-N13 → Seleção (foto da equipe — paisagem)
-N14–N20 → 7 jogadores
-```
-
-Fonte: [CNN Brasil — lista completa do álbum](https://www.cnnbrasil.com.br/esportes/futebol/copa-do-mundo/veja-todos-os-jogadores-que-estao-no-album-da-copa-do-mundo-2026/) validada contra o álbum físico.
-
-### Estado do álbum
-O Zustand com `persist` mantém o estado no `localStorage` sob a chave `copa26-album-v1`. A estrutura é um simples `Record<stickerId, { quantity: number }>`, onde `stickerId` segue o formato `{TEAM_CODE}_{NUMBER}` (ex: `BRA_3`, `FWC_1`, `CC_14`).
-
-### Autenticação e sync (opcional)
-Login é **estritamente opcional** — a aplicação funciona 100% sem conta. Dois métodos disponíveis:
-- **Google OAuth** (recomendado) — vincula a uma identidade real; recuperável.
-- **Apelido + senha** — pra quem não tem ou não lembra conta Google. Sem confirmação de email e sem recuperação (perdeu a senha, perdeu o álbum daquela conta). Senha hasheada com `bcryptjs` (10 rounds). Tabela `local_accounts` no Supabase.
-
-Ao fazer login (qualquer método):
-
-1. O hook `useSyncStore` aguarda a hidratação do Zustand (via `persist.onFinishHydration`)
-2. Carrega os dados do Supabase e mescla com o localStorage
-3. Após o primeiro sync, subsequentes carregamentos usam o Supabase como fonte de verdade
-4. Toda mudança de figurinha dispara um debounce de 1.5s que sincroniza via `PUT /api/stickers`
-
-A rota de API faz **full replace** (DELETE + INSERT) para garantir que remoções sejam persistidas corretamente — upsert simples não funcionava para figurinhas descolecionadas.
-
-### Sistema de trocas
-Cada usuário pode gerar um **código de troca** (JSON base64 URL-encoded) contendo suas figurinhas repetidas e faltantes, categorizadas em:
-- `badge` — Escudos N1 (brilhantes)
-- `photo` — Seleções N13 (raras)
-- `player` — Jogadores comuns
-- `special` — Seções FWC e Coca-Cola
-
-O algoritmo de matching compara dois perfis e encontra interseções por categoria, com toggle para aplicar ou ignorar as regras de categoria.
-
-### Geração de PDF
-Layout de uma página com grid 3 colunas sincronizado em **bandas horizontais** — grupos A+E+I, B+F+J, etc. renderizados juntos para garantir alinhamento perfeito independente do número de figurinhas faltantes por time. Bandeiras reais via `flagcdn.com` (fetch paralelo com fallback para bolinha colorida).
+| Framework | [Next.js 14](https://nextjs.org/) (App Router) |
+| Linguagem | [TypeScript](https://www.typescriptlang.org/) |
+| Estilo | [Tailwind CSS](https://tailwindcss.com/) + CSS vars para temas |
+| Estado | [Zustand](https://zustand-demo.pmnd.rs/) com middleware `persist` |
+| Auth | [NextAuth.js](https://next-auth.js.org/) — Google OAuth + Credentials |
+| Banco | [Supabase](https://supabase.com/) — PostgreSQL + RLS |
+| Deploy | [Vercel](https://vercel.com/) |
+| PDF | [jsPDF](https://parall.ax/products/jspdf) |
+| Share images | [next/og](https://vercel.com/docs/functions/og-image-generation) + [Satori](https://github.com/vercel/satori) |
+| Testes | [Jest](https://jestjs.io/) + [Testing Library](https://testing-library.com/) |
 
 ---
 
 ## Rodando localmente
 
 ```bash
-# Clone o repositório
 git clone https://github.com/igorcezatte/album-copa-2026.git
 cd album-copa-2026
-
-# Instale as dependências
 npm install
-
-# Configure as variáveis de ambiente
-cp .env.local.example .env.local
-# Edite .env.local com suas credenciais (Google OAuth + Supabase)
-
-# Rode o servidor de desenvolvimento
 npm run dev
-
-# Rode os testes
-npm test
 ```
 
-O app funciona sem as variáveis de ambiente — login e sync ficam desabilitados, mas o álbum é 100% funcional via localStorage.
+Abra [localhost:3000](http://localhost:3000). O app já funciona sem nenhuma
+variável de ambiente — login e sync ficam desabilitados, mas a coleção é
+100% funcional via `localStorage`.
 
-### Variáveis de ambiente necessárias (opcional)
+#### Variáveis de ambiente (opcional)
 
-| Variável | Onde obter |
-|---|---|
-| `NEXTAUTH_SECRET` | `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"` |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | [console.cloud.google.com](https://console.cloud.google.com) |
-| `NEXT_PUBLIC_SUPABASE_URL` / chaves | [app.supabase.com](https://app.supabase.com) |
+Copie `.env.local.example` para `.env.local` e preencha:
 
-Rode o schema em `supabase/schema.sql` no SQL Editor do Supabase após criar o projeto.
+```env
+NEXTAUTH_SECRET=                # node -e "console.log(crypto.randomBytes(32).toString('base64'))"
+NEXTAUTH_URL=http://localhost:3000
+
+GOOGLE_CLIENT_ID=               # console.cloud.google.com
+GOOGLE_CLIENT_SECRET=
+
+NEXT_PUBLIC_SUPABASE_URL=       # app.supabase.com
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
+Depois rode `supabase/schema.sql` no SQL Editor do Supabase pra criar as tabelas.
+
+#### Comandos úteis
+
+```bash
+npm run dev          # dev server em :3000
+npm run build        # build de produção
+npm test             # 359 testes
+npm run test:watch   # watch mode
+npm run lint         # next lint
+```
 
 ---
 
-## Estrutura do projeto
+## Arquitetura
 
-```
-src/
-├── app/                    # Rotas Next.js (App Router)
-│   ├── api/stickers/       # PUT/GET sync com Supabase
-│   ├── config/             # Configurações e reset do álbum
-│   ├── faltantes/          # Lista de faltantes + PDF + compartilhar
-│   ├── grupo/[id]/         # Seleções por grupo
-│   ├── repetidas/          # Gerenciamento de repetidas
-│   ├── selecao/[code]/     # Grid de figurinhas por seleção
-│   ├── sobre/              # Sobre o app e o desenvolvedor
-│   ├── especial/[code]/    # Seções FWC e Coca-Cola
-│   ├── stats/              # Estatísticas do álbum
-│   └── trocar/             # Sistema de trocas
-├── components/             # Componentes reutilizáveis
-├── data/teams.ts           # 994 figurinhas — dados estáticos
-├── hooks/                  # useHydrated, useSyncStore, useTeamConfetti
-├── lib/                    # auth.ts, supabase.ts
-├── providers/              # AuthProvider, ThemeProvider
-├── store/albumStore.ts     # Zustand store com persist
-└── utils/                  # confetti, migration, pdf, search, share, sound, stats, syncBanner, theme, trade
-```
+#### Dados
+As 994 figurinhas são estáticas em `src/data/teams.ts` — carregadas em
+build-time. Estrutura real do álbum: N1 = escudo, N2–12 = jogadores, N13 =
+perfilada (foto da equipe), N14–20 = jogadores.
+
+#### Estado
+Zustand com `persist` mantém o álbum no `localStorage` sob a chave
+`copa26-album-v1`. A estrutura é um `Record<stickerId, { quantity: number }>`
+onde `stickerId` é `{TEAM_CODE}_{NUMBER}` (ex: `BRA_3`, `FWC_1`, `CC_14`).
+
+#### Sync v2
+Bug em produção (caso real: 220 → 76 figurinhas) levou ao redesenho. Soft
+delete por `removed_at`, upserts incrementais por diff, recusa de shrinkage
+catastrófico via guard 409 e modal de reconciliação. Cliente tem retry
+exponencial, `fetch keepalive` em `pagehide` e auto-recovery em
+`visibilitychange`.
+
+#### Compartilhamento
+PNG renderizado em Edge runtime via Satori (fontes inline base64, bandeiras
+pré-carregadas em paralelo), embrulhado em PDF de uma página com jsPDF antes
+do `navigator.share` — solução pro WhatsApp recomprimir imagens mas passar
+PDFs intactos. Cache por hash do payload + geração proativa debounced fazem
+o UX percebido ficar próximo de zero.
+
+---
+
+## Roadmap
+
+- [x] MVP local (marcar, repetidas, busca, PDF, PWA, temas)
+- [x] Auth opcional (Google + apelido) e sync com proteção v2
+- [x] Sistema de trocas P2P por código compartilhável
+- [x] Compartilhamento como card, stories e PDF
+- [x] Histórico de versões com restauração
+- [ ] **Versão desktop** completa (em andamento — fases 1 e 2 em prod)
+- [ ] Trocas por busca de email/apelido (Supabase, requer ambos logados)
+- [ ] Página `/imprensa` curta pra divulgação em grupos
+- [ ] Open Graph image dinâmica (preview personalizado no WhatsApp)
+- [ ] Otimização de bundle / lazy loading
 
 ---
 
 ## Contribuindo
 
-Sugestões, bugs e melhorias são bem-vindos via [Issues](https://github.com/igorcezatte/album-copa-2026/issues) ou Pull Requests.
+Sugestões, bugs e ideias são muito bem-vindos. Abra uma
+[issue](https://github.com/igorcezatte/album-copa-2026/issues) ou um PR — sem
+template engessado, conta o que quer mudar e por quê.
+
+Se for um PR de código:
+
+- Mantenha o foco mobile-first
+- Português brasileiro no produto
+- `npm test` deve passar antes do push
+- Decisões arquiteturais relevantes vão em [`TECH_DECISIONS.md`](./TECH_DECISIONS.md)
 
 ---
 
-## Desenvolvedor
+## License
 
-**Igor Cezatte** — Engenheiro de Computação apaixonado por tecnologia, construindo projetos nas horas vagas.
+[MIT](./LICENSE) — use, adapte, faça seu próprio.
 
-- GitHub: [@igorcezatte](https://github.com/igorcezatte)
-- App ao vivo: [meualbumcopa26.vercel.app](https://meualbumcopa26.vercel.app/)
+---
 
-Se o app te ajudou e quiser retribuir, me pague um pacotinho de figurinhas ☕  
+<div align="center">
+
+Feito por [Igor Cezatte](https://github.com/igorcezatte) — engenheiro de
+computação, curte figurinhas desde criança.
+
+Se o app te ajudou e quiser retribuir, me paga um pacotinho ⚽
+<br/>
 Chave PIX: `igormcezatte@gmail.com`
 
----
+<br/>
 
-*Desenvolvido com [Claude Code](https://claude.ai/code) — Anthropic*
+<sub><i>Ainda faltam 3 da Argentina.</i></sub>
+
+</div>
