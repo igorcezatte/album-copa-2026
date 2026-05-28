@@ -44,10 +44,29 @@
 /* Bordas */
 [data-theme="light"] .border-white\/5  { border-color: rgb(0 0 0 / 0.07) }
 [data-theme="light"] .border-white\/10 { border-color: rgb(0 0 0 / 0.1) }
+[data-theme="light"] .border-white\/30 { border-color: rgb(0 0 0 / 0.22) }
 
 /* Fundos */
 [data-theme="light"] .bg-white\/5  { background-color: rgb(0 0 0 / 0.04) }
 [data-theme="light"] .bg-white\/10 { background-color: rgb(0 0 0 / 0.07) }
+
+/* Dourado (copa-gold) — #f5c42e no dark vira invisível em fundo claro.
+   Tom bronze (#8b6914) com contraste ~4.84:1 sobre o bg light (#f5f0e8). */
+[data-theme="light"] .text-copa-gold      { color: rgb(139 105 20) }
+[data-theme="light"] .text-copa-gold\/80  { color: rgb(139 105 20 / 0.8) }
+[data-theme="light"] .text-copa-gold\/70  { color: rgb(139 105 20 / 0.7) }
+[data-theme="light"] .text-copa-gold\/60  { color: rgb(139 105 20 / 0.6) }
+[data-theme="light"] .hover\:text-copa-gold:hover     { color: rgb(139 105 20) }
+[data-theme="light"] .hover\:text-copa-gold\/80:hover { color: rgb(139 105 20 / 0.8) }
+
+/* Amber (warnings) — text-amber-200/300/400 sobre fundo amber-500/10
+   ficam ilegíveis no light. Reescreve pra tom mais escuro. */
+[data-theme="light"] .text-amber-200      { color: rgb(120 53 15) }
+[data-theme="light"] .text-amber-300      { color: rgb(146 64 14) }
+[data-theme="light"] .text-amber-400      { color: rgb(180 83 9) }
+[data-theme="light"] .text-amber-300\/80  { color: rgb(146 64 14 / 0.8) }
+[data-theme="light"] .text-amber-400\/70  { color: rgb(180 83 9 / 0.7) }
+[data-theme="light"] .hover\:text-amber-300:hover { color: rgb(146 64 14) }
 
 /* NavBar */
 [data-theme="light"] nav.fixed {
