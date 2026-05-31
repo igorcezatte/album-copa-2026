@@ -5,7 +5,7 @@
 **Companheiro de bolso pro álbum Panini da Copa do Mundo 2026.**
 
 Marque figurinhas, controle repetidas, encontre matches de troca e gere um PDF
-organizado pra levar na banca — direto do celular, sem cadastro, sem ads.
+organizado pra levar na banca, direto do celular, sem cadastro, sem ads.
 
 [**→ meualbumcopa26.vercel.app**](https://meualbumcopa26.vercel.app/)
 
@@ -67,7 +67,7 @@ Sem login obrigatório. Sem ads. Sem nada que você não autorize.
 <div align="center">
   <img src="./docs/share-card.png" alt="Card de compartilhamento — coleção inteira em uma imagem" width="720" />
   <br/>
-  <sub><b>Compartilhamento como card</b> — sua coleção inteira em uma imagem, pronta pra mandar no zap</sub>
+  <sub><b>Compartilhamento como card</b>, sua coleção inteira em uma imagem, pronta pra mandar no zap</sub>
 </div>
 
 ---
@@ -75,24 +75,24 @@ Sem login obrigatório. Sem ads. Sem nada que você não autorize.
 ## Features
 
 #### Coleção
-- 994 figurinhas mapeadas — 48 seleções × 20 + Copa History (20) + Coca-Cola (14)
+- 994 figurinhas mapeadas - 48 seleções × 20 + Copa History (20) + Coca-Cola (14)
 - Toque para coletar, toque longo para gerenciar repetidas
 - Adição rápida em lote pra quando você abre 10 pacotinhos de uma vez
 - Busca instantânea por nome, número, seleção ou código
 
 #### Trocas
-- Sistema P2P por **código compartilhável** — sem precisar dos dois logados
+- Sistema P2P por **código compartilhável**, sem precisar dos dois logados
 - Matching automático por categoria (escudos, perfiladas, jogadores, especiais)
 - PDF de uma página organizado por grupo, pronto pra imprimir ou mandar no zap
 
 #### Compartilhamento
 - **Card de coleção** em PNG (embrulhado em PDF pra não ser recomprimido pelo WhatsApp)
 - **Stories 9:16** com QR code pra Instagram e feeds
-- **Stories de repetidas** — só o que você tem em duplicidade, perfeito pra divulgar trocas
+- **Stories de repetidas**, só o que você tem em duplicidade, perfeito pra divulgar trocas
 - **Lista** em PDF e mensagem em texto puro
 
 #### Sincronização (opcional)
-- Login com Google ou apelido + senha — escolha sua
+- Login com Google ou apelido + senha, escolha sua
 - Sync automático com debounce de 1.5s e proteção contra perda de dados
 - Histórico de versões com restauração visual (últimas 20 alterações)
 - Indicador de status discreto no canto da tela
@@ -108,7 +108,7 @@ Sem login obrigatório. Sem ads. Sem nada que você não autorize.
 
 ## Diferenciais
 
-**Velocidade primeiro.** O app é uma SPA leve com estado em memória — não tem
+**Velocidade primeiro.** O app é uma SPA leve com estado em memória, não tem
 loading entre telas, não tem skeleton piscando. Você toca e a figurinha já
 está marcada.
 
@@ -118,7 +118,7 @@ sobem; se sair, ficam onde estavam.
 
 **Mobile-first de verdade.** A interface foi desenhada pro polegar primeiro,
 testada em telas pequenas em pé na fila do mercado. Versão desktop em
-andamento, mas mobile não é fallback — é o caso principal.
+andamento, mas mobile não é fallback, é o caso principal.
 
 **Sem fricção pra trocar.** O fluxo P2P resolve o problema do "tem essa?" sem
 precisar dos dois usuários logados. Gera um código, manda, o outro lado abre e
@@ -251,21 +251,11 @@ Se for um PR de código:
 
 ## License
 
-[MIT](./LICENSE) — use, adapte, faça seu próprio.
+[MIT](./LICENSE) - use, adapte, faça seu próprio.
 
 ---
 
 <div align="center">
 
-Feito por [Igor Cezatte](https://github.com/igorcezatte) — engenheiro de
-computação, curte figurinhas desde criança.
-
-Se o app te ajudou e quiser retribuir, me paga um pacotinho ⚽
-<br/>
-Chave PIX: `igormcezatte@gmail.com`
-
-<br/>
-
-<sub><i>Ainda faltam 3 da Argentina.</i></sub>
-
-</div>
+Feito por [Igor Cezatte](https://github.com/igorcezatte) - Engenheiro de
+Computação, curte figurinhas desde criança.
