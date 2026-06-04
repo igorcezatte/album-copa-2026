@@ -79,7 +79,13 @@ export async function GET() {
     }
   }
 
-  const totalUsers = byUser.size
+  // totalUsers = união de quem tem figurinha + quem só tem perfil (logou mas
+  // ainda não coletou nada). Mantém consistência com a lista de /admin.
+  const allUserIds = new Set<string>([
+    ...Array.from(byUser.keys()),
+    ...(profilesRes.data ?? []).map((r) => r.user_id as string),
+  ])
+  const totalUsers = allUserIds.size
   const activeUsersLast7d = Array.from(lastSeenByUser.values()).filter(
     (t) => t >= week
   ).length

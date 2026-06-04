@@ -8,12 +8,14 @@ const PAGE_SIZE_DEFAULT = 20
 const PAGE_SIZE_MAX = 100
 
 /**
- * Lista usuários do admin. Fonte de verdade: sticker_entries — qualquer
- * user_id que tenha figurinhas ativas é um "usuário" da aplicação.
+ * Lista usuários do admin. O universo de usuários é a UNIÃO de duas fontes:
+ *  - sticker_entries: qualquer user_id com figurinhas ativas.
+ *  - user_profiles: qualquer um que logou, mesmo sem ter coletado nada.
  *
- * user_profiles é apenas enriquecimento (email/nome/foto). Usuários que
- * logaram antes da migration v3 (ou que nunca voltaram pra disparar o
- * touchProfile) aparecem normalmente, só que sem metadata legível.
+ * Isso garante que um usuário recém-cadastrado (0 figurinhas) ainda apareça,
+ * com stickerCount = 0. user_profiles continua sendo o enriquecimento de
+ * metadata (email/nome/foto). Usuários que logaram antes da migration v3
+ * aparecem só via sticker_entries, sem metadata legível.
  *
  * Search por email/nome só consegue casar quem tem perfil — esperado, já
  * que não há o que pesquisar em usuário sem metadata.
@@ -83,7 +85,10 @@ export async function GET(request: Request) {
     }
   }
 
-  // 2. Enriquece com user_profiles (best effort — tabela pode não existir)
+  // 2. Carrega TODOS os perfis (best effort — tabela pode não existir).
+  // Buscamos todos, não só os que têm figurinhas: um usuário que logou mas
+  // ainda não coletou nada existe apenas aqui e precisa aparecer com 0.
+  // fetchAllRows pagina via .range() pra não truncar em 1000.
   type Profile = {
     email: string | null
     name: string | null
@@ -92,32 +97,46 @@ export async function GET(request: Request) {
     last_seen_at: string
   }
   const profiles = new Map<string, Profile>()
-  const userIds = Array.from(aggregates.keys())
 
-  if (userIds.length > 0) {
-    const { data: profileRows, error: profileErr } = await supabase
+  const { data: profileRows, error: profileErr } = await fetchAllRows<{
+    user_id: string
+    email: string | null
+    name: string | null
+    image_url: string | null
+    first_seen_at: string
+    last_seen_at: string
+  }>(() =>
+    supabase
       .from('user_profiles')
       .select('user_id, email, name, image_url, first_seen_at, last_seen_at')
-      .in('user_id', userIds)
+  )
 
-    if (profileErr && !isMissingTableError(profileErr)) {
-      return Response.json({ error: profileErr.message }, { status: 500 })
-    }
-
-    for (const row of profileRows ?? []) {
-      profiles.set(row.user_id as string, {
-        email: (row.email as string | null) ?? null,
-        name: (row.name as string | null) ?? null,
-        image_url: (row.image_url as string | null) ?? null,
-        first_seen_at: row.first_seen_at as string,
-        last_seen_at: row.last_seen_at as string,
-      })
-    }
+  if (profileErr && !isMissingTableError(profileErr)) {
+    return Response.json(
+      { error: String((profileErr as { message?: string }).message ?? profileErr) },
+      { status: 500 }
+    )
   }
 
-  // 3. Monta summaries, aplica search, ordena, paginha
+  for (const row of profileRows ?? []) {
+    profiles.set(row.user_id as string, {
+      email: (row.email as string | null) ?? null,
+      name: (row.name as string | null) ?? null,
+      image_url: (row.image_url as string | null) ?? null,
+      first_seen_at: row.first_seen_at as string,
+      last_seen_at: row.last_seen_at as string,
+    })
+  }
+
+  // 3. Monta summaries sobre a UNIÃO de (quem tem figurinha) e (quem tem
+  // perfil). Aplica search, ordena, paginha.
+  const allUserIds = new Set<string>([
+    ...Array.from(aggregates.keys()),
+    ...Array.from(profiles.keys()),
+  ])
   const allSummaries: AdminUserSummary[] = []
-  aggregates.forEach((agg, uid) => {
+  allUserIds.forEach((uid) => {
+    const agg = aggregates.get(uid)
     const p = profiles.get(uid)
 
     if (search) {
@@ -131,9 +150,9 @@ export async function GET(request: Request) {
       email: p?.email ?? null,
       name: p?.name ?? null,
       imageUrl: p?.image_url ?? null,
-      firstSeenAt: p?.first_seen_at ?? agg.firstSeen,
-      lastSeenAt: p?.last_seen_at ?? agg.lastSeen,
-      stickerCount: agg.count,
+      firstSeenAt: p?.first_seen_at ?? agg?.firstSeen ?? '',
+      lastSeenAt: p?.last_seen_at ?? agg?.lastSeen ?? '',
+      stickerCount: agg?.count ?? 0,
     })
   })
 
