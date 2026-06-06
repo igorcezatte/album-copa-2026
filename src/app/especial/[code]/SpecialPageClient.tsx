@@ -9,6 +9,7 @@ import { ProgressBar } from '@/components/ProgressBar'
 import { QuickAddSheet } from '@/components/QuickAddSheet'
 import { pct } from '@/lib/utils'
 import { useTeamConfetti } from '@/hooks/useTeamConfetti'
+import { useHydrated } from '@/hooks/useHydrated'
 import { useShallow } from 'zustand/react/shallow'
 
 const SECTION_META = {
@@ -38,6 +39,11 @@ export function SpecialPageClient({ sectionCode }: Props) {
   const progress = useAlbumStore(useShallow((s) => s.getSectionProgress(sectionCode)))
   const percentage = pct(progress.collected, progress.total)
   useTeamConfetti(sectionCode)
+  const hydrated = useHydrated()
+  // Gate de hidratação: 1º render (server + client) mostra 0/0% pra bater com o
+  // HTML do server e evitar mismatch (os StickerCards já gateiam o resto).
+  const collected = hydrated ? progress.collected : 0
+  const displayPct = hydrated ? percentage : 0
   const [quickAddOpen, setQuickAddOpen] = useState(false)
 
   return (
@@ -81,17 +87,17 @@ export function SpecialPageClient({ sectionCode }: Props) {
 
         <div className="flex items-center justify-between mb-1.5">
           <p className="text-[10px] text-white/50 font-mono tracking-widest uppercase">
-            <span className="font-display font-black text-base text-white tracking-tight mr-1">{progress.collected}</span>
+            <span className="font-display font-black text-base text-white tracking-tight mr-1">{collected}</span>
             de {progress.total} figurinhas
           </p>
           <p
             className="font-display font-black text-3xl leading-none tracking-tight"
-            style={{ color: percentage === 100 ? 'var(--copa-field)' : meta.color }}
+            style={{ color: hydrated && percentage === 100 ? 'var(--copa-field)' : meta.color }}
           >
-            {percentage}<span className="text-lg opacity-70">%</span>
+            {displayPct}<span className="text-lg opacity-70">%</span>
           </p>
         </div>
-        <ProgressBar value={progress.collected} total={progress.total} color={meta.color} height="sm" />
+        <ProgressBar key={hydrated ? 1 : 0} value={collected} total={progress.total} color={meta.color} height="sm" />
       </div>
 
       {/* Sticker grid */}

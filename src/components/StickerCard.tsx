@@ -34,6 +34,14 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
   const collected  = quantity > 0
   const duplicates = Math.max(0, quantity - 1)
 
+  // Gate de hidratação no RENDER (não só na interação): antes do Zustand persist
+  // reidratar, o server e o 1º render do cliente devem mostrar tudo como
+  // não-coletado. Sem isso, figurinhas já coletadas renderizam estrutura extra
+  // (glow + badge de repetidas) ausente no HTML do server → mismatch FATAL de
+  // hidratação que faz o React descartar o HTML e remontar a página inteira
+  // (flash visível em devices lentos como iPhone).
+  const visualCollected = hydrated && collected
+
 
   const openCounter = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
@@ -83,20 +91,20 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
       className={cn(
         'relative select-none rounded-xl overflow-hidden cursor-pointer corner-cut corner-cut-sm',
         'transition-all duration-200 ease-out border',
-        collected ? 'border-white/10 shadow-lg' : 'border-white/5',
+        visualCollected ? 'border-white/10 shadow-lg' : 'border-white/5',
         animating && 'animate-pop',
       )}
       style={{
         aspectRatio: '3/4',
-        background: collected
+        background: visualCollected
           ? `linear-gradient(145deg, ${primaryColor}22 0%, var(--copa-card) 60%)`
           : 'var(--copa-card)',
-        ['--cut-accent' as string]: collected ? `${primaryColor}99` : 'rgba(255,255,255,0.12)',
+        ['--cut-accent' as string]: visualCollected ? `${primaryColor}99` : 'rgba(255,255,255,0.12)',
       } as React.CSSProperties}
       onClick={handleCardTap}
     >
       {/* Brilho ao ser coletada */}
-      {collected && (
+      {visualCollected && (
         <div
           className="absolute inset-0 opacity-20 pointer-events-none"
           style={{ background: `radial-gradient(circle at 50% 0%, ${primaryColor}, transparent 70%)` }}
@@ -109,7 +117,7 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
           className="font-display font-black select-none leading-none tracking-tight"
           style={{
             color: primaryColor,
-            opacity: collected ? 0.045 : 0.015,
+            opacity: visualCollected ? 0.045 : 0.015,
             fontSize: '88px',
           }}
         >
@@ -121,11 +129,11 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
       <div className="relative z-10 h-full flex flex-col p-2">
         {/* Linha superior: número + badge de repetidas */}
         <div className="flex items-start justify-between">
-          <div className={cn('text-[10px] font-mono font-bold tracking-wider leading-none', collected ? 'text-white/60' : 'text-white/20')}>
+          <div className={cn('text-[10px] font-mono font-bold tracking-wider leading-none', visualCollected ? 'text-white/60' : 'text-white/20')}>
             {sticker.number.padStart(2, '0')}
           </div>
 
-          {collected && !showCounter && (
+          {visualCollected && !showCounter && (
             <button
               className={cn(
                 'flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-display font-black tracking-wider leading-none',
@@ -145,21 +153,21 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
 
         {/* Número grande central */}
         <div className="flex-1 flex items-center justify-center">
-          <span className={cn('text-4xl font-display font-black tracking-tight transition-all duration-200', collected ? 'text-white' : 'text-white/10')}>
+          <span className={cn('text-4xl font-display font-black tracking-tight transition-all duration-200', visualCollected ? 'text-white' : 'text-white/10')}>
             {sticker.type === 'badge' ? '①' : sticker.number}
           </span>
         </div>
 
         {/* Rodapé: tipo + nome + bandeira */}
         <div>
-          <p className={cn('text-[9px] font-mono font-semibold uppercase tracking-widest truncate mb-0.5', collected ? 'text-white/40' : 'text-white/15')}>
+          <p className={cn('text-[9px] font-mono font-semibold uppercase tracking-widest truncate mb-0.5', visualCollected ? 'text-white/40' : 'text-white/15')}>
             {typeLabel}
           </p>
           <div className="flex items-end justify-between gap-1">
-            <p className={cn('text-[10px] font-display font-bold tracking-wide uppercase truncate flex-1 leading-tight', collected ? 'text-white/90' : 'text-white/20')}>
+            <p className={cn('text-[10px] font-display font-bold tracking-wide uppercase truncate flex-1 leading-tight', visualCollected ? 'text-white/90' : 'text-white/20')}>
               {sticker.label}
             </p>
-            {flagCode && <Flag code={flagCode} size="xs" grayscale={!collected} />}
+            {flagCode && <Flag code={flagCode} size="xs" grayscale={!visualCollected} />}
           </div>
         </div>
       </div>

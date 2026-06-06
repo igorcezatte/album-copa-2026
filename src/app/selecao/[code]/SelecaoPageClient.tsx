@@ -10,6 +10,7 @@ import { ProgressBar } from '@/components/ProgressBar'
 import { QuickAddSheet } from '@/components/QuickAddSheet'
 import { pct } from '@/lib/utils'
 import { useTeamConfetti } from '@/hooks/useTeamConfetti'
+import { useHydrated } from '@/hooks/useHydrated'
 import { useShallow } from 'zustand/react/shallow'
 
 interface Props {
@@ -18,11 +19,18 @@ interface Props {
 
 export function SelecaoPageClient({ teamCode }: Props) {
   useTeamConfetti(teamCode)
+  const hydrated = useHydrated()
   const team = TEAMS.find((t) => t.code === teamCode)!
   const progress = useAlbumStore(useShallow((s) => s.getTeamProgress(team.code)))
   const percentage = pct(progress.collected, progress.total)
   const color = GROUP_COLORS[team.group]
-  const complete = percentage === 100
+  // Gate de hidratação: server e 1º render do cliente mostram 0/0% e sem o
+  // selo de "completo", batendo com o HTML do server. Sem isso, um time já
+  // 100% renderiza o <div> do check (estrutura ausente no server) → mismatch
+  // fatal de hidratação que remonta a página inteira.
+  const collected = hydrated ? progress.collected : 0
+  const displayPct = hydrated ? percentage : 0
+  const complete = hydrated && percentage === 100
   const [quickAddOpen, setQuickAddOpen] = useState(false)
 
   return (
@@ -72,14 +80,14 @@ export function SelecaoPageClient({ teamCode }: Props) {
 
         <div className="flex items-center justify-between mb-1.5">
           <p className="text-[10px] text-white/50 font-mono tracking-widest uppercase">
-            <span className="font-display font-black text-base text-white tracking-tight mr-1">{progress.collected}</span>
+            <span className="font-display font-black text-base text-white tracking-tight mr-1">{collected}</span>
             de {progress.total} figurinhas
           </p>
           <p className="font-display font-black text-3xl leading-none tracking-tight" style={{ color: complete ? 'var(--copa-field)' : color }}>
-            {percentage}<span className="text-lg opacity-70">%</span>
+            {displayPct}<span className="text-lg opacity-70">%</span>
           </p>
         </div>
-        <ProgressBar value={progress.collected} total={progress.total} color={color} height="sm" />
+        <ProgressBar key={hydrated ? 1 : 0} value={collected} total={progress.total} color={color} height="sm" />
       </div>
 
       <div className="px-4">
