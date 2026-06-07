@@ -154,6 +154,22 @@ body::before {
 }
 .animate-fade-in { animation: fade-in 0.3s ease-out both; }
 
+/* ── Momento-conquista "gol de estádio" (TeamCompleteOverlay) ── */
+@keyframes goal-flood {
+  0%   { opacity: 0; transform: scale(0.4); }
+  60%  { opacity: 1; }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes goal-punch {
+  0%   { opacity: 0; transform: scale(0.6); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes stadium-sweep {
+  0%   { transform: translateX(-50%) rotate(-18deg); opacity: 0; }
+  25%  { opacity: 1; }
+  100% { transform: translateX(-50%) rotate(18deg); opacity: 0; }
+}
+
 /* ── Corner-cut: motif geométrico esportivo ──────────────────
    Recorta o canto top-right em diagonal e renderiza uma linha
    fina na cor de acento via ::before. A utility lê duas CSS

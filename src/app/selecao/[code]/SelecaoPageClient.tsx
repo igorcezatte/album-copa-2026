@@ -9,7 +9,7 @@ import { StickerCard } from '@/components/StickerCard'
 import { ProgressBar } from '@/components/ProgressBar'
 import { QuickAddSheet } from '@/components/QuickAddSheet'
 import { pct } from '@/lib/utils'
-import { useTeamConfetti } from '@/hooks/useTeamConfetti'
+import { useTeamCelebration } from '@/hooks/useTeamCelebration'
 import { useHydrated } from '@/hooks/useHydrated'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -18,9 +18,15 @@ interface Props {
 }
 
 export function SelecaoPageClient({ teamCode }: Props) {
-  useTeamConfetti(teamCode)
   const hydrated = useHydrated()
   const team = TEAMS.find((t) => t.code === teamCode)!
+  useTeamCelebration({
+    code: team.code,
+    name: team.name,
+    color: team.primaryColor,
+    flagCode: team.flagCode,
+    isSpecial: false,
+  })
   const progress = useAlbumStore(useShallow((s) => s.getTeamProgress(team.code)))
   const percentage = pct(progress.collected, progress.total)
   const color = GROUP_COLORS[team.group]

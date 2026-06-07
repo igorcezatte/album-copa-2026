@@ -8,7 +8,7 @@ import { StickerCard } from '@/components/StickerCard'
 import { ProgressBar } from '@/components/ProgressBar'
 import { QuickAddSheet } from '@/components/QuickAddSheet'
 import { pct } from '@/lib/utils'
-import { useTeamConfetti } from '@/hooks/useTeamConfetti'
+import { useTeamCelebration } from '@/hooks/useTeamCelebration'
 import { useHydrated } from '@/hooks/useHydrated'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -38,7 +38,13 @@ export function SpecialPageClient({ sectionCode }: Props) {
   const meta = SECTION_META[sectionCode as keyof typeof SECTION_META]
   const progress = useAlbumStore(useShallow((s) => s.getSectionProgress(sectionCode)))
   const percentage = pct(progress.collected, progress.total)
-  useTeamConfetti(sectionCode)
+  useTeamCelebration({
+    code: sectionCode,
+    name: meta.label,
+    color: meta.color,
+    badgeText: meta.badgeText,
+    isSpecial: true,
+  })
   const hydrated = useHydrated()
   // Gate de hidratação: 1º render (server + client) mostra 0/0% pra bater com o
   // HTML do server e evitar mismatch (os StickerCards já gateiam o resto).

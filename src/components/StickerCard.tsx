@@ -6,6 +6,7 @@ import { Flag } from './Flag'
 import { useAlbumStore, stickerId } from '@/store/albumStore'
 import { useHydrated } from '@/hooks/useHydrated'
 import { playCollectSound } from '@/utils/sound'
+import { vibrateTap, vibrateDouble } from '@/utils/haptics'
 import type { StickerDef } from '@/data/teams'
 
 interface StickerCardProps {
@@ -54,6 +55,7 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
     if (!collected) {
       collect(id)
       playCollectSound()
+      vibrateTap()
       setAnimating(true)
       setTimeout(() => setAnimating(false), 300)
       return
@@ -66,6 +68,7 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
     if (!hydrated) return
     addDuplicate(id)
     playCollectSound()
+    vibrateDouble()
   }, [hydrated, addDuplicate, id])
 
   const handleRemove = useCallback((e: React.MouseEvent) => {

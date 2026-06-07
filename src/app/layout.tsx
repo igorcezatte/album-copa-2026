@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { NavBar } from '@/components/NavBar'
 import { DesktopHeader } from '@/components/DesktopHeader'
 import { WelcomeModal } from '@/components/WelcomeModal'
+import { TeamCompleteOverlay } from '@/components/TeamCompleteOverlay'
 import { InAppBrowserBanner } from '@/components/InAppBrowserBanner'
 import { AuthProvider } from '@/providers/AuthProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
@@ -59,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <NavBar />
           </div>
           <WelcomeModal />
+          <TeamCompleteOverlay />
         </AuthProvider>
         </ThemeProvider>
         <Analytics />
