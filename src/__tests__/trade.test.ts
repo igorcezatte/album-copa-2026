@@ -4,8 +4,11 @@ import {
   encodeTradeProfile,
   decodeTradeProfile,
   calculateTrades,
+  applyTradeToAlbum,
+  resolveStickerVisual,
   type TradeProfile,
 } from '@/utils/trade'
+import { tradeTotal } from '@/store/tradeSessionStore'
 
 describe('getStickerCategory', () => {
   it('returns badge for N1 (escudo)', () => {
@@ -135,5 +138,82 @@ describe('calculateTrades', () => {
     const result = calculateTrades(mine, theirs, false)
     expect(result.canOffer.length).toBeGreaterThan(0)
     expect(result.canReceive.length).toBeGreaterThan(0)
+  })
+})
+
+// ── Troca presencial ("Na hora") ────────────────────────────────
+
+describe('applyTradeToAlbum', () => {
+  it('entrega consome extras sem zerar a base que o usuário possui', () => {
+    const stickers = { BRA_2: { quantity: 3 } } // 2 extras
+    const next = applyTradeToAlbum(stickers, { BRA_2: 2 }, {})
+    expect(next.BRA_2.quantity).toBe(1)
+  })
+
+  it('nunca remove a base mesmo se pedir mais do que tem', () => {
+    const next = applyTradeToAlbum({ BRA_2: { quantity: 2 } }, { BRA_2: 5 }, {})
+    expect(next.BRA_2.quantity).toBe(1)
+  })
+
+  it('ignora entrega de figurinha que o usuário não possui', () => {
+    const next = applyTradeToAlbum({}, { ARG_5: 1 }, {})
+    expect(next.ARG_5).toBeUndefined()
+  })
+
+  it('pegar soma à quantidade existente', () => {
+    const next = applyTradeToAlbum({ ARG_5: { quantity: 1 } }, {}, { ARG_5: 2 })
+    expect(next.ARG_5.quantity).toBe(3)
+  })
+
+  it('pegar algo que falta cria a entrada', () => {
+    const next = applyTradeToAlbum({}, {}, { MEX_10: 1 })
+    expect(next.MEX_10.quantity).toBe(1)
+  })
+
+  it('funciona para especiais (FWC/CC)', () => {
+    const next = applyTradeToAlbum({ FWC_3: { quantity: 2 } }, { FWC_3: 1 }, { CC_5: 1 })
+    expect(next.FWC_3.quantity).toBe(1)
+    expect(next.CC_5.quantity).toBe(1)
+  })
+
+  it('não muta o mapa original', () => {
+    const stickers = { BRA_2: { quantity: 3 } }
+    applyTradeToAlbum(stickers, { BRA_2: 1 }, { ARG_5: 1 })
+    expect(stickers.BRA_2.quantity).toBe(3)
+    expect((stickers as Record<string, unknown>).ARG_5).toBeUndefined()
+  })
+
+  it('entrega e pega na mesma operação', () => {
+    const stickers = { BRA_2: { quantity: 3 }, ARG_5: { quantity: 1 } }
+    const next = applyTradeToAlbum(stickers, { BRA_2: 2 }, { MEX_7: 1, ARG_5: 1 })
+    expect(next.BRA_2.quantity).toBe(1)
+    expect(next.MEX_7.quantity).toBe(1)
+    expect(next.ARG_5.quantity).toBe(2)
+  })
+})
+
+describe('tradeTotal', () => {
+  it('soma as quantidades do mapa', () => {
+    expect(tradeTotal({})).toBe(0)
+    expect(tradeTotal({ a: 1, b: 2, c: 3 })).toBe(6)
+  })
+})
+
+describe('resolveStickerVisual', () => {
+  it('resolve especiais com cor e sem bandeira', () => {
+    const fwc = resolveStickerVisual('FWC_3')
+    expect(fwc.isSpecial).toBe(true)
+    expect(fwc.flagCode).toBeUndefined()
+    expect(fwc.color).toBe('#f5c42e')
+
+    const cc = resolveStickerVisual('CC_5')
+    expect(cc.color).toBe('#e8222a')
+  })
+
+  it('resolve time com bandeira e cor', () => {
+    const v = resolveStickerVisual('BRA_2')
+    expect(v.isSpecial).toBe(false)
+    expect(v.flagCode).toBeTruthy()
+    expect(v.number).toBe('2')
   })
 })

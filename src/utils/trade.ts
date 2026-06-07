@@ -159,3 +159,72 @@ export const CATEGORY_META: Record<TradeCategory, { label: string; icon: string;
   player:  { label: 'Jogadores', icon: '👥', rule: 'Jogador por jogador'            },
   special: { label: 'Especiais', icon: '⭐', rule: 'Especial por especial'          },
 }
+
+// ── Visual de uma figurinha (bandeira + cor) ───────────────────
+// Reúso de TEAMS/FWC/CC para renderizar cards de troca. FWC/CC não têm
+// bandeira → cor do app (dourado / vermelho Coca) e selo de letra.
+
+export interface StickerVisual {
+  teamCode: string
+  teamName: string
+  label: string
+  number: string
+  flagCode?: string
+  color: string
+  isSpecial: boolean
+}
+
+export function resolveStickerVisual(stickerId: string): StickerVisual {
+  const [teamCode, ...rest] = stickerId.split('_')
+  const number = rest.join('_')
+
+  if (teamCode === 'FWC') {
+    const s = FWC_SECTION.stickers.find((x) => x.number === number)
+    return { teamCode, teamName: 'Copa History', label: s?.label ?? `FWC ${number}`, number, color: '#f5c42e', isSpecial: true }
+  }
+  if (teamCode === 'CC') {
+    const s = CC_SECTION.stickers.find((x) => x.number === number)
+    return { teamCode, teamName: 'Coca-Cola', label: s?.label ?? `CC ${number}`, number, color: '#e8222a', isSpecial: true }
+  }
+
+  const team = TEAMS.find((t) => t.code === teamCode)
+  const s = team?.stickers.find((x) => x.number === number)
+  return {
+    teamCode,
+    teamName: team?.name ?? teamCode,
+    label: s?.label ?? number,
+    number,
+    flagCode: team?.flagCode,
+    color: team?.primaryColor ?? '#94a3b8',
+    isSpecial: false,
+  }
+}
+
+// ── Aplicar troca ao álbum (reducer puro, testável) ────────────
+// `giving`/`taking`: stickerId → quantidade. Entregar nunca zera a base que o
+// usuário possui (só consome extras); pegar soma. Retorna o novo mapa, sem
+// mutar o original — o albumStore aplica num único set().
+
+export function applyTradeToAlbum(
+  stickers: Record<string, { quantity: number }>,
+  giving: Record<string, number>,
+  taking: Record<string, number>,
+): Record<string, { quantity: number }> {
+  const next: Record<string, { quantity: number }> = {}
+  for (const [id, entry] of Object.entries(stickers)) next[id] = { quantity: entry.quantity }
+
+  for (const [id, n] of Object.entries(giving)) {
+    if (n <= 0) continue
+    const current = next[id]?.quantity ?? 0
+    if (current <= 0) continue // não cria figurinha que o usuário não tem
+    next[id] = { quantity: Math.max(1, current - n) }
+  }
+
+  for (const [id, n] of Object.entries(taking)) {
+    if (n <= 0) continue
+    const current = next[id]?.quantity ?? 0
+    next[id] = { quantity: current + n }
+  }
+
+  return next
+}

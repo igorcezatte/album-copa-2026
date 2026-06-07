@@ -3,6 +3,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { TEAMS, FWC_SECTION, CC_SECTION } from '@/data/teams'
+import { applyTradeToAlbum } from '@/utils/trade'
 
 interface StickerEntry {
   quantity: number
@@ -25,6 +26,7 @@ interface AlbumStore {
   resetAlbum: () => void
   mergeStickers: (remote: Record<string, { quantity: number }>) => void
   replaceStickers: (remote: Record<string, { quantity: number }>) => void
+  applyTrade: (giving: Record<string, number>, taking: Record<string, number>) => void
 }
 
 export const stickerId = (teamCode: string, number: string) => `${teamCode}_${number}`
@@ -167,6 +169,12 @@ export const useAlbumStore = create<AlbumStore>()(
       // Usado após o primeiro sync — Supabase é fonte de verdade.
       replaceStickers(remote) {
         set({ stickers: remote })
+      },
+
+      // Aplica uma troca presencial: entrega consome extras (sem zerar a base),
+      // pega soma. Um único set() pra casar com o debounce do useSyncStore.
+      applyTrade(giving, taking) {
+        set((state) => ({ stickers: applyTradeToAlbum(state.stickers, giving, taking) }))
       },
     }),
     {
