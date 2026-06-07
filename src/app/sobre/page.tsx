@@ -64,59 +64,27 @@ export default function SobrePage() {
             Marque as que você tem, gerencie repetidas, veja o progresso por grupo e compartilhe sua lista atualizada com amigos.
           </p>
           <p className="text-[10px] font-mono tracking-widest uppercase text-white/30">994 figurinhas · 48 seleções · 12 grupos</p>
-        </div>
-      </section>
 
-      {/* Sobre o dev */}
-      <section className="mb-7">
-        <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
-          <span className="font-mono text-white/25" aria-hidden>—</span>
-          Desenvolvedor
-        </h2>
-        <div
-          className="rounded-2xl border border-white/5 p-5 corner-cut corner-cut-sm"
-          style={{
-            background: 'var(--copa-card)',
-            ['--cut-accent' as string]: 'var(--cut-accent-neutral)',
-          } as React.CSSProperties}
-        >
-          <div className="flex items-center gap-4 mb-4">
-            <Image
-              src="https://github.com/igorcezatte.png"
-              alt="Igor Cezatte"
-              width={56}
-              height={56}
-              className="rounded-full ring-2 ring-white/10"
-            />
-            <div>
-              <p className="text-base font-display font-black text-white tracking-tight uppercase leading-none">Igor Cezatte</p>
-              <p className="text-[10px] font-mono tracking-widest uppercase text-white/50 mt-1.5">Engenheiro de Computação</p>
-              <a
-                href="https://github.com/igorcezatte"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[11px] font-mono tracking-wider text-copa-gold mt-1.5 inline-flex items-center gap-1 hover:text-copa-gold/80 transition-colors"
-              >
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-                </svg>
-                github.com/igorcezatte
-              </a>
-            </div>
-          </div>
-          <p className="text-[13px] text-white/60 leading-relaxed">
-            Apaixonado por tecnologia, desenvolvendo projetos nas horas vagas.
-            Este álbum surgiu da necessidade real de controlar figurinhas da Copa,
-            espero que esteja facilitando a sua vida também!
+          {/* Crédito enxuto — uma linha, sem card de portfólio */}
+          <p className="text-[11px] font-mono tracking-wider text-white/40 pt-1">
+            feito por Igor ·{' '}
+            <a
+              href="https://github.com/igorcezatte"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-copa-gold hover:text-copa-gold/80 transition-colors"
+            >
+              github.com/igorcezatte
+            </a>
           </p>
         </div>
       </section>
 
-      {/* PIX */}
+      {/* Apoie o projeto */}
       <section>
         <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
           <span className="font-mono text-white/25" aria-hidden>—</span>
-          Me pague um pacotinho
+          Apoie o projeto
         </h2>
         <div
           className="rounded-2xl border border-white/5 p-5 space-y-4 corner-cut corner-cut-md"
@@ -125,17 +93,10 @@ export default function SobrePage() {
             ['--cut-accent' as string]: 'rgba(245, 196, 46, 0.55)',
           } as React.CSSProperties}
         >
-          <div className="text-[13px] text-white/60 leading-relaxed space-y-2.5">
-            <p>Essa aplicação é totalmente gratuita, use o quanto quiser. 💙</p>
-            <p>
-              Mas, se ela te ajudou e você quiser/puder dar uma força,
-              me pague um pacotinho! 🎴
-            </p>
-            <p>
-              Por aqui eu também ainda tô na luta pra fechar meu álbum. 😅
-              Qualquer figurinha é bem-vinda!
-            </p>
-          </div>
+          <p className="text-[13px] text-white/60 leading-relaxed">
+            O app é gratuito e sempre vai ser. 💙 Se ele te ajudou e você quiser dar uma força,
+            me paga um pacotinho 🎴 — qualquer valor é bem-vindo.
+          </p>
 
           {/* QR Code — clicável: copia o código PIX (Copia e Cola) */}
           <div className="flex flex-col items-center gap-2.5">

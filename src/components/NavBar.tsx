@@ -1,10 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { SearchModal } from './SearchModal'
 
 const tabs = [
   {
@@ -26,6 +24,15 @@ const tabs = [
     ),
   },
   {
+    href: '/trocar',
+    label: 'Trocar',
+    icon: (active: boolean) => (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2.4 : 1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+      </svg>
+    ),
+  },
+  {
     href: '/stats',
     label: 'Stats',
     icon: (active: boolean) => (
@@ -34,72 +41,38 @@ const tabs = [
       </svg>
     ),
   },
-  {
-    href: '/sobre',
-    label: 'Sobre',
-    icon: (active: boolean) => (
-      <svg className="w-5 h-5" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.8}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-      </svg>
-    ),
-  },
 ]
 
 export function NavBar() {
   const path = usePathname()
-  const [searchOpen, setSearchOpen] = useState(false)
 
   return (
-    <>
-      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-copa-bg/90 backdrop-blur-xl pb-safe">
-        <div className="flex justify-around items-center h-16 max-w-lg mx-auto relative">
-          {tabs.map((tab) => {
-            const active = tab.href === '/' ? path === '/' : path.startsWith(tab.href)
-            return (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                className={cn(
-                  'flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-150 relative',
-                  active ? 'text-copa-gold' : 'text-white/30 hover:text-white/50',
-                )}
-              >
-                {/* Marker fino no topo da tab ativa — motif do corner-cut linha */}
-                {active && (
-                  <span
-                    aria-hidden
-                    className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-[2px] bg-copa-gold"
-                  />
-                )}
-                {tab.icon(active)}
-                <span className="text-[10px] font-display font-bold tracking-[0.18em] uppercase">{tab.label}</span>
-              </Link>
-            )
-          })}
-
-          {/* Search button */}
-          <button
-            className={cn(
-              'flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-150 relative',
-              searchOpen ? 'text-copa-gold' : 'text-white/30 hover:text-white/50',
-            )}
-            onClick={() => setSearchOpen(true)}
-            aria-label="Buscar figurinha"
-          >
-            {searchOpen && (
-              <span
-                aria-hidden
-                className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-[2px] bg-copa-gold"
-              />
-            )}
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <span className="text-[10px] font-display font-bold tracking-[0.18em] uppercase">Buscar</span>
-          </button>
-        </div>
-      </nav>
-    </>
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-copa-bg/90 backdrop-blur-xl pb-safe">
+      <div className="flex justify-around items-center h-16 max-w-lg mx-auto relative">
+        {tabs.map((tab) => {
+          const active = tab.href === '/' ? path === '/' : path.startsWith(tab.href)
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={cn(
+                'flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-150 relative',
+                active ? 'text-copa-gold' : 'text-white/30 hover:text-white/50',
+              )}
+            >
+              {/* Marker fino no topo da tab ativa — motif do corner-cut linha */}
+              {active && (
+                <span
+                  aria-hidden
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-[2px] bg-copa-gold"
+                />
+              )}
+              {tab.icon(active)}
+              <span className="text-[10px] font-display font-bold tracking-[0.18em] uppercase">{tab.label}</span>
+            </Link>
+          )
+        })}
+      </div>
+    </nav>
   )
 }

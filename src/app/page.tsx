@@ -13,6 +13,7 @@ import { ExtendedBackupReminder } from '@/components/ExtendedBackupReminder'
 import { SoundToggle } from '@/components/SoundToggle'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { PackAddSheet } from '@/components/PackAddSheet'
+import { SearchModal } from '@/components/SearchModal'
 import { useHydrated } from '@/hooks/useHydrated'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -21,6 +22,7 @@ export default function HomePage() {
   const total = useAlbumStore(useShallow((s) => s.getTotalProgress()))
   const percentage = pct(total.collected, total.total)
   const [packOpen, setPackOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
 
   return (
     <div className="px-4 md:px-6 pt-6 animate-fade-in">
@@ -44,6 +46,15 @@ export default function HomePage() {
             </div>
           </div>
           <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="w-7 h-7 rounded-xl flex items-center justify-center text-white/35 hover:text-white/60 transition-colors active:scale-90"
+              aria-label="Buscar figurinha"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
             <ThemeToggle />
             <SoundToggle />
             <Link href="/config" className="w-7 h-7 rounded-xl flex items-center justify-center text-white/35 hover:text-white/60 transition-colors active:scale-90" aria-label="Configurações">
@@ -159,6 +170,7 @@ export default function HomePage() {
       </div>
 
       <PackAddSheet open={packOpen} onClose={() => setPackOpen(false)} />
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   )
 }

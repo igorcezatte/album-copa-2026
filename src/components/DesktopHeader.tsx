@@ -18,8 +18,8 @@ import { SoundToggle } from './SoundToggle'
 const tabs = [
   { href: '/', label: 'Álbum' },
   { href: '/colecao', label: 'Coleção' },
+  { href: '/trocar', label: 'Trocar' },
   { href: '/stats', label: 'Stats' },
-  { href: '/sobre', label: 'Sobre' },
 ]
 
 export function DesktopHeader() {
