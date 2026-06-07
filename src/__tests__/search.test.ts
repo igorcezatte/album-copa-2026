@@ -76,3 +76,45 @@ describe('searchStickers', () => {
     expect(results.some((r) => r.teamCode === 'CC')).toBe(true)
   })
 })
+
+describe('searchStickers — inteligência de código+número (quick-add)', () => {
+  it('resolve "BRA12" na figurinha exata no topo', () => {
+    const r = searchStickers('BRA12')
+    expect(r[0].teamCode).toBe('BRA')
+    expect(r[0].sticker.number).toBe('12')
+  })
+
+  it('aceita zero à esquerda ("ARG02" → ARG_2)', () => {
+    const r = searchStickers('ARG02')
+    expect(r[0].teamCode).toBe('ARG')
+    expect(r[0].sticker.number).toBe('2')
+  })
+
+  it('aceita espaço entre código e número ("MEX 8")', () => {
+    const r = searchStickers('MEX 8')
+    expect(r[0].teamCode).toBe('MEX')
+    expect(r[0].sticker.number).toBe('8')
+  })
+
+  it('aceita nome em português ("alemanha 5")', () => {
+    const r = searchStickers('alemanha 5')
+    expect(r[0].teamCode).toBe('GER')
+    expect(r[0].sticker.number).toBe('5')
+  })
+
+  it('resolve especiais ("fwc 19", "cc 5")', () => {
+    expect(searchStickers('fwc 19')[0]).toMatchObject({ teamCode: 'FWC', sticker: { number: '19' } })
+    expect(searchStickers('cc 5')[0]).toMatchObject({ teamCode: 'CC', sticker: { number: '5' } })
+  })
+
+  it('não duplica o match exato na busca por substring', () => {
+    const r = searchStickers('BRA12')
+    const bra12 = r.filter((x) => x.teamCode === 'BRA' && x.sticker.number === '12')
+    expect(bra12).toHaveLength(1)
+  })
+
+  it('ignora número fora da faixa do time ("BRA99")', () => {
+    const r = searchStickers('BRA99')
+    expect(r.some((x) => x.teamCode === 'BRA' && x.sticker.number === '99')).toBe(false)
+  })
+})
