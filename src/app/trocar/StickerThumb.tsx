@@ -1,6 +1,7 @@
 'use client'
 
 import { Flag } from '@/components/Flag'
+import { readableTextOn } from '@/lib/teamColor'
 import type { StickerVisual } from '@/utils/trade'
 
 const DIMS = {
@@ -37,7 +38,7 @@ export function StickerThumb({
         height,
         borderRadius: '0 4px 4px 0',
         background: visual.color,
-        color: visual.teamCode === 'CC' ? '#fff' : '#0a0f1c',
+        color: readableTextOn(visual.color),
         fontSize: Math.round(width * 0.34),
         letterSpacing: '0.02em',
         filter: dim ? 'grayscale(1) brightness(0.5)' : undefined,

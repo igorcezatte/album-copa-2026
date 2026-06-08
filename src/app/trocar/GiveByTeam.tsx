@@ -5,6 +5,7 @@ import { TEAMS, GROUPS, GROUP_COLORS } from '@/data/teams'
 import { resolveStickerVisual } from '@/utils/trade'
 import { useTradeSession } from '@/store/tradeSessionStore'
 import { cn } from '@/lib/utils'
+import { readableTextOn, accentOn } from '@/lib/teamColor'
 import { Flag } from '@/components/Flag'
 
 interface Dup {
@@ -33,17 +34,19 @@ function GiveChip({ dup, color }: { dup: Dup; color: string }) {
   const setGiving = useTradeSession((s) => s.setGiving)
   const selected = count > 0
   const multi = dup.available > 1
+  // Texto legível sobre o fundo da cor do time (preto da Alemanha → branco).
+  const fg = readableTextOn(color)
 
   return (
     <button
       onClick={() => setGiving(dup.id, count >= dup.available ? 0 : count + 1)}
       className={cn(
         'relative h-9 min-w-[2.75rem] px-2.5 rounded-lg font-mono font-bold text-[12px] tracking-wide tabular-nums transition-all duration-100 active:scale-90 flex items-center justify-center',
-        selected ? 'text-black' : 'text-white/55',
+        !selected && 'text-white/55',
       )}
       style={
         selected
-          ? { background: color, boxShadow: `0 1px 8px ${color}55` }
+          ? { background: color, color: fg, boxShadow: `0 1px 8px ${color}55` }
           : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }
       }
       aria-label={`Figurinha ${dup.number}${selected ? `, entregando ${count}` : ''}`}
@@ -51,7 +54,7 @@ function GiveChip({ dup, color }: { dup: Dup; color: string }) {
       {dup.number.padStart(2, '0')}
       {multi && (
         <span
-          className={cn('ml-1 text-[9px] font-black', selected ? 'text-black/55' : 'text-white/25')}
+          className={cn('ml-1 text-[9px] font-black', selected ? 'opacity-55' : 'text-white/25')}
         >
           {selected ? `×${count}` : `·${dup.available}`}
         </span>
@@ -88,7 +91,7 @@ function TeamRow({ bucket, defaultOpen }: { bucket: TeamBucket; defaultOpen: boo
               height: 20,
               borderRadius: '0 4px 4px 0',
               background: bucket.color,
-              color: bucket.code === 'CC' ? '#fff' : '#0a0f1c',
+              color: readableTextOn(bucket.color),
               fontSize: 10,
             }}
           >
@@ -102,7 +105,7 @@ function TeamRow({ bucket, defaultOpen }: { bucket: TeamBucket; defaultOpen: boo
         {picked > 0 ? (
           <span
             className="text-[10px] font-mono font-black tracking-wider px-2 py-0.5 rounded-full whitespace-nowrap"
-            style={{ background: `${bucket.color}26`, color: bucket.color }}
+            style={{ background: `${bucket.color}26`, color: accentOn(bucket.color) }}
           >
             {picked} dando
           </span>

@@ -7,6 +7,7 @@ import { useAlbumStore, stickerId } from '@/store/albumStore'
 import { useHydrated } from '@/hooks/useHydrated'
 import { playCollectSound } from '@/utils/sound'
 import { vibrateTap, vibrateDouble } from '@/utils/haptics'
+import { readableTextOn, accentOn } from '@/lib/teamColor'
 import type { StickerDef } from '@/data/teams'
 
 interface StickerCardProps {
@@ -144,7 +145,7 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
               )}
               style={{
                 background: duplicates > 0 ? primaryColor : `${primaryColor}40`,
-                color: duplicates > 0 ? '#fff' : primaryColor,
+                color: duplicates > 0 ? readableTextOn(primaryColor) : accentOn(primaryColor),
               }}
               onClick={openCounter}
               aria-label="Gerenciar repetidas"

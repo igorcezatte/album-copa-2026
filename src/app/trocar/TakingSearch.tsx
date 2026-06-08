@@ -6,6 +6,7 @@ import { resolveStickerVisual } from '@/utils/trade'
 import { useAlbumStore, stickerId } from '@/store/albumStore'
 import { useTradeSession } from '@/store/tradeSessionStore'
 import { cn } from '@/lib/utils'
+import { accentOn } from '@/lib/teamColor'
 import { StickerThumb } from './StickerThumb'
 
 /**
@@ -61,11 +62,11 @@ export function TakingItemCard({ id }: { id: string }) {
         >
           −
         </button>
-        <span className="font-display font-black text-base tracking-tight w-4 text-center" style={{ color: v.color }}>{count}</span>
+        <span className="font-display font-black text-base tracking-tight w-4 text-center" style={{ color: accentOn(v.color) }}>{count}</span>
         <button
           onClick={() => addTaking(id)}
           className="w-7 h-7 rounded-full font-display font-black text-base flex items-center justify-center active:scale-90 transition-transform"
-          style={{ background: `${v.color}33`, color: v.color }}
+          style={{ background: `${v.color}33`, color: accentOn(v.color) }}
           aria-label="Pegar uma a mais"
         >
           ＋
