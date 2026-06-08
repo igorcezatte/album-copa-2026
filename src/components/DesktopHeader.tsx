@@ -19,7 +19,7 @@ const tabs = [
   { href: '/', label: 'Álbum' },
   { href: '/colecao', label: 'Coleção' },
   { href: '/trocar', label: 'Trocar' },
-  { href: '/stats', label: 'Stats' },
+  { href: '/stats', label: 'Estatísticas' },
 ]
 
 export function DesktopHeader() {
