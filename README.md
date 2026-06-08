@@ -102,7 +102,7 @@ Sem login obrigatório. Sem ads. Sem nada que você não autorize.
 - Confete e fanfarra ao completar uma seleção
 - Sons gerados pela Web Audio API (sem arquivos)
 - Temas claro e escuro com persistência
-- 359 testes cobrindo dados, store, sync e regras de negócio
+- 388 testes cobrindo dados, store, sync e regras de negócio
 
 ---
 
@@ -184,7 +184,7 @@ Depois rode `supabase/schema.sql` no SQL Editor do Supabase pra criar as tabelas
 ```bash
 npm run dev          # dev server em :3000
 npm run build        # build de produção
-npm test             # 359 testes
+npm test             # 388 testes
 npm run test:watch   # watch mode
 npm run lint         # next lint
 ```
