@@ -42,7 +42,7 @@ export function SelecaoPageClient({ teamCode }: Props) {
   return (
     <div className="animate-fade-in">
       <div
-        className="px-4 pt-6 pb-5 relative overflow-hidden"
+        className="px-4 md:px-6 pt-6 pb-5 lg:pb-7 relative overflow-hidden"
         style={{ background: `linear-gradient(180deg, ${team.primaryColor}30 0%, var(--copa-bg) 100%)` }}
       >
         <Link
@@ -55,11 +55,11 @@ export function SelecaoPageClient({ teamCode }: Props) {
           Grupo {team.group}
         </Link>
 
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center gap-4 lg:gap-5 mb-4 lg:mb-5">
           <Flag code={team.flagCode} size="lg" />
           <div className="flex-1">
-            <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Seleção · {team.code}</p>
-            <h1 className="text-2xl font-display font-black text-white leading-tight tracking-tight uppercase mt-0.5">{team.name}</h1>
+            <p className="text-[10px] lg:text-[11px] text-white/30 font-mono tracking-[0.22em] uppercase">Seleção · {team.code}</p>
+            <h1 className="text-2xl lg:text-4xl font-display font-black text-white leading-tight tracking-tight uppercase mt-0.5">{team.name}</h1>
             <div className="flex items-center gap-2 mt-1.5">
               <span
                 className="text-[10px] font-display font-bold px-2 py-0.5 rounded-full tracking-widest uppercase"
@@ -84,21 +84,21 @@ export function SelecaoPageClient({ teamCode }: Props) {
           )}
         </div>
 
-        <div className="flex items-center justify-between mb-1.5">
-          <p className="text-[10px] text-white/50 font-mono tracking-widest uppercase">
-            <span className="font-display font-black text-base text-white tracking-tight mr-1">{collected}</span>
+        <div className="flex items-center justify-between mb-1.5 lg:mb-2">
+          <p className="text-[10px] lg:text-xs text-white/50 font-mono tracking-widest uppercase">
+            <span className="font-display font-black text-base lg:text-xl text-white tracking-tight mr-1">{collected}</span>
             de {progress.total} figurinhas
           </p>
-          <p className="font-display font-black text-3xl leading-none tracking-tight" style={{ color: complete ? 'var(--copa-field)' : color }}>
-            {displayPct}<span className="text-lg opacity-70">%</span>
+          <p className="font-display font-black text-3xl lg:text-5xl leading-none tracking-tight" style={{ color: complete ? 'var(--copa-field)' : color }}>
+            {displayPct}<span className="text-lg lg:text-2xl opacity-70">%</span>
           </p>
         </div>
         <ProgressBar key={hydrated ? 1 : 0} value={collected} total={progress.total} color={color} height="sm" />
       </div>
 
-      <div className="px-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] flex items-baseline gap-2">
+      <div className="px-4 md:px-6">
+        <div className="flex items-center justify-between mb-3 lg:mb-4">
+          <h2 className="text-xs lg:text-sm font-display font-bold text-white/40 uppercase tracking-[0.2em] flex items-baseline gap-2">
             <span className="font-mono text-white/25" aria-hidden>—</span>
             Figurinhas
           </h2>
@@ -114,7 +114,7 @@ export function SelecaoPageClient({ teamCode }: Props) {
             Várias
           </button>
         </div>
-        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-3 pb-4">
+        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-3 lg:gap-4 pb-4">
           {team.stickers.map((sticker) => (
             <StickerCard
               key={sticker.number}

@@ -25,7 +25,7 @@ export default function SobrePage() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-10 animate-fade-in max-w-lg mx-auto">
+    <div className="px-4 pt-6 pb-10 animate-fade-in max-w-lg lg:max-w-2xl mx-auto">
       {/* Header */}
       <button
         onClick={() => router.back()}
@@ -36,30 +36,30 @@ export default function SobrePage() {
         </svg>
         Voltar
       </button>
-      <h1 className="text-2xl font-display font-black text-white tracking-tight uppercase leading-none mb-7">Sobre</h1>
+      <h1 className="text-2xl lg:text-4xl font-display font-black text-white tracking-tight uppercase leading-none mb-7 lg:mb-9">Sobre</h1>
 
       {/* Sobre o app */}
-      <section className="mb-7">
+      <section className="mb-7 lg:mb-9">
         <div
-          className="rounded-2xl border border-white/5 p-5 space-y-3 corner-cut corner-cut-md"
+          className="rounded-2xl border border-white/5 p-5 lg:p-7 space-y-3 lg:space-y-4 corner-cut corner-cut-md"
           style={{
             background: 'var(--copa-card)',
             ['--cut-accent' as string]: 'rgba(245, 196, 46, 0.45)',
           } as React.CSSProperties}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 lg:gap-4">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center"
               style={{ background: 'linear-gradient(135deg, #f5c42e, #d4a017)' }}
             >
-              <span className="text-black font-display font-black text-sm tracking-tight">26</span>
+              <span className="text-black font-display font-black text-sm lg:text-base tracking-tight">26</span>
             </div>
             <div>
-              <p className="text-base font-display font-black text-white tracking-tight uppercase leading-none">Álbum Copa 2026</p>
-              <p className="text-[10px] font-mono tracking-widest uppercase text-white/40 mt-1">FIFA World Cup</p>
+              <p className="text-base lg:text-xl font-display font-black text-white tracking-tight uppercase leading-none">Álbum Copa 2026</p>
+              <p className="text-[10px] lg:text-[11px] font-mono tracking-widest uppercase text-white/40 mt-1">FIFA World Cup</p>
             </div>
           </div>
-          <p className="text-[13px] text-white/60 leading-relaxed">
+          <p className="text-[13px] lg:text-sm text-white/60 leading-relaxed">
             Controle suas figurinhas da Copa do Mundo 2026 de forma simples e divertida.
             Marque as que você tem, gerencie repetidas, veja o progresso por grupo e compartilhe sua lista atualizada com amigos.
           </p>
@@ -82,18 +82,18 @@ export default function SobrePage() {
 
       {/* Apoie o projeto */}
       <section>
-        <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
+        <h2 className="text-xs lg:text-sm font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
           <span className="font-mono text-white/25" aria-hidden>—</span>
           Apoie o projeto
         </h2>
         <div
-          className="rounded-2xl border border-white/5 p-5 space-y-4 corner-cut corner-cut-md"
+          className="rounded-2xl border border-white/5 p-5 lg:p-7 space-y-4 lg:space-y-5 corner-cut corner-cut-md"
           style={{
             background: 'var(--copa-card)',
             ['--cut-accent' as string]: 'rgba(245, 196, 46, 0.55)',
           } as React.CSSProperties}
         >
-          <p className="text-[13px] text-white/60 leading-relaxed">
+          <p className="text-[13px] lg:text-sm text-white/60 leading-relaxed">
             O app é gratuito e sempre vai ser. 💙 Se ele te ajudou e você quiser dar uma força,
             me paga um pacotinho 🎴 — qualquer valor é bem-vindo.
           </p>

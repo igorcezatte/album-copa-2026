@@ -64,7 +64,7 @@ export default function ConfigPage() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-8 animate-fade-in max-w-lg mx-auto">
+    <div className="px-4 pt-6 pb-8 animate-fade-in max-w-lg lg:max-w-2xl mx-auto">
       {/* Header */}
       <button
         onClick={() => router.back()}
@@ -76,12 +76,12 @@ export default function ConfigPage() {
         Voltar
       </button>
       <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Ajustes</p>
-      <h1 className="text-2xl font-display font-black text-white tracking-tight uppercase leading-none mt-0.5">Configurações</h1>
+      <h1 className="text-2xl lg:text-4xl font-display font-black text-white tracking-tight uppercase leading-none mt-0.5">Configurações</h1>
       <p className="text-[11px] text-white/40 font-mono tracking-wider mt-1 mb-7">Conta · álbum · backup · histórico</p>
 
       {/* Conta */}
       <section className="mb-6">
-        <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
+        <h2 className="text-xs lg:text-sm font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
           <span className="font-mono text-white/25" aria-hidden>—</span>
           Conta
         </h2>
@@ -181,7 +181,7 @@ export default function ConfigPage() {
 
       {/* Álbum */}
       <section className="mb-6">
-        <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
+        <h2 className="text-xs lg:text-sm font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
           <span className="font-mono text-white/25" aria-hidden>—</span>
           Álbum
         </h2>
@@ -199,7 +199,7 @@ export default function ConfigPage() {
                 {hydrated ? `${total.collected} de ${total.total} figurinhas` : '—'}
               </p>
             </div>
-            <span className="text-3xl font-display font-black tracking-tight leading-none text-copa-gold">
+            <span className="text-3xl lg:text-4xl font-display font-black tracking-tight leading-none text-copa-gold">
               {hydrated ? `${pct(total.collected, total.total)}%` : '—'}
             </span>
           </div>
@@ -278,7 +278,7 @@ export default function ConfigPage() {
 
       {/* Sobre */}
       <section>
-        <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
+        <h2 className="text-xs lg:text-sm font-display font-bold text-white/40 uppercase tracking-[0.2em] mb-3 flex items-baseline gap-2">
           <span className="font-mono text-white/25" aria-hidden>—</span>
           Sobre
         </h2>

@@ -56,7 +56,7 @@ export function SpecialPageClient({ sectionCode }: Props) {
     <div className="animate-fade-in">
       {/* Header */}
       <div
-        className="px-4 pt-6 pb-5 relative overflow-hidden"
+        className="px-4 md:px-6 pt-6 pb-5 lg:pb-7 relative overflow-hidden"
         style={{ background: `linear-gradient(180deg, ${meta.color}25 0%, var(--copa-bg) 100%)` }}
       >
         <Link href="/" className="flex items-center gap-1 text-white/40 text-[11px] font-mono font-bold tracking-widest uppercase mb-4 -ml-1 hover:text-white/60 transition-colors">
@@ -66,9 +66,9 @@ export function SpecialPageClient({ sectionCode }: Props) {
           Álbum
         </Link>
 
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center gap-4 lg:gap-5 mb-4 lg:mb-5">
           <div
-            className="w-14 h-14 flex items-center justify-center flex-shrink-0 corner-cut corner-cut-sm"
+            className="w-14 h-14 lg:w-16 lg:h-16 flex items-center justify-center flex-shrink-0 corner-cut corner-cut-sm"
             style={{
               background: meta.color,
               ['--cut-accent' as string]: 'rgba(0,0,0,0.35)',
@@ -85,31 +85,31 @@ export function SpecialPageClient({ sectionCode }: Props) {
             </span>
           </div>
           <div>
-            <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Edição especial · {sectionCode}</p>
-            <h1 className="text-xl font-display font-black text-white leading-tight tracking-tight uppercase mt-0.5">{meta.label}</h1>
-            <p className="text-[11px] text-white/40 font-mono tracking-wider mt-1">{meta.description}</p>
+            <p className="text-[10px] lg:text-[11px] text-white/30 font-mono tracking-[0.22em] uppercase">Edição especial · {sectionCode}</p>
+            <h1 className="text-xl lg:text-3xl font-display font-black text-white leading-tight tracking-tight uppercase mt-0.5">{meta.label}</h1>
+            <p className="text-[11px] lg:text-sm text-white/40 font-mono tracking-wider mt-1">{meta.description}</p>
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-1.5">
-          <p className="text-[10px] text-white/50 font-mono tracking-widest uppercase">
-            <span className="font-display font-black text-base text-white tracking-tight mr-1">{collected}</span>
+        <div className="flex items-center justify-between mb-1.5 lg:mb-2">
+          <p className="text-[10px] lg:text-xs text-white/50 font-mono tracking-widest uppercase">
+            <span className="font-display font-black text-base lg:text-xl text-white tracking-tight mr-1">{collected}</span>
             de {progress.total} figurinhas
           </p>
           <p
-            className="font-display font-black text-3xl leading-none tracking-tight"
+            className="font-display font-black text-3xl lg:text-5xl leading-none tracking-tight"
             style={{ color: hydrated && percentage === 100 ? 'var(--copa-field)' : meta.color }}
           >
-            {displayPct}<span className="text-lg opacity-70">%</span>
+            {displayPct}<span className="text-lg lg:text-2xl opacity-70">%</span>
           </p>
         </div>
         <ProgressBar key={hydrated ? 1 : 0} value={collected} total={progress.total} color={meta.color} height="sm" />
       </div>
 
       {/* Sticker grid */}
-      <div className="px-4 mt-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-display font-bold text-white/40 uppercase tracking-[0.2em] flex items-baseline gap-2">
+      <div className="px-4 md:px-6 mt-4">
+        <div className="flex items-center justify-between mb-3 lg:mb-4">
+          <h2 className="text-xs lg:text-sm font-display font-bold text-white/40 uppercase tracking-[0.2em] flex items-baseline gap-2">
             <span className="font-mono text-white/25" aria-hidden>—</span>
             Figurinhas
           </h2>
@@ -126,7 +126,7 @@ export function SpecialPageClient({ sectionCode }: Props) {
           </button>
         </div>
 
-        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-3 pb-4">
+        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-3 lg:gap-4 pb-4">
           {section.stickers.map((sticker) => (
             <StickerCard
               key={sticker.number}
