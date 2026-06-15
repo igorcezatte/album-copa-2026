@@ -389,8 +389,8 @@ export default function ColecaoPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-2 gap-2">
         <div className="min-w-0">
-          <h1 className="text-xl font-display font-black text-white tracking-wide uppercase">Minha coleção</h1>
-          <p className="text-[11px] text-white/40 mt-1 font-mono tracking-wider">
+          <h1 className="text-xl lg:text-3xl font-display font-black text-white tracking-wide uppercase">Minha coleção</h1>
+          <p className="text-[11px] lg:text-sm text-white/40 mt-1 font-mono tracking-wider">
             {displayMissing} faltando · {displayDuplicates} repetida
             {displayDuplicates !== 1 ? 's' : ''}
           </p>
@@ -503,21 +503,21 @@ function FaltantesView({ teamsWithMissing, totalMissing }: FaltantesViewProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
       {teamsWithMissing.map(({ team, missing }) => (
         <Link key={team.code} href={`/selecao/${team.code.toLowerCase()}`} className="block group">
           <div
-            className="rounded-2xl p-4 border border-white/5 active:scale-95 group-hover:-translate-y-0.5 transition-all duration-200 corner-cut corner-cut-md"
+            className="rounded-2xl p-4 lg:p-5 border border-white/5 active:scale-95 card-hover transition-all duration-200 corner-cut corner-cut-md"
             style={{
               background: `linear-gradient(145deg, ${team.primaryColor}15 0%, var(--copa-card) 100%)`,
               ['--cut-accent' as string]: `${GROUP_COLORS[team.group]}a0`,
             } as React.CSSProperties}
           >
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3 mb-2 lg:mb-3">
               <Flag code={team.flagCode} size="sm" />
               <div className="flex-1">
-                <p className="font-display font-bold text-sm text-white tracking-wide uppercase">{team.name}</p>
-                <p className="text-[10px] text-white/40 mt-0.5">
+                <p className="font-display font-bold text-sm lg:text-base text-white tracking-wide uppercase">{team.name}</p>
+                <p className="text-[10px] lg:text-[11px] text-white/40 mt-0.5">
                   <span
                     className="font-mono tracking-widest uppercase"
                     style={{ color: GROUP_COLORS[team.group] }}
@@ -587,7 +587,7 @@ function RepetidasView({
           Trocar
         </Link>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 lg:gap-3">
         {duplicates.map(({ id, quantity }) => {
           const { team, sticker, number } = getStickerInfo(id)
           if (!team || !sticker) return null
@@ -595,7 +595,7 @@ function RepetidasView({
           return (
             <div
               key={id}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 border border-white/5 corner-cut corner-cut-md"
+              className="flex items-center gap-3 rounded-xl px-4 py-3 lg:px-5 lg:py-3.5 border border-white/5 corner-cut corner-cut-md"
               style={{
                 background: `linear-gradient(145deg, ${team.primaryColor}10 0%, var(--copa-card) 100%)`,
                 ['--cut-accent' as string]: `${team.primaryColor}90`,
@@ -603,10 +603,10 @@ function RepetidasView({
             >
               <Flag code={team.flagCode} size="xs" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-display font-bold text-white truncate tracking-wide uppercase">
+                <p className="text-sm lg:text-base font-display font-bold text-white truncate tracking-wide uppercase">
                   {sticker.label}
                 </p>
-                <p className="text-[10px] text-white/40 font-mono tracking-wider mt-0.5">
+                <p className="text-[10px] lg:text-[11px] text-white/40 font-mono tracking-wider mt-0.5">
                   {team.name} · #{number.padStart(2, '0')}
                 </p>
               </div>

@@ -94,7 +94,7 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
     <div
       className={cn(
         'relative select-none rounded-xl overflow-hidden cursor-pointer corner-cut corner-cut-sm',
-        'transition-all duration-200 ease-out border',
+        'transition-all duration-200 ease-out border tile-hover',
         visualCollected ? 'border-white/10 shadow-lg' : 'border-white/5',
         animating && 'animate-pop',
       )}
@@ -130,10 +130,10 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
       </div>
 
       {/* Conteúdo principal */}
-      <div className="relative z-10 h-full flex flex-col p-2">
+      <div className="relative z-10 h-full flex flex-col p-2 lg:p-2.5">
         {/* Linha superior: número + badge de repetidas */}
         <div className="flex items-start justify-between">
-          <div className={cn('text-[10px] font-mono font-bold tracking-wider leading-none', visualCollected ? 'text-white/60' : 'text-white/20')}>
+          <div className={cn('text-[10px] lg:text-xs font-mono font-bold tracking-wider leading-none', visualCollected ? 'text-white/60' : 'text-white/20')}>
             {sticker.number.padStart(2, '0')}
           </div>
 
@@ -157,18 +157,18 @@ export function StickerCard({ teamCode, flagCode, primaryColor, sticker }: Stick
 
         {/* Número grande central */}
         <div className="flex-1 flex items-center justify-center">
-          <span className={cn('text-4xl font-display font-black tracking-tight transition-all duration-200', visualCollected ? 'text-white' : 'text-white/10')}>
+          <span className={cn('text-4xl lg:text-5xl font-display font-black tracking-tight transition-all duration-200', visualCollected ? 'text-white' : 'text-white/10')}>
             {sticker.type === 'badge' ? '①' : sticker.number}
           </span>
         </div>
 
         {/* Rodapé: tipo + nome + bandeira */}
         <div>
-          <p className={cn('text-[9px] font-mono font-semibold uppercase tracking-widest truncate mb-0.5', visualCollected ? 'text-white/40' : 'text-white/15')}>
+          <p className={cn('text-[9px] lg:text-[10px] font-mono font-semibold uppercase tracking-widest truncate mb-0.5', visualCollected ? 'text-white/40' : 'text-white/15')}>
             {typeLabel}
           </p>
           <div className="flex items-end justify-between gap-1">
-            <p className={cn('text-[10px] font-display font-bold tracking-wide uppercase truncate flex-1 leading-tight', visualCollected ? 'text-white/90' : 'text-white/20')}>
+            <p className={cn('text-[10px] lg:text-[11px] font-display font-bold tracking-wide uppercase truncate flex-1 leading-tight', visualCollected ? 'text-white/90' : 'text-white/20')}>
               {sticker.label}
             </p>
             {flagCode && <Flag code={flagCode} size="xs" grayscale={!visualCollected} />}

@@ -215,3 +215,58 @@ body::before {
 .corner-cut-lg {
   --cut-size: 22px;
 }
+
+/* ── Hover premium pra desktop ────────────────────────────────
+   Só ativa em telas grandes (≥1024px) COM ponteiro fino (mouse).
+   Toque nunca dispara → mobile/tablet-touch ficam 100% intactos.
+   Usa filter: drop-shadow (segue o clip-path do corner-cut e NÃO
+   conflita com box-shadow inline dos cards completos). O lift é
+   desligado em prefers-reduced-motion; a sombra (não é movimento)
+   permanece como feedback discreto. */
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  .card-hover {
+    transition:
+      transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+      filter 0.28s ease,
+      border-color 0.28s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-4px);
+    filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.45));
+  }
+  /* Press: feedback ao clicar (vem depois do :hover pra vencer no cascade) */
+  .card-hover:active {
+    transform: translateY(-1px) scale(0.992);
+  }
+
+  /* Variante leve pra grids densos (figurinhas) — lift menor, sombra suave */
+  .tile-hover {
+    transition:
+      transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+      filter 0.2s ease;
+  }
+  .tile-hover:hover {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.4));
+  }
+
+  /* Brilho dourado sutil pra botões/ações de destaque.
+     drop-shadow (não box-shadow) porque o corner-cut usa clip-path,
+     que recortaria um box-shadow. */
+  .glow-hover {
+    transition:
+      filter 0.25s ease,
+      background-color 0.2s ease;
+  }
+  .glow-hover:hover {
+    filter: drop-shadow(0 6px 16px rgba(245, 196, 46, 0.28));
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .card-hover:hover,
+  .card-hover:active,
+  .tile-hover:hover {
+    transform: none;
+  }
+}

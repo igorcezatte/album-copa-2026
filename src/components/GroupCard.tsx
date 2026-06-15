@@ -25,7 +25,7 @@ export function GroupCard({ group }: GroupCardProps) {
   return (
     <Link href={`/grupo/${group.toLowerCase()}`} className="block group">
       <div
-        className="rounded-2xl p-3.5 border border-white/5 active:scale-95 group-hover:-translate-y-0.5 transition-all duration-200 corner-cut corner-cut-md"
+        className="rounded-2xl p-3.5 lg:p-5 border border-white/5 active:scale-95 card-hover transition-all duration-200 corner-cut corner-cut-md"
         style={{
           background: `linear-gradient(145deg, ${color}18 0%, var(--copa-card) 100%)`,
           boxShadow: percentage === 100 ? `0 0 20px ${color}40` : undefined,
@@ -33,10 +33,10 @@ export function GroupCard({ group }: GroupCardProps) {
         } as React.CSSProperties}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mb-3 lg:mb-4">
+          <div className="flex items-center gap-2 lg:gap-2.5">
             <div
-              className="w-7 h-7 flex items-center justify-center font-display font-black text-base leading-none corner-cut corner-cut-sm"
+              className="w-7 h-7 lg:w-9 lg:h-9 flex items-center justify-center font-display font-black text-base lg:text-xl leading-none corner-cut corner-cut-sm"
               style={{
                 background: color,
                 color: '#000',
@@ -46,10 +46,10 @@ export function GroupCard({ group }: GroupCardProps) {
             >
               {group}
             </div>
-            <span className="text-[10px] text-white/50 font-mono tracking-[0.2em] uppercase">Grupo</span>
+            <span className="text-[10px] lg:text-[11px] text-white/50 font-mono tracking-[0.2em] uppercase">Grupo</span>
           </div>
           <span
-            className="text-base font-display font-black tracking-tight transition-all duration-300"
+            className="text-base lg:text-2xl font-display font-black tracking-tight transition-all duration-300"
             style={{ color: percentage === 100 ? 'var(--copa-field)' : color }}
           >
             {hydrated ? `${percentage}%` : '—'}
@@ -57,7 +57,7 @@ export function GroupCard({ group }: GroupCardProps) {
         </div>
 
         {/* Team flags */}
-        <div className="flex gap-1.5 mb-3">
+        <div className="flex gap-1.5 mb-3 lg:mb-4">
           {teams.map((team) => (
             <Flag key={team.code} code={team.flagCode} size="xs" />
           ))}
@@ -67,7 +67,7 @@ export function GroupCard({ group }: GroupCardProps) {
         <ProgressBar key={hydrated ? 1 : 0} value={progress.collected} total={progress.total} color={color} height="xs" />
 
         {/* Count */}
-        <p className="text-right text-[10px] text-white/30 mt-1 font-mono tracking-wider">
+        <p className="text-right text-[10px] lg:text-xs text-white/30 mt-1 lg:mt-1.5 font-mono tracking-wider">
           {hydrated ? `${progress.collected}/${progress.total}` : '—'}
         </p>
       </div>

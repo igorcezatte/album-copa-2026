@@ -54,7 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* Sem min-h aqui: o body já garante altura mínima e empilhar dois
               min-h causa "espaço fantasma" no fim da página em mobile. */}
           <DesktopHeader />
-          <div className="max-w-lg md:max-w-6xl mx-auto relative md:pt-16">
+          <div className="max-w-lg md:max-w-6xl xl:max-w-7xl mx-auto relative md:pt-16 lg:pt-20">
             <InAppBrowserBanner />
             <main className="pb-20 md:pb-12">{children}</main>
             <NavBar />

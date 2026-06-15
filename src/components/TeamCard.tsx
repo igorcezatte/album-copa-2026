@@ -22,7 +22,7 @@ export function TeamCard({ team }: TeamCardProps) {
   return (
     <Link href={`/selecao/${team.code.toLowerCase()}`} className="block group">
       <div
-        className="rounded-2xl p-4 border active:scale-95 group-hover:-translate-y-0.5 transition-all duration-200 corner-cut corner-cut-md"
+        className="rounded-2xl p-4 lg:p-5 border active:scale-95 card-hover transition-all duration-200 corner-cut corner-cut-md"
         style={{
           background: `linear-gradient(145deg, ${team.primaryColor}20 0%, var(--copa-card) 80%)`,
           borderColor: complete ? `${color}60` : 'rgba(255,255,255,0.05)',
@@ -30,30 +30,30 @@ export function TeamCard({ team }: TeamCardProps) {
           ['--cut-accent' as string]: `${color}b3`,
         } as React.CSSProperties}
       >
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3 mb-3 lg:mb-4">
           <Flag code={team.flagCode} size="md" />
           <div className="flex-1 min-w-0">
-            <p className="font-display font-bold text-sm text-white truncate tracking-wide uppercase">{team.name}</p>
-            <p className="text-[10px] text-white/40 font-mono tracking-widest">{team.code}</p>
+            <p className="font-display font-bold text-sm lg:text-base text-white truncate tracking-wide uppercase">{team.name}</p>
+            <p className="text-[10px] lg:text-xs text-white/40 font-mono tracking-widest">{team.code}</p>
           </div>
           {complete ? (
             <div
-              className="w-6 h-6 flex items-center justify-center flex-shrink-0"
+              className="w-6 h-6 lg:w-7 lg:h-7 flex items-center justify-center flex-shrink-0"
               style={{ background: 'var(--copa-field)' }}
             >
-              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <svg className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
           ) : (
-            <span className="text-base font-display font-black tracking-tight" style={{ color }}>
+            <span className="text-base lg:text-xl font-display font-black tracking-tight" style={{ color }}>
               {percentage}%
             </span>
           )}
         </div>
 
         <ProgressBar value={progress.collected} total={progress.total} color={color} height="xs" />
-        <p className="text-right text-[10px] text-white/30 mt-1 font-mono tracking-wider">
+        <p className="text-right text-[10px] lg:text-xs text-white/30 mt-1 lg:mt-1.5 font-mono tracking-wider">
           {progress.collected}/{progress.total}
         </p>
       </div>

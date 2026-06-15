@@ -27,8 +27,8 @@ function TrocarHub() {
         Coleção
       </Link>
 
-      <p className="text-[10px] text-white/30 font-mono tracking-[0.22em] uppercase">Trocar figurinhas</p>
-      <h1 className="text-2xl font-display font-black text-white tracking-tight uppercase leading-none mt-0.5 mb-4">
+      <p className="text-[10px] lg:text-[11px] text-white/30 font-mono tracking-[0.22em] uppercase">Trocar figurinhas</p>
+      <h1 className="text-2xl lg:text-4xl font-display font-black text-white tracking-tight uppercase leading-none mt-0.5 mb-4 lg:mb-6">
         Trocar
       </h1>
 

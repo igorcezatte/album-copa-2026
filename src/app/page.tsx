@@ -67,9 +67,11 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* Hero: progresso + atalho lado a lado no desktop (lg+) */}
+        <div className="mt-4 lg:grid lg:grid-cols-3 lg:gap-5 lg:items-stretch">
         {/* Total progress */}
         <div
-          className="mt-4 rounded-2xl border border-white/5 p-4 relative overflow-hidden corner-cut corner-cut-lg"
+          className="rounded-2xl border border-white/5 p-4 lg:p-6 xl:p-7 relative overflow-hidden corner-cut corner-cut-lg lg:col-span-2 mb-4 lg:mb-0 flex flex-col lg:justify-center"
           style={{
             background: 'linear-gradient(145deg, #f5c42e18 0%, var(--copa-card) 100%)',
             ['--cut-accent' as string]: 'rgba(245, 196, 46, 0.55)',
@@ -78,25 +80,25 @@ export default function HomePage() {
           {/* Marca d'água sutil "2026" como motif tipográfico */}
           <span
             aria-hidden
-            className="absolute -right-2 -bottom-6 font-display font-black text-[120px] leading-none text-white/[0.025] select-none pointer-events-none"
+            className="absolute -right-2 -bottom-6 lg:-bottom-10 font-display font-black text-[120px] lg:text-[200px] leading-none text-white/[0.025] select-none pointer-events-none"
           >
             26
           </span>
 
-          <div className="flex items-end justify-between mb-2 relative">
+          <div className="flex items-end justify-between mb-2 lg:mb-3 relative">
             <div>
-              <p className="text-4xl font-display font-black text-white leading-none tracking-tight animate-count-up">
+              <p className="text-4xl lg:text-6xl xl:text-7xl font-display font-black text-white leading-none tracking-tight animate-count-up">
                 {hydrated ? total.collected : '—'}
-                <span className="text-white/30 text-xl font-mono font-normal ml-0.5">/{total.total}</span>
+                <span className="text-white/30 text-xl lg:text-3xl font-mono font-normal ml-0.5">/{total.total}</span>
               </p>
-              <p className="text-[10px] text-white/40 mt-1 font-mono tracking-[0.2em] uppercase">figurinhas coletadas</p>
+              <p className="text-[10px] lg:text-xs text-white/40 mt-1 lg:mt-2 font-mono tracking-[0.2em] uppercase">figurinhas coletadas</p>
             </div>
             <p
-              className="text-5xl font-display font-black text-copa-gold leading-none tracking-tight animate-count-up"
+              className="text-5xl lg:text-7xl font-display font-black text-copa-gold leading-none tracking-tight animate-count-up"
               style={{ animationDelay: '0.05s' }}
             >
               {hydrated ? `${percentage}` : '—'}
-              <span className="text-2xl text-copa-gold/60 ml-0.5">%</span>
+              <span className="text-2xl lg:text-4xl text-copa-gold/60 ml-0.5">%</span>
             </p>
           </div>
           <ProgressBar
@@ -108,7 +110,7 @@ export default function HomePage() {
           />
 
           {/* Mini stats com separadores tipográficos */}
-          <div className="flex items-center gap-1 mt-3 relative">
+          <div className="flex items-center gap-1 mt-3 lg:mt-5 relative">
             <StatPill label="Faltam" value={hydrated ? total.total - total.collected : '—'} />
             <span className="font-mono text-white/15 text-xs pb-2" aria-hidden>·</span>
             <StatPill label="Grupos" value="12" />
@@ -116,34 +118,35 @@ export default function HomePage() {
             <StatPill label="Seleções" value="48" />
           </div>
         </div>
-      </div>
 
-      {/* Entrada rápida global — várias figurinhas de uma vez */}
-      <button
-        onClick={() => setPackOpen(true)}
-        className="w-full mb-5 rounded-2xl border border-copa-gold/30 bg-copa-gold/10 px-4 py-3 flex items-center gap-3 active:scale-[0.98] hover:bg-copa-gold/15 transition-all corner-cut corner-cut-md"
-        style={{ ['--cut-accent' as string]: 'rgba(245, 196, 46, 0.7)' } as React.CSSProperties}
-        aria-label="Adicionar várias figurinhas rapidamente"
-      >
-        <span className="text-xl">⚡</span>
-        <div className="flex-1 min-w-0 text-left">
-          <p className="text-[13px] font-display font-bold text-white leading-tight tracking-wide uppercase">
-            Adicionar rapidamente
-          </p>
-          <p className="text-[10px] text-white/50 leading-tight mt-0.5">
-            Várias figurinhas de uma vez
-          </p>
-        </div>
-        <svg
-          className="w-4 h-4 text-copa-gold flex-shrink-0"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2.5}
+        {/* Entrada rápida global — vira painel lateral no desktop */}
+        <button
+          onClick={() => setPackOpen(true)}
+          className="w-full rounded-2xl border border-copa-gold/30 bg-copa-gold/10 px-4 py-3 lg:px-5 lg:py-5 flex items-center gap-3 lg:flex-col lg:items-start lg:justify-center lg:gap-3 active:scale-[0.98] hover:bg-copa-gold/15 transition-all corner-cut corner-cut-md lg:col-span-1 glow-hover"
+          style={{ ['--cut-accent' as string]: 'rgba(245, 196, 46, 0.7)' } as React.CSSProperties}
+          aria-label="Adicionar várias figurinhas rapidamente"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
+          <span className="text-xl lg:text-4xl">⚡</span>
+          <div className="flex-1 min-w-0 text-left">
+            <p className="text-[13px] lg:text-lg font-display font-bold text-white leading-tight tracking-wide uppercase">
+              Adicionar rapidamente
+            </p>
+            <p className="text-[10px] lg:text-[13px] text-white/50 leading-tight mt-0.5 lg:mt-1">
+              Várias figurinhas de uma vez
+            </p>
+          </div>
+          <svg
+            className="w-4 h-4 text-copa-gold flex-shrink-0 lg:hidden"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+        </div>
+      </div>
 
       {/* Sync banner — aparece após 5+ figurinhas pra anônimos */}
       <SyncBanner />
@@ -153,7 +156,7 @@ export default function HomePage() {
       {/* Groups grid */}
       <div className="mb-4">
         <SectionTitle title="Grupos" count="12" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-4 lg:gap-5">
           {GROUPS.map((group) => (
             <GroupCard key={group} group={group} />
           ))}
@@ -163,7 +166,7 @@ export default function HomePage() {
       {/* Special sections */}
       <div className="mb-4">
         <SectionTitle title="Especiais" count="02" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:gap-5">
           <SpecialCard code="FWC" label="Copa History" total={19} />
           <SpecialCard code="CC" label="Coca-Cola" total={14} />
         </div>
@@ -178,8 +181,8 @@ export default function HomePage() {
 function StatPill({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="flex-1 text-center">
-      <p className="text-base font-display font-black text-white leading-none tracking-tight">{value}</p>
-      <p className="text-[9px] text-white/30 font-mono tracking-widest uppercase mt-0.5">{label}</p>
+      <p className="text-base lg:text-2xl font-display font-black text-white leading-none tracking-tight">{value}</p>
+      <p className="text-[9px] lg:text-[10px] text-white/30 font-mono tracking-widest uppercase mt-0.5 lg:mt-1">{label}</p>
     </div>
   )
 }
@@ -189,7 +192,7 @@ function SectionTitle({ title, count }: { title: string; count: string }) {
     <div className="flex items-end justify-between mb-3 pl-0.5">
       <div className="flex items-baseline gap-2">
         <span className="font-mono text-[10px] text-white/25 tracking-widest" aria-hidden>—</span>
-        <h2 className="text-sm font-display font-bold text-white/70 uppercase tracking-[0.2em]">
+        <h2 className="text-sm lg:text-base font-display font-bold text-white/70 uppercase tracking-[0.2em]">
           {title}
         </h2>
       </div>
@@ -215,22 +218,22 @@ function SpecialCard({ code, label, total }: { code: string; label: string; tota
   return (
     <Link href={`/especial/${code.toLowerCase()}`} className="block group">
       <div
-        className="rounded-2xl p-3.5 border active:scale-95 group-hover:-translate-y-0.5 transition-all duration-200 corner-cut corner-cut-md"
+        className="rounded-2xl p-3.5 lg:p-5 border active:scale-95 card-hover transition-all duration-200 corner-cut corner-cut-md"
         style={{
           background: `linear-gradient(145deg, ${meta.color}15 0%, var(--copa-card) 100%)`,
           borderColor: percentage === 100 ? `${meta.color}60` : 'rgba(255,255,255,0.05)',
           ['--cut-accent' as string]: `${meta.color}aa`,
         } as React.CSSProperties}
       >
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-base leading-none">{meta.icon}</span>
-          <span className="text-xs font-display font-bold text-white/70 flex-1 truncate uppercase tracking-wide">{label}</span>
-          <span className="text-sm font-display font-black tracking-tight" style={{ color: meta.color }}>
+        <div className="flex items-center gap-2 mb-2 lg:mb-3">
+          <span className="text-base lg:text-xl leading-none">{meta.icon}</span>
+          <span className="text-xs lg:text-sm font-display font-bold text-white/70 flex-1 truncate uppercase tracking-wide">{label}</span>
+          <span className="text-sm lg:text-xl font-display font-black tracking-tight" style={{ color: meta.color }}>
             {hydrated ? `${percentage}%` : '—'}
           </span>
         </div>
         <ProgressBar key={hydrated ? 1 : 0} value={progress.collected} total={progress.total} color={meta.color} height="xs" />
-        <p className="text-right text-[10px] text-white/20 mt-1 font-mono tracking-wider">
+        <p className="text-right text-[10px] lg:text-xs text-white/20 mt-1 lg:mt-1.5 font-mono tracking-wider">
           {hydrated ? `${progress.collected}/${total}` : '—'}
         </p>
       </div>
